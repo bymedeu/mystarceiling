@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300"
+     viewBox="0 0 1200 300" role="img"
+     aria-label="MyStarCeiling under an animated starry sky">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.92" y2="1">
+      <stop offset="0" stop-color="#020617"/>
+      <stop offset="0.48" stop-color="#111038"/>
+      <stop offset="0.78" stop-color="#172554"/>
+      <stop offset="1" stop-color="#312e81"/>
+    </linearGradient>
+    <radialGradient id="horizon" cx="50%" cy="100%" r="70%">
+      <stop offset="0" stop-color="#818cf8" stop-opacity=".35"/>
+      <stop offset=".42" stop-color="#4338ca" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="galaxy" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#e0e7ff" stop-opacity=".28"/>
+      <stop offset=".35" stop-color="#a5b4fc" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="star">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset=".2" stop-color="#fff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#bfdbfe" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="meteor" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".75" stop-color="#dbeafe" stop-opacity=".65"/>
+      <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <filter id="blur18">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="titleGlow">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feFlood flood-color="#818cf8" flood-opacity=".45"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <mask id="softBand">
+      <rect width="1200" height="300" fill="#000"/>
+      <ellipse cx="600" cy="148" rx="590" ry="52" fill="#fff"
+               transform="rotate(-13 600 148)" filter="url(#blur18)"/>
+    </mask>
+  </defs>
+
+  <rect width="1200" height="300" rx="18" fill="url(#sky)"/>
+  <rect width="1200" height="300" rx="18" fill="url(#horizon)"/>
+
+  <g mask="url(#softBand)" opacity=".72">
+    <ellipse cx="600" cy="145" rx="620" ry="54" fill="url(#galaxy)"
+             transform="rotate(-13 600 145)">
+      <animate attributeName="opacity" values=".5;.78;.5" dur="12s"
+               repeatCount="indefinite"/>
+    </ellipse>
+  </g>
+
+  <g fill="#e0e7ff">
+    <circle cx="51" cy="67" r="1.2"/>
+    <circle cx="91" cy="218" r=".8"/>
+    <circle cx="126" cy="114" r="1.1"/>
+    <circle cx="164" cy="43" r=".7"/>
+    <circle cx="196" cy="178" r="1.3"/>
+    <circle cx="227" cy="81" r=".8"/>
+    <circle cx="267" cy="237" r="1"/>
+    <circle cx="303" cy="137" r=".7"/>
+    <circle cx="342" cy="58" r="1.2"/>
+    <circle cx="381" cy="210" r=".8"/>
+    <circle cx="416" cy="105" r=".7"/>
+    <circle cx="454" cy="35" r="1"/>
+    <circle cx="489" cy="257" r=".9"/>
+    <circle cx="527" cy="77" r=".7"/>
+    <circle cx="568" cy="192" r="1.1"/>
+    <circle cx="604" cy="45" r=".7"/>
+    <circle cx="641" cy="235" r=".9"/>
+    <circle cx="676" cy="112" r=".8"/>
+    <circle cx="716" cy="66" r="1.1"/>
+    <circle cx="754" cy="209" r=".7"/>
+    <circle cx="792" cy="128" r=".9"/>
+    <circle cx="831" cy="35" r=".8"/>
+    <circle cx="869" cy="250" r="1.1"/>
+    <circle cx="904" cy="91" r=".7"/>
+    <circle cx="946" cy="183" r=".8"/>
+    <circle cx="982" cy="48" r="1.2"/>
+    <circle cx="1021" cy="230" r=".7"/>
+    <circle cx="1058" cy="133" r="1"/>
+    <circle cx="1095" cy="72" r=".8"/>
+    <circle cx="1148" cy="205" r="1.1"/>
+  </g>
+
+  <g fill="#fff" filter="url(#glow)">
+    <circle cx="78" cy="148" r="1.6">
+      <animate attributeName="opacity" values=".25;1;.25" dur="3.7s"
+               repeatCount="indefinite"/>
+      <animate attributeName="r" values="1.2;2;1.2" dur="3.7s"
+               repeatCount="indefinite"/>
+    </circle>
+    <circle cx="244" cy="31" r="1.8">
+      <animate attributeName="opacity" values="1;.3;1" dur="5.1s"
+               repeatCount="indefinite"/>
+    </circle>
+    <circle cx="323" cy="248" r="1.5">
+      <animate attributeName="opacity" values=".35;1;.35" dur="4.3s"
+               repeatCount="indefinite"/>
+    </circle>
+    <circle cx="404" cy="66" r="1.7">
+      <animate attributeName="opacity" values=".4;1;.4" dur="2.9s"
+               repeatCount="indefinite"/>
+    </circle>
+    <circle cx="516" cy="224" r="1.6">
+      <animate attributeName="opacity" values="1;.3;1" dur="4.8s"
+               repeatCount="indefinite"/>
+    </circle>
+    <circle cx="692" cy="34" r="1.6">
+      <animate attributeName="opacity" values=".25;1;.25" dur="3.4s"
+               repeatCount="indefinite"/>
+    </circle>
+    <circle cx="775" cy="245" r="1.9">
+      <animate attributeName="opacity" values=".3;1;.3" dur="5.4s"
+               repeatCount="indefinite"/>
+    </circle>
+    <circle cx="889" cy="61" r="1.5">
+      <animate attributeName="opacity" values="1;.25;1" dur="3.1s"
+               repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1009" cy="158" r="1.8">
+      <animate attributeName="opacity" values=".3;1;.3" dur="4.1s"
+               repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1125" cy="39" r="1.7">
+      <animate attributeName="opacity" values="1;.35;1" dur="5.7s"
+               repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <g fill="url(#star)">
+    <circle cx="151" cy="221" r="8" opacity=".5"/>
+    <circle cx="355" cy="92" r="7" opacity=".42"/>
+    <circle cx="846" cy="198" r="8" opacity=".45"/>
+    <circle cx="1081" cy="103" r="7" opacity=".5"/>
+  </g>
+
+  <g opacity="0">
+    <path d="M-110 105 L75 143" stroke="url(#meteor)" stroke-width="2.4"
+          stroke-linecap="round"/>
+    <circle cx="75" cy="143" r="2.6" fill="#fff" filter="url(#glow)"/>
+    <animateTransform attributeName="transform" type="translate"
+                      values="0 0;1150 0" dur="2.2s" begin="3s;14s;26s"
+                      fill="remove"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.8;1"
+             dur="2.2s" begin="3s;14s;26s" fill="remove"/>
+  </g>
+
+  <path d="M0 270 C130 246 225 268 340 252 C480 232 568 264 700 246
+           C846 226 957 265 1200 238 L1200 300 L0 300 Z"
+        fill="#020617" opacity=".88"/>
+  <path d="M0 280 C160 258 272 283 430 264 C610 242 745 281 902 257
+           C1023 240 1105 258 1200 250"
+        fill="none" stroke="#312e81" stroke-opacity=".55" stroke-width="2"/>
+
+  <text x="600" y="147" text-anchor="middle" fill="#f8fafc"
+        font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif"
+        font-size="58" font-weight="650" letter-spacing="3"
+        filter="url(#titleGlow)">MyStarCeiling</text>
+  <text x="600" y="184" text-anchor="middle" fill="#c7d2fe"
+        font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif"
+        font-size="17" letter-spacing="5">ANY PLACE  ·  ANY TIME</text>
+
+  <rect x="1" y="1" width="1198" height="298" rx="17" fill="none"
+        stroke="#818cf8" stroke-opacity=".18" stroke-width="2"/>
+</svg>
