@@ -1,0 +1,8 @@
+/home/amade/projects/mystarceiling/build/CMakeFiles/tests.dir
+/home/amade/projects/mystarceiling/build/CMakeFiles/edit_cache.dir
+/home/amade/projects/mystarceiling/build/CMakeFiles/rebuild_cache.dir
+/home/amade/projects/mystarceiling/build/src/CMakeFiles/edit_cache.dir
+/home/amade/projects/mystarceiling/build/src/CMakeFiles/rebuild_cache.dir
+/home/amade/projects/mystarceiling/build/src/core/CMakeFiles/msc.dir
+/home/amade/projects/mystarceiling/build/src/core/CMakeFiles/edit_cache.dir
+/home/amade/projects/mystarceiling/build/src/core/CMakeFiles/rebuild_cache.dir

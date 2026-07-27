@@ -1,30 +1,20 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.23)
 
-# Project name
-project(StarMapping)
+project(MyStarCeiling)
 
-# Specify the C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Add the executable
-add_executable(StarMapping
-    src/main.cpp
-    src/data_collector.cpp
-    src/csv_parser.cpp
-    src/coordinate_converter.cpp
-    src/renderer.cpp
-    src/time_simulation.cpp
-    src/utils.cpp
-)
+find_package(GTest REQUIRED)
 
-# Include directories
-target_include_directories(StarMapping PUBLIC include)
+add_subdirectory(src)
 
-# Link libraries (for OpenGL and dependencies)
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(GLFW REQUIRED)
-find_package(GLM REQUIRED)
+if (GTEST_FOUND)
+    add_executable(tests
+                    tests/tests.cc)
 
-target_link_libraries(StarMapping PRIVATE OpenGL::GL GLEW::GLEW GLFW::GLFW gl
+    target_link_libraries(tests PUBLIC GTest)
+
+    target_include_directories(tests PUBLIC include/)
+endif()
