@@ -1,9 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/amade/projects/mystarceiling/build/cmake_install.cmake",
-		"/home/amade/projects/mystarceiling/build/src/cmake_install.cmake",
-		"/home/amade/projects/mystarceiling/build/src/core/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

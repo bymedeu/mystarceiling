@@ -33,3 +33,11 @@
 
 # IntelliJ IDEA project files
 .idea/
+.vscode
+
+build/
+bin/
+.cache
+.conan2
+.cache/
+compile_commands.json

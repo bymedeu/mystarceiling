@@ -1,20 +1,24 @@
 cmake_minimum_required(VERSION 3.23)
 
-project(MyStarCeiling)
+project(MyStarCeiling
+        VERSION 0.0.1
+        LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(GTest REQUIRED)
+add_custom_target(copy_compile_commands ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_BINARY_DIR}/compile_commands.json
+        ${CMAKE_SOURCE_DIR}/compile_commands.json
+)
+
+option(MSC_ENABLE_TESTS "Enable testing" ON)
 
 add_subdirectory(src)
 
-if (GTEST_FOUND)
-    add_executable(tests
-                    tests/tests.cc)
-
-    target_link_libraries(tests PUBLIC GTest)
-
-    target_include_directories(tests PUBLIC include/)
+if(MSC_ENABLE_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 endif()

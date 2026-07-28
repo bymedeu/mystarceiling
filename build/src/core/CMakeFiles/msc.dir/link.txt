@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/msc.dir/link.d CMakeFiles/msc.dir/main.cc.o -o msc
