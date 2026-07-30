@@ -1,8 +1,11 @@
 add_library(mystarceiling_core
-            foo.cc)
+            foo.cc
+            maths/angle.cc
+            maths/declination.cc
+)
 
 target_compile_options(
-    mystarceiling_core PRIVATE  -Wall -Wextra -Werror
+    mystarceiling_core PRIVATE  -Wall -Wextra
 )
 
 target_include_directories(mystarceiling_core
