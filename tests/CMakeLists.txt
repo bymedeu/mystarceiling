@@ -3,6 +3,7 @@ find_package(GTest REQUIRED)
 
 add_executable(mystarceiling_tests
             tests.cc
+            declination_tests.cc
             angle_tests.cc
 )
 target_link_libraries(mystarceiling_tests
