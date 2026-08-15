@@ -1,22 +1,53 @@
 #pragma once
 
+#include <numbers>
 namespace mystarceiling::core::maths
 {
     class Angle
     {
     public:
-        static Angle from_radian(double radian);
-        static Angle from_degrees(double degrees);
-        static Angle from_hours(double hours);
+        constexpr static Angle from_radian(double radian) noexcept;
+        constexpr static Angle from_degrees(double degrees) noexcept;
+        constexpr static Angle from_hours(double hours) noexcept;
 
-        [[nodiscard]] double to_radian() const;
-        [[nodiscard]] double to_degrees() const;
-        [[nodiscard]] double to_hours() const;
+        [[nodiscard]] constexpr double to_radian() const noexcept;
+        [[nodiscard]] constexpr double to_degrees() const noexcept;
+        [[nodiscard]] constexpr double to_hours() const noexcept;
 
 
     private:
-        Angle(double rad);
+        constexpr Angle(double rad) noexcept;
         double rad_;
     };
 
+    constexpr Angle::Angle(double rad) noexcept : rad_{rad}
+    {}
+
+    constexpr Angle Angle::from_radian(double radian) noexcept
+    {
+        return Angle(radian);
+    }
+    constexpr Angle Angle::from_degrees(double degrees) noexcept
+    {
+        double radian = degrees / 180 * std::numbers::pi;
+        return Angle(radian);
+    }
+    constexpr Angle Angle::from_hours(double hours) noexcept
+    {
+        double radian = hours / 12 * std::numbers::pi;
+        return Angle(radian);
+    }
+
+    constexpr double Angle::to_radian() const noexcept
+    {
+        return rad_;
+    }
+    constexpr double Angle::to_degrees() const noexcept
+    {
+        return rad_ * 180 / std::numbers::pi;
+    }
+    constexpr double Angle::to_hours() const noexcept
+    {
+        return rad_ * 12 / std::numbers::pi;
+    }
 } // namespace mystarceiling::core::maths

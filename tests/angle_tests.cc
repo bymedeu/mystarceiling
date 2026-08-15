@@ -9,6 +9,8 @@ using mystarceiling::core::maths::Angle;
 
 namespace
 {
+    constexpr auto angle = Angle::from_radian(1.25);
+    static_assert(angle.to_radian() == 1.25);
 
     struct AllTypesCase
     {

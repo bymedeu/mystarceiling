@@ -1,7 +1,7 @@
 add_library(mystarceiling_core
             foo.cc
-            maths/angle.cc
-            maths/declination.cc
+            coordinates/icrs_direction.cc
+            coordinates/icrs_to_enu.cc
 )
 
 target_compile_options(

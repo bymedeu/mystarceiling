@@ -4,14 +4,24 @@
 #include <numbers>
 #include <ostream>
 #include "gtest/gtest.h"
-#include "mystarceiling/core/maths/declination.hh"
+#include "mystarceiling/core/coordinates/declination.hh"
 
 using mystarceiling::core::maths::Angle;
-using mystarceiling::core::maths::Declination;
-using mystarceiling::core::maths::DeclinationError;
+using mystarceiling::core::coordinates::Declination;
+using mystarceiling::core::coordinates::DeclinationError;
 
 namespace
 {
+    constexpr auto declination =
+        Declination::try_from(Angle::from_degrees(-23.5));
+    static_assert(declination.has_value());
+
+    constexpr auto invalid_declination =
+        Declination::try_from(Angle::from_degrees(91.0));
+    static_assert(!invalid_declination.has_value());
+    static_assert(invalid_declination.error() ==
+                  DeclinationError::OutOfRange);
+
     struct DeclinationCase
     {
         Angle value;
