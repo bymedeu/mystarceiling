@@ -4,7 +4,7 @@
 #include "mystarceiling/core/coordinates/observer_location.hh"
 #include "mystarceiling/core/maths/angle.hh"
 #include "mystarceiling/core/maths/vector3.hh"
-namespace mystarceiling::core::coordinates
+namespace msc::core::coordinates
 {
 
     [[nodiscard]] maths::Vector3

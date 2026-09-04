@@ -1,7 +1,7 @@
 #pragma once
 
 #include <numbers>
-namespace mystarceiling::core::maths
+namespace msc::core::maths
 {
     class Angle
     {
@@ -50,4 +50,4 @@ namespace mystarceiling::core::maths
     {
         return rad_ * 12 / std::numbers::pi;
     }
-} // namespace mystarceiling::core::maths
+} // namespace msc::core::maths

@@ -7,5 +7,5 @@ int main(int argc, char** argv)
     if (argc > 1)
         std::cout << argv[0];
     std::cout << "No args";
-    return mystarceiling::core::foo();
+    return msc::core::foo();
 }

@@ -12,14 +12,14 @@
 #include <limits>
 #include <ostream>
 
-using mystarceiling::core::coordinates::Declination;
-using mystarceiling::core::coordinates::IcrsDirection;
-using mystarceiling::core::coordinates::Latitude;
-using mystarceiling::core::coordinates::Longitude;
-using mystarceiling::core::coordinates::ObserverLocation;
-using mystarceiling::core::coordinates::RightAscension;
-using mystarceiling::core::coordinates::icrs_to_enu;
-using mystarceiling::core::maths::Angle;
+using msc::core::coordinates::Declination;
+using msc::core::coordinates::IcrsDirection;
+using msc::core::coordinates::Latitude;
+using msc::core::coordinates::Longitude;
+using msc::core::coordinates::ObserverLocation;
+using msc::core::coordinates::RightAscension;
+using msc::core::coordinates::icrs_to_enu;
+using msc::core::maths::Angle;
 
 namespace
 {

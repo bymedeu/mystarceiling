@@ -5,7 +5,7 @@
 #include "mystarceiling/core/maths/angle.hh"
 #include "mystarceiling/core/maths/vector3.hh"
 
-namespace mystarceiling::core::coordinates
+namespace msc::core::coordinates
 {
 
     maths::Vector3 icrs_to_enu(IcrsDirection star_direction,
@@ -34,4 +34,4 @@ namespace mystarceiling::core::coordinates
     }
 
 
-} // namespace mystarceiling::core::coordinates
+} // namespace msc::core::coordinates

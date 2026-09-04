@@ -9,9 +9,9 @@
 #include <numbers>
 #include <ostream>
 
-using mystarceiling::core::coordinates::Latitude;
-using mystarceiling::core::coordinates::LatitudeError;
-using mystarceiling::core::maths::Angle;
+using msc::core::coordinates::Latitude;
+using msc::core::coordinates::LatitudeError;
+using msc::core::maths::Angle;
 
 namespace
 {

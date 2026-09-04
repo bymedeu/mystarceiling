@@ -9,10 +9,10 @@
 #include <limits>
 #include <ostream>
 
-using mystarceiling::core::maths::Angle;
-using mystarceiling::core::coordinates::Declination;
-using mystarceiling::core::coordinates::IcrsDirection;
-using mystarceiling::core::coordinates::RightAscension;
+using msc::core::maths::Angle;
+using msc::core::coordinates::Declination;
+using msc::core::coordinates::IcrsDirection;
+using msc::core::coordinates::RightAscension;
 
 namespace
 {

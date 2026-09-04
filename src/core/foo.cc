@@ -1,7 +1,7 @@
 #include <mystarceiling/core/foo.hh>
 
-namespace mystarceiling::core
+namespace msc::core
 {
     int foo() { return 12; }
 
-} // namespace mystarceiling::core
+} // namespace msc::core

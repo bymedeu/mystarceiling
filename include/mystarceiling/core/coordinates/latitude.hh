@@ -5,7 +5,7 @@
 #include <numbers>
 #include "mystarceiling/core/maths/angle.hh"
 
-namespace mystarceiling::core::coordinates
+namespace msc::core::coordinates
 {
     enum class LatitudeError
     {
@@ -48,4 +48,4 @@ namespace mystarceiling::core::coordinates
 
     constexpr Latitude::Latitude(maths::Angle angle) noexcept : angle_{angle}
     {}
-} // namespace mystarceiling::core::coordinates
+} // namespace msc::core::coordinates

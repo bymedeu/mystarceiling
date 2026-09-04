@@ -2,7 +2,7 @@
 
 #include <mystarceiling/core/maths/vector3.hh>
 
-using mystarceiling::core::maths::Vector3;
+using msc::core::maths::Vector3;
 
 namespace
 {

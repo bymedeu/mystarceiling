@@ -4,6 +4,8 @@ find_package(GTest REQUIRED)
 add_executable(mystarceiling_tests
             tests.cc
             declination_tests.cc
+            earth_rotation_tests.cc
+            julian_date_tests.cc
             icrs_direction_tests.cc
             icrs_to_enu_tests.cc
             latitude_tests.cc

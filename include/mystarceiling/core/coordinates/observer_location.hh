@@ -2,7 +2,7 @@
 
 #include "mystarceiling/core/coordinates/latitude.hh"
 #include "mystarceiling/core/coordinates/longitude.hh"
-namespace mystarceiling::core::coordinates
+namespace msc::core::coordinates
 {
 
     class ObserverLocation
@@ -35,4 +35,4 @@ namespace mystarceiling::core::coordinates
     }
 
 
-} // namespace mystarceiling::core::coordinates
+} // namespace msc::core::coordinates

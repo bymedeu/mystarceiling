@@ -10,7 +10,7 @@
 #include <numbers>
 #include "mystarceiling/core/maths/angle.hh"
 
-namespace mystarceiling::core::coordinates
+namespace msc::core::coordinates
 {
     enum class RightAscensionError
     {
@@ -54,4 +54,4 @@ namespace mystarceiling::core::coordinates
     constexpr RightAscension::RightAscension(
         const maths::Angle& angle) noexcept : angle_{angle}
     {}
-} // namespace mystarceiling::core::coordinates
+} // namespace msc::core::coordinates

@@ -7,9 +7,9 @@
 #include <ostream>
 #include "gtest/gtest.h"
 
-using mystarceiling::core::maths::Angle;
-using mystarceiling::core::coordinates::RightAscension;
-using mystarceiling::core::coordinates::RightAscensionError;
+using msc::core::maths::Angle;
+using msc::core::coordinates::RightAscension;
+using msc::core::coordinates::RightAscensionError;
 using std::numbers::pi;
 
 namespace

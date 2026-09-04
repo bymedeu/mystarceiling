@@ -41,3 +41,5 @@ bin/
 .conan2
 .cache/
 compile_commands.json
+
+*.private.*

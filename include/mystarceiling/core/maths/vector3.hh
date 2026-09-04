@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-namespace mystarceiling::core::maths
+namespace msc::core::maths
 {
     class Vector3
     {
@@ -33,4 +33,4 @@ namespace mystarceiling::core::maths
         coords_{{x, y, z}}
     {}
 
-} // namespace mystarceiling::core::maths
+} // namespace msc::core::maths

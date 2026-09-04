@@ -4,7 +4,7 @@
 #include "mystarceiling/core/coordinates/right_ascension.hh"
 #include "mystarceiling/core/maths/vector3.hh"
 
-namespace mystarceiling::core::coordinates
+namespace msc::core::coordinates
 {
     class IcrsDirection
     {
@@ -36,4 +36,4 @@ namespace mystarceiling::core::coordinates
     {
         return dec_;
     }
-} // namespace mystarceiling::core::coordinates
+} // namespace msc::core::coordinates

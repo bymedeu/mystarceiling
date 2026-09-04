@@ -30,10 +30,10 @@ single output device. Its generated scenes may be displayed on screen, exported
 for other software, or eventually used to drive optical-fibre and LED ceiling
 installations.
 
-The project is also a practical exploration of modern C++ applied to a
-substantial, performance-sensitive system. Its implementation emphasizes
-ownership, data modeling, numerical correctness, testing, architecture, and
-measured optimization.
+The project is also a serious exploration of modern C++ applied to a
+substantial astronomy, systems, and performance problem. Its implementation
+emphasizes ownership, data modeling, numerical correctness, algorithms,
+testing, architecture, scalability, profiling, and measured optimization.
 
 ---
 
@@ -42,6 +42,8 @@ measured optimization.
 The project aims to:
 
 - reconstruct skies from real stellar catalogs such as Gaia and Hipparcos;
+- perform explicit, validated coordinate transformations for a declared
+  observer and instant;
 - estimate stellar positions across time from the best available measurements
   while exposing model limitations and uncertainty;
 - produce realistic brightness, color, glow, exposure, and sky projections;
@@ -51,8 +53,9 @@ The project aims to:
   simulation;
 - generate reproducible synthetic skies;
 - apply traceable artistic modifications and procedural events;
-- process large catalogs efficiently and export scenes in readable and
-  high-throughput formats;
+- scale from small validated fixtures to large catalogs, with reproducible
+  profiling and benchmark evidence;
+- export scenes in readable and high-throughput formats;
 - keep astronomy, simulation, rendering, and output hardware independent.
 
 ---
@@ -68,13 +71,15 @@ celestial objects. Screen renderers, data exporters, and future ceiling systems
 consume that representation independently.
 
 MyStarCeiling targets C++23 and Linux first, with correctness, explicit
-conventions, deterministic behavior, and measured performance as core
-engineering requirements.
+conventions, deterministic behavior, clear architecture, and evidence-driven
+performance work as core engineering requirements. Optimizations follow
+measurement and profiling rather than speculation.
 
 ---
 
 ## Status
 
-MyStarCeiling is in early development. Its first implementation
-target is a validated, machine-readable sky snapshot for one observer and one
-instant using a small stellar catalog.
+MyStarCeiling is in early development. Coordinate and time foundations are
+under construction. The next major outcome is a validated end-to-end path from
+real catalog data and observer parameters through coordinate transformation to
+a useful visualization; this is not yet complete.

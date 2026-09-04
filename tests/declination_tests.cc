@@ -6,9 +6,9 @@
 #include "gtest/gtest.h"
 #include "mystarceiling/core/coordinates/declination.hh"
 
-using mystarceiling::core::maths::Angle;
-using mystarceiling::core::coordinates::Declination;
-using mystarceiling::core::coordinates::DeclinationError;
+using msc::core::maths::Angle;
+using msc::core::coordinates::Declination;
+using msc::core::coordinates::DeclinationError;
 
 namespace
 {

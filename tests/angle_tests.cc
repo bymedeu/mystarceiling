@@ -5,7 +5,7 @@
 #include <ostream>
 #include "gtest/gtest.h"
 
-using mystarceiling::core::maths::Angle;
+using msc::core::maths::Angle;
 
 namespace
 {

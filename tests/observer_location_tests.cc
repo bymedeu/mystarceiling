@@ -5,10 +5,10 @@
 #include <mystarceiling/core/coordinates/observer_location.hh>
 #include <mystarceiling/core/maths/angle.hh>
 
-using mystarceiling::core::coordinates::Latitude;
-using mystarceiling::core::coordinates::Longitude;
-using mystarceiling::core::coordinates::ObserverLocation;
-using mystarceiling::core::maths::Angle;
+using msc::core::coordinates::Latitude;
+using msc::core::coordinates::Longitude;
+using msc::core::coordinates::ObserverLocation;
+using msc::core::maths::Angle;
 
 namespace
 {

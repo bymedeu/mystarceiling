@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mystarceiling::core
+namespace msc::core
 {
     int foo();
 

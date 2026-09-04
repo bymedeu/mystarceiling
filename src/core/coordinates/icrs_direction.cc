@@ -2,7 +2,7 @@
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include "mystarceiling/core/maths/vector3.hh"
 
-namespace mystarceiling::core::coordinates
+namespace msc::core::coordinates
 {
     maths::Vector3 IcrsDirection::to_unit_vector() const
     {
@@ -16,4 +16,4 @@ namespace mystarceiling::core::coordinates
 
         return maths::Vector3(x, y, z);
     }
-} // namespace mystarceiling::core::coordinates
+} // namespace msc::core::coordinates
