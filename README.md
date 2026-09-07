@@ -7,7 +7,7 @@
 ### Recreate the night sky. Any place. Any time.
 
 [![Status](https://img.shields.io/badge/Status-Foundations-111827)]()
-[![Language](https://img.shields.io/badge/C%2B%2B-23-00599C?logo=cplusplus)]()
+[![Language](https://img.shields.io/badge/C%2B%2B-26-00599C?logo=cplusplus)]()
 [![Platform](https://img.shields.io/badge/Platform-Linux-0F172A?logo=linux)]()
 [![Focus](https://img.shields.io/badge/Focus-Astronomy%20%2B%20Simulation-4338CA)]()
 
@@ -70,10 +70,16 @@ The engine's canonical output is a structured snapshot or stream of visible
 celestial objects. Screen renderers, data exporters, and future ceiling systems
 consume that representation independently.
 
-MyStarCeiling targets C++23 and Linux first, with correctness, explicit
+MyStarCeiling targets C++26 and Linux first, with correctness, explicit
 conventions, deterministic behavior, clear architecture, and evidence-driven
 performance work as core engineering requirements. Optimizations follow
 measurement and profiling rather than speculation.
+
+The verified toolchain is GCC 16.2 with CMake 4.4. CMake 3.25 or newer and a
+compiler with C++26 support are required; older CMake/compiler combinations
+may not recognize the needed standard flag. GCC 16 and newer also enable
+experimental C++26 reflection (`-freflection`). Reflection support in other
+compilers is not guaranteed.
 
 ---
 

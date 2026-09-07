@@ -59,7 +59,17 @@ MyStarCeiling is heavily agent-assisted and human-directed. It is also the main
 environment for learning agentic software engineering. Coding agents may write
 a large majority of the implementation; no target percentage of agent-written
 or manually written lines of code exists. The requirement is deep technical
-ownership combined with high AI leverage.
+ownership combined with high AI leverage. MyStarCeiling must be AI-accelerated
+rather than AI-directed:
+
+- agents accelerate investigation and implementation;
+- the owner directs the project;
+- agents may recommend decisions but must not silently become the architect;
+- important decisions remain understandable and defensible by the owner.
+
+If the owner could not explain an important decision in a technical interview,
+that decision is not yet sufficiently owned regardless of whether the
+implementation works.
 
 The project owner retains final ownership of:
 
@@ -81,7 +91,7 @@ structures, expose trade-offs and risks, critique designs, and propose
 alternatives. The owner must understand the options and make or approve the
 important decision.
 
-Agents may heavily handle:
+Within the applicable ownership mode, agents may heavily handle:
 
 - implementation of approved designs and bounded features;
 - parsers, loaders, serialization, adapters, and integration code;
@@ -97,60 +107,226 @@ Manual implementation remains appropriate when the implementation itself has
 high learning or strategic value. Do not enforce either "AI writes everything"
 or "the owner writes everything."
 
-## Agent involvement levels
+## Ownership modes
 
-Choose the level explicitly or infer the least risky level from the learning
-value of the task. The owner may override it at any time.
+Agent autonomy is based on decision ownership and learning value, not on lines
+of code. For every non-trivial repository task, classify the work before making
+changes: `MODE: RED`, `MODE: YELLOW`, or `MODE: GREEN`. Give one short reason for
+the classification. If uncertain, choose the more restrictive mode.
 
-### Level 1 — Discussion and research only
+A task may change mode during investigation. If new information exposes an
+ownership-critical decision, stop before crossing that boundary and escalate
+the task to RED.
 
-Use when implementation itself is highly educational, especially for astronomy
-mathematics, coordinate transformations, numerical methods, important
-algorithms, difficult data-structure decisions, performance-critical concepts,
-or unfamiliar systems concepts. Agents explain and compare approaches; the
-owner retains more direct control of implementation.
+### RED — owner decision required
 
-### Level 2 — Plan and implement
+Use RED when the task involves or may change:
 
-This is the default for most feature work. The owner defines or approves the
-design. The agent produces a reviewable plan and implements the approved design.
+- astronomical models or approximations;
+- coordinate systems, reference frames, epochs, units, or time scales;
+- numerical methods or meaningful tolerance choices;
+- important domain representations;
+- architecture or major module boundaries;
+- important data structures or memory layouts;
+- ownership, lifetime, mutation, or concurrency models;
+- algorithms whose complexity materially affects the project;
+- benchmark design;
+- profiling interpretation;
+- performance strategy;
+- CPU/GPU, parallelism, SIMD, indexing, caching, or similar strategic
+  optimizations;
+- requirements or semantics whose incorrect choice could remain hidden behind
+  passing tests.
 
-### Level 3 — High autonomy
+In RED mode, the agent may inspect the repository, explain the current system,
+gather evidence, research approaches or libraries, propose alternatives, compare
+trade-offs, recommend an option, construct experiments, run measurements, and
+review owner-written designs.
 
-Use for low-learning-value work such as CI, boilerplate, documentation,
-repetitive tests, mechanical refactors, routine parsing, basic integration code,
-and build-system maintenance. Agents may execute broadly within the clearly
-defined task and repository constraints.
+Do not immediately implement an AI-originated RED decision merely because the
+owner says "sounds good" or "let's do that" while the reasoning has not yet been
+established.
+
+Before substantial RED implementation, make explicit:
+
+- what problem is being solved;
+- relevant inputs and outputs;
+- important invariants;
+- units, frames, epochs, or ownership rules where applicable;
+- expected complexity where relevant;
+- important alternatives;
+- why the selected approach is appropriate;
+- how correctness will be demonstrated.
+
+These points may be developed collaboratively with the agent. The owner does
+not have to independently invent the solution. For a significant AI-originated
+RED decision, ask at most one focused ownership question when useful, or ask the
+owner to briefly state the chosen reasoning in their own words. Do not turn
+every task into a quiz.
+
+Once the owner understands and approves the decision, the agent may implement
+large portions of it. RED does not mean "the owner must manually type the
+implementation."
+
+### YELLOW — approved direction, agent implementation
+
+Use YELLOW when the owner understands the feature contract and important design
+choices, but implementation work remains. Typical YELLOW work includes:
+
+- implementing an already understood parser or loader contract;
+- implementing an approved data representation;
+- serialization and exporters;
+- application orchestration;
+- CLI features;
+- rendering integration;
+- straightforward domain implementation;
+- implementing a previously chosen optimization;
+- integration tests around already defined behavior.
+
+Before implementation:
+
+1. Briefly state where the change fits in the current system.
+2. Give a reviewable implementation plan.
+3. Identify any remaining assumptions.
+4. Wait for explicit owner approval of the plan.
+
+After an understood YELLOW plan, a response such as "let's do that" is sufficient
+approval. Once approved, implement the task without repeatedly asking for
+permission for routine implementation details.
+
+If implementation exposes a new RED decision, stop and escalate instead of
+silently choosing it.
+
+### GREEN — high autonomy
+
+Use GREEN for low-learning-value and primarily mechanical work such as:
+
+- CMake and routine build maintenance;
+- CI;
+- formatting configuration;
+- sanitizer/static-analysis wiring;
+- repetitive test cases and fixtures;
+- boilerplate;
+- documentation synchronization;
+- mechanical refactors;
+- file moves and renames;
+- routine error-handling plumbing;
+- basic Qt/UI plumbing;
+- straightforward dependency integration;
+- obvious portability/build fixes.
+
+The agent may inspect, plan, implement, test, and clean up GREEN tasks
+autonomously within the requested scope. Do not introduce RED architectural or
+semantic changes as part of a GREEN cleanup.
+
+## When the owner asks "what should I do?"
+
+Do not interpret an open-ended request for guidance as permission to redesign or
+implement the project. First give orientation. Explain:
+
+- what the repository currently has;
+- what is actually missing;
+- what the smallest meaningful next goal is.
+
+When an important choice exists, present a small number of realistic alternatives
+and explain their consequences. A recommendation is encouraged, but clearly
+label it as a recommendation rather than an existing project decision.
+
+For RED work, stop before implementation until the important choice is
+understood and approved. Avoid producing an enormous speculative architecture
+in response to a small next-step question. Prefer the smallest decision that
+advances the working end-to-end system.
+
+## Orientation and understanding debt
+
+The owner's understanding is part of project state. If the owner says they are
+lost, confused, do not understand a term, or no longer understand what the agent
+has built, stop advancing ownership-critical implementation. Switch temporarily
+to orientation.
+
+Explain, in plain technical language:
+
+- where we are in the pipeline;
+- what currently exists;
+- what the relevant component receives;
+- what it produces;
+- which files/types are involved;
+- which statements describe implemented behavior;
+- which statements are proposals or future ideas.
+
+Do not introduce additional architecture while resolving confusion. Once
+orientation is restored, resume at the appropriate RED/YELLOW/GREEN mode.
+Passing tests must never be used as a substitute for restoring understanding.
+
+## Jargon and unfamiliar concepts
+
+Do not assume that a performance, astronomy, graphics, or C++ term is already
+known merely because it is relevant to the project. Define unfamiliar
+terminology on first important use.
+
+Examples include AoS/SoA, SIMD, cache lines, vectorization, UT1, ICRS,
+precession/nutation, ownership views, GPU transfer costs, spatial indexes, or
+synchronization strategies.
+
+If a concept only matters to a possible future optimization, explicitly say
+that it does not need to be decided now. Do not encourage premature design
+choices around concepts that have not yet become relevant.
+
+## Context management
+
+Prefer targeted repository inspection over large undifferentiated context
+dumps. When the agent has repository access:
+
+1. Inspect the repository structure.
+2. Identify the files relevant to the current question.
+3. Read those files.
+4. Summarize the relevant architecture.
+5. Expand context only when evidence requires it.
+
+Do not ask the owner to paste tens of thousands of lines of repository text when
+the agent can inspect the repository directly. For large investigations, first
+establish a map of the relevant code and then narrow the investigation.
+
+Treat generated summaries and visual explainers as navigation aids, not
+authoritative specifications. A generated recap must distinguish:
+
+- implemented and verified behavior;
+- partial implementation;
+- missing functionality;
+- recommendations;
+- speculative future work.
+
+Proposed types or architectures in an explanatory document do not become
+project decisions merely because they appear in the document.
 
 ## Important feature workflow
 
-For important features:
+For an important feature:
 
-1. The owner defines the problem, requirements, constraints, expected behavior,
-   and relevant performance expectations.
-2. Discuss the design with AI.
-3. The agent proposes approaches, trade-offs, complexity, risks, and
-   alternatives.
-4. The owner investigates and asks questions about anything unclear.
-5. The owner makes or approves the architectural and algorithmic decision.
-6. The agent produces an implementation plan.
-7. The owner reviews and challenges the plan.
-8. The agent implements the approved design.
-9. The owner reviews the result and makes the final technical judgment.
-10. For important code, the owner verifies understanding of why it works,
-    complexity, memory implications, numerical behavior, ownership/lifetime,
-    and relevant performance characteristics.
-11. Benchmark or profile where appropriate.
-12. Once the desired change is decided, agents may perform mechanical
-    refactoring or optimization.
+1. Orient: identify where the feature fits in the current end-to-end pipeline.
+2. Classify it RED, YELLOW, or GREEN.
+3. Inspect the relevant existing code before proposing changes.
+4. Establish the problem, requirements, constraints, and acceptance criteria.
+5. For RED decisions, discuss alternatives and trade-offs.
+6. The owner understands and approves ownership-critical decisions.
+7. Produce a bounded implementation plan.
+8. The owner reviews the plan when required by the mode.
+9. Implement the approved work.
+10. Run appropriate tests and tools.
+11. Review generated code for correctness, unnecessary abstraction,
+    ownership/lifetime problems, hidden allocations, accidental complexity,
+    numerical issues, and unsupported assumptions.
+12. Profile or benchmark when the task genuinely requires performance evidence.
+13. Report what changed, what evidence was produced, and what remains uncertain.
 
 Before non-trivial implementation, inspect the repository and explain relevant
 architecture and constraints. Keep important decisions visible instead of
 silently embedding them in generated code. Prefer small, reviewable changes and
 verification proportional to risk.
 
-If the owner could not explain an important design or implementation decision
-in a technical interview, that part is not sufficiently understood. Passing
+The owner retains final technical review. For important code, the owner verifies
+understanding of why it works, complexity, memory implications, numerical
+behavior, ownership/lifetime, and relevant performance characteristics. Passing
 tests alone is not evidence of understanding.
 
 Review agent-generated code particularly for:
@@ -162,20 +338,41 @@ Review agent-generated code particularly for:
 - numerical errors or ambiguous units and coordinate frames;
 - performance regressions and unsupported assumptions.
 
+For important completed work, clearly distinguish:
+
+- decisions made or approved by the owner;
+- routine implementation choices made by the agent;
+- measured or tested evidence;
+- unresolved assumptions.
+
 ## Debugging and communication
 
-Agents may identify, explain, and fix bugs within the requested scope. For an
-important bug, explain the violated invariant, language rule, mathematical
-definition, or design assumption; why the behavior follows; how to investigate
-it; and how tests, types, tooling, or design can prevent recurrence.
+Agents may identify, explain, and fix bugs within the requested scope and the
+applicable ownership mode. If a fix exposes an ownership-critical decision,
+stop before implementing it and escalate to RED. For an important bug, explain
+the violated invariant, language rule, mathematical definition, or design
+assumption; why the behavior follows; how to investigate it; and how tests,
+types, tooling, or design can prevent recurrence.
 
 Do not treat a passing build as proof of understanding or hide important
-reasoning inside a patch. When mastery is uncertain, ask one focused question,
-prediction, counterexample, or explanation in the owner's own words rather than
-turning every interaction into a quiz.
+reasoning inside a patch. When understanding is uncertain, restore orientation
+and use at most one focused ownership question when useful, following the RED
+ownership guidance. Do not turn every interaction into a quiz.
 
 Be direct, demanding, and constructive without overpraising. Correct technical
 vocabulary when useful and distinguish language mistakes from conceptual ones.
+Define unfamiliar terms and distinguish implemented behavior from proposals.
+
+## Current owner-directed development posture
+
+Until the owner has a comfortable mental model of the existing MSC pipeline,
+default core astronomy, catalogue, scene, and performance work toward RED rather
+than assuming YELLOW. This is temporary and should relax naturally as the owner
+understands more of the system.
+
+Continue using GREEN autonomy aggressively for mechanical work. Do not reduce
+AI usage merely to increase the amount of manually written code. The goal is
+high AI leverage with increasing human technical ownership.
 
 ## Priority order
 
@@ -240,6 +437,16 @@ start of 2027, planning must reserve recurring time for MyStarCeiling rather
 than treating it as work attempted only after every other obligation.
 
 ## Performance development
+
+Do not allow performance vocabulary to drive architecture before measurement.
+AoS versus SoA, SIMD, threads, GPU compute, custom allocators, spatial indexing,
+caching, binary formats, and similar techniques are candidate tools, not project
+goals. Keep the simplest correct baseline until either the requirements clearly
+demand a different design or measurement identifies a real problem.
+
+The owner must participate in interpreting profiling evidence and selecting
+consequential optimizations. Agents may implement the selected optimization and
+automate benchmarking once that decision is understood.
 
 Do not optimize prematurely. The default workflow is:
 
@@ -366,7 +573,7 @@ window. Linux is primary; Windows portability is a later consideration.
 
 ## C++ engineering standards
 
-The baseline language is C++23. Prefer explicit ownership, RAII, the rule of
+The baseline language is C++26. Prefer explicit ownership, RAII, the rule of
 zero, appropriate value semantics, narrow invariant-preserving interfaces,
 strong types for units and coordinate systems, the standard library before
 custom equivalents, immutable data where mutation lacks a clear owner, and
