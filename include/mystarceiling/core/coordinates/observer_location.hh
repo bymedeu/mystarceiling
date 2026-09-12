@@ -1,7 +1,7 @@
 #pragma once
 
-#include "mystarceiling/core/coordinates/latitude.hh"
-#include "mystarceiling/core/coordinates/longitude.hh"
+#include <mystarceiling/core/coordinates/latitude.hh>
+#include <mystarceiling/core/coordinates/longitude.hh>
 namespace msc::core::coordinates
 {
 

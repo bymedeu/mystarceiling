@@ -1,7 +1,7 @@
 #pragma once
 
-#include "mystarceiling/core/maths/angle.hh"
-#include "mystarceiling/core/time/julian_date.hh"
+#include <mystarceiling/core/maths/angle.hh>
+#include <mystarceiling/core/time/julian_date.hh>
 namespace msc::core::time
 {
 

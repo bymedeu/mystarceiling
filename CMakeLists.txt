@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(MyStarCeiling
         VERSION 0.0.1
-        LANGUAGES CXX)
+        LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED True)

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "mystarceiling/core/coordinates/declination.hh"
-#include "mystarceiling/core/coordinates/right_ascension.hh"
-#include "mystarceiling/core/maths/vector3.hh"
+#include <mystarceiling/core/coordinates/declination.hh>
+#include <mystarceiling/core/coordinates/right_ascension.hh>
+#include <mystarceiling/core/maths/vector3.hh>
 
 namespace msc::core::coordinates
 {
