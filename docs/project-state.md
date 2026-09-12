@@ -38,10 +38,15 @@ exist until acquisition verification creates `manifest.json`.
 
 ESA failed repeatedly while submitting or transferring batch 26. The retry loop
 reached restart 58 without adding rows and was stopped at 19:04 local time on
-2026-09-12. The transient service no longer exists; the checkpoint is intact and
-resumable. Re-running the unchanged 1,500,000-row request is not recommended
-because it has already reproduced the same provider failure. Batch size,
-partitioning, or endpoint strategy requires a separate approved acquisition fix.
+2026-09-12. That transient service no longer exists.
+
+The subsequent 2026-09-12 recovery attempt reduced batch size from 1,500,000 to
+750,000 rows. `msc-gaia-acquisition-750k.service` ran once without automatic
+restart. ESA async submission timed out after 300000 ms with zero bytes received
+(curl exit 28); no job was recorded. The checkpoint remains 76,048,576 rows and
+4,878,012,154 bytes. The service is stopped/failed; the checkpoint is intact and
+resumable, but acquisition remains incomplete. Further recovery implementation
+requires separate owner approval.
 
 The latest Hipparcos completed run is `20260912T191816.016104Z`. It records the
 76,048,576-row Gaia snapshot used to exclude one already represented star.

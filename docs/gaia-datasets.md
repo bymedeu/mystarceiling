@@ -1,8 +1,11 @@
 # Gaia dataset acquisition
 
-Status: 76,048,576 rows downloaded and validated. On 2026-09-12 the transient
-retry service was active but repeatedly received HTTP 500 while submitting batch
-26; its checkpoint was unchanged. Last updated 2026-09-12.
+Status: 76,048,576 rows downloaded and validated; checkpoint size remains
+4,878,012,154 bytes. On 2026-09-12 batch size was reduced from 1,500,000 to
+750,000 rows and `msc-gaia-acquisition-750k.service` ran once without automatic
+restart. ESA async submission for batch 26 timed out after 300000 ms with zero
+bytes received (curl exit 28). No job was recorded. The service is stopped/failed
+and acquisition remains incomplete. Last updated 2026-09-12.
 This record supersedes earlier proposed caps and pending ten-field decisions in
 objectives-and-decisions.md. No application loader or star class is implemented.
 

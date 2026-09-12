@@ -9904,3 +9904,48 @@ ORDER BY phot_g_mean_mag ASC, source_id ASC
 ```sh
 curl --fail --silent --show-error --max-time 300 --dump-header /home/amade/projects/portfolio/msc/data/gaia-dr3/.acquisition/submit.headers --output /home/amade/projects/portfolio/msc/data/gaia-dr3/.acquisition/submit.body --data-urlencode REQUEST=doQuery --data-urlencode LANG=ADQL --data-urlencode FORMAT=csv --data-urlencode MAXREC=1500000 --data-urlencode QUERY@/home/amade/projects/portfolio/msc/data/gaia-dr3/.acquisition/batch-00026.adql https://gea.esac.esa.int/tap-server/tap/async
 ```
+
+## Invocation
+
+```sh
+./tools/download_gaia_catalogue
+```
+
+## Batch 26 query
+
+```sql
+SELECT TOP 750000 source_id, ref_epoch, ra, dec, pmra, pmdec, parallax, phot_g_mean_mag, bp_rp
+FROM gaiadr3.gaia_source
+WHERE source_id IS NOT NULL
+  AND ref_epoch IS NOT NULL
+  AND ra IS NOT NULL
+  AND dec IS NOT NULL
+  AND pmra IS NOT NULL
+  AND pmdec IS NOT NULL
+  AND parallax IS NOT NULL
+  AND phot_g_mean_mag IS NOT NULL
+  AND bp_rp IS NOT NULL
+  AND (phot_g_mean_mag > 15.981961250305176 OR (phot_g_mean_mag = 15.981961250305176 AND source_id > 5938936058012995200))
+ORDER BY phot_g_mean_mag ASC, source_id ASC
+```
+
+### 2026-09-12T19:26:30.979162+00:00
+
+```sh
+curl --fail --silent --show-error --max-time 300 --dump-header /home/amade/projects/portfolio/msc/data/gaia-dr3/.acquisition/submit.headers --output /home/amade/projects/portfolio/msc/data/gaia-dr3/.acquisition/submit.body --data-urlencode REQUEST=doQuery --data-urlencode LANG=ADQL --data-urlencode FORMAT=csv --data-urlencode MAXREC=750000 --data-urlencode QUERY@/home/amade/projects/portfolio/msc/data/gaia-dr3/.acquisition/batch-00026.adql https://gea.esac.esa.int/tap-server/tap/async
+```
+Exit code: 28
+```text
+curl: (28) Operation timed out after 300000 milliseconds with 0 bytes received
+
+```
+
+## 2026-09-12 recovery outcome
+
+Batch size was reduced from 1,500,000 to 750,000 rows.
+`msc-gaia-acquisition-750k.service` ran once without automatic restart.
+ESA async submission timed out after 300000 ms with zero bytes received
+(curl exit 28). No job was recorded: `job` is null and `job_started` is false.
+The checkpoint remains 76,048,576 rows and 4,878,012,154 bytes, at batch 26
+with `job_limit` 750000 and `done` false.
+The service is stopped/failed; acquisition remains incomplete.
