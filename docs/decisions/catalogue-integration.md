@@ -1,7 +1,8 @@
 # Catalogue integration and runtime layering
 
-Status: source/runtime boundary approved on 2026-09-12; photometric policy and
-identity consolidation remain open. No Gaia/Hipparcos normalization has been
+Status: source/runtime boundary and derived-G direction approved on 2026-09-12.
+The exact colour-range fallback and identity consolidation still require a
+reviewed implementation plan. No Gaia/Hipparcos normalization has been
 implemented.
 
 ## Approved boundary
@@ -59,10 +60,35 @@ The project has four defensible choices:
    the most general option and the largest piece of premature architecture for
    the current milestone.
 
-No option is selected yet. A native-band representation with a documented
-display approximation is the current engineering recommendation because it
-keeps the source evidence intact and lets the first vertical slice render the
-bright stars. It does not prevent a later calibrated conversion.
+The owner selected a derived Gaia-G estimate and delegated the offline
+cross-catalogue preparation path. Gaia EDR3 documentation publishes:
+
+```text
+G - Hp = -0.02392 - 0.4069(B-V) + 0.04569(B-V)^2 - 0.0452(B-V)^3
+```
+
+The fit has a reported scatter of 0.02417 magnitude and a documented range of
+`-0.25 < B-V < 1.9`. Above `B-V = 1.4`, it is only valid for M giants. The same
+source publishes an Hp/V-I relationship with wider applicability but larger
+0.08191-magnitude scatter. The recommended preparation rule is therefore to use
+B-V in its unambiguous range and V-I as a fallback for very red or otherwise
+out-of-range rows, while retaining native Hp, colour, and derivation provenance.
+This fallback is recommended but has not been implemented.
+
+All 117,955 Hipparcos-2 rows contain finite Hp, B-V, and V-I values. Of these,
+117,440 fall in the broad B-V range. Applying the B-V formula within that range
+produces 62 candidates brighter than the current Gaia boundary, compared with
+42 selected by comparing raw Hp numerically. Fourteen of the 62 have B-V above
+1.4 and therefore expose the giant/dwarf limitation. A B-V-primary/V-I-fallback
+rule covers 117,904 rows, leaving 51 outside both conservative ranges.
+
+Do the conversion and official Gaia cross-match during offline catalogue
+preparation. Cross-match only the small derived bright candidate set. When a
+validated match has a Gaia record satisfying the required measurement contract,
+prefer Gaia; otherwise retain the Hipparcos-derived record. The unresolved HIP
+71681 association shows that publication in the best-neighbour table alone is
+not sufficient validation. The application then reads one generated runtime
+catalogue and does not pay for cross-catalogue matching.
 
 ## Stellarium as a reference
 
@@ -73,6 +99,21 @@ ships the first four layers, about 587,000 stars and roughly 20.5 MB, while five
 larger layers are optional downloads. The configured layers exceed 220 million
 entries and reach approximately magnitude 18. It memory-maps catalogue files
 where supported and visits relevant zones and magnitude levels while drawing.
+
+The current configuration's rounded layer counts sum to approximately
+220.487 million stars when all nine levels are installed. The first four levels
+distributed with the application sum to approximately 587,000 stars. These are
+configuration estimates in millions, not exact record counts from parsing every
+binary catalogue.
+
+Stellarium is a useful architectural and validation reference for future Solar
+System objects and meteors, but its star catalogue is not their database.
+Planets use separate ephemeris models and optional JPL numerical ephemerides;
+meteor showers use a separate plugin and catalogue plus generated individual
+meteor events. MSC should evaluate those sources and models independently when
+their milestones begin. Stellarium's GPL implementation can be studied and used
+for behavioral comparison, while copying its code would introduce GPL licensing
+obligations.
 
 The useful principles for MSC are:
 
@@ -108,16 +149,17 @@ identity or photometric-conversion rule.
 
 - the runtime identity and catalogue-provenance model;
 - duplicate/cross-match precedence when both sources provide a usable record;
-- the Hp/G display and ordering policy;
+- the precise B-V/V-I fallback boundaries and derived-value provenance;
 - conflict handling when source measurements disagree;
 - whether magnitude layers are first introduced during binary preparation or
   only after the 4,096-row baseline is measured.
 
 ## References
 
+- [Gaia EDR3 photometric relationships](https://gea.esac.esa.int/archive/documentation/GEDR3/Data_processing/chap_cu5pho/cu5pho_sec_photSystem/cu5pho_ssec_photRelations.html)
 - [Stellarium catalogue configuration](https://github.com/Stellarium/stellarium/blob/master/stars/hip_gaia3/defaultStarsConfig.json)
+- [Stellarium user guide](https://stellarium.org/files/guide.pdf)
 - [Stellarium StarMgr](https://github.com/Stellarium/stellarium/blob/master/src/core/modules/StarMgr.cpp)
 - [Stellarium ZoneArray interface](https://github.com/Stellarium/stellarium/blob/master/src/core/modules/ZoneArray.hpp)
 - [Stellarium ZoneArray implementation](https://github.com/Stellarium/stellarium/blob/master/src/core/modules/ZoneArray.cpp)
 - [Hipparcos-2 supplement record](../hipparcos2-datasets.md)
-
