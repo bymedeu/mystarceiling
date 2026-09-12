@@ -43,3 +43,12 @@ bin/
 compile_commands.json
 
 *.private.*
+
+# Large Gaia acquisition artifacts; distribution is not configured yet
+data/gaia-dr3/*.gz
+data/gaia-dr3/*.partial
+data/gaia-dr3/.acquisition/
+
+# Hipparcos source downloads stay local; small derived catalogues and provenance may be tracked.
+data/hipparcos2/.acquire.lock
+data/hipparcos2/runs/*/hip2.dat.gz

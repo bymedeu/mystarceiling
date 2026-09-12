@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+repository_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+MSC_GAIA_INVOCATION="./tools/download_gaia_catalogue" \
+exec python3 -B "$repository_root/tools/acquire_gaia.py" \
+  --root "$repository_root/data/gaia-dr3" \
+  --target-rows 134217728 \
+  --max-bytes 10000000000
