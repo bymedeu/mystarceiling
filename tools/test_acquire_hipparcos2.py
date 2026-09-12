@@ -14,12 +14,12 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
 
-def hip_line(hip, hp, bv="0.009"):
+def hip_line(hip, hp, bv="0.009", vi="0.013"):
     line = list(" " * 276)
     for start, end, value in (
         (0, 6, str(hip)), (15, 28, "1.7678185359"), (29, 42, "-0.2916993748"),
         (43, 50, "379.21"), (51, 59, "-546.01"), (60, 68, "-1223.07"),
-        (129, 136, str(hp)), (152, 158, bv)):
+        (129, 136, str(hp)), (152, 158, bv), (165, 171, vi)):
         line[start:end] = value.rjust(end - start)
     return "".join(line) + "\n"
 
@@ -32,20 +32,52 @@ class AcquisitionTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
-    def test_native_selection_strict_boundary_and_missing_colour(self):
+    def test_derived_g_selection_and_missing_colour(self):
         path = self.root / "hip.gz"
         with gzip.open(path, "wt") as stream:
-            stream.write(hip_line(1, "2.0000"))
+            stream.write(hip_line(1, "3.0000"))
             stream.write(hip_line(32349, "-1.0876"))
             stream.write(hip_line(2, "1.0000", ""))
         rows, counts = module.read_hipparcos(path, 2.0)
         self.assertEqual([r["hip_id"] for r in rows], ["32349"])
         self.assertEqual(rows[0]["hp_mag"], "-1.0876")
         self.assertEqual(rows[0]["b_v"], "0.009")
+        self.assertEqual(rows[0]["v_i"], "0.013")
+        self.assertEqual(rows[0]["g_estimation_method"], "edr3_hp_bv")
+        self.assertAlmostEqual(float(rows[0]["estimated_g"]), -1.1151784321)
         self.assertEqual(rows[0]["ref_epoch"], "1991.25")
         self.assertAlmostEqual(float(rows[0]["ra"]), 101.28854, places=4)
         self.assertAlmostEqual(float(rows[0]["dec"]), -16.713143, places=4)
         self.assertEqual(counts["incomplete_native_rows"], 1)
+
+    def test_uses_vi_fallback_outside_unambiguous_bv_range(self):
+        estimate = module.estimate_gaia_g(1.0, 1.5, 1.2)
+        self.assertEqual(estimate[1], "edr3_hp_vi_fallback")
+        self.assertAlmostEqual(estimate[0], 0.4715432)
+
+    def test_rejects_colours_outside_both_supported_ranges(self):
+        self.assertIsNone(module.estimate_gaia_g(1.0, -0.3, 5.0))
+
+    def test_resolution_prefers_only_complete_locally_downloaded_gaia(self):
+        native = [{field: "1" for field in module.PREPARED}]
+        complete = {field: "1" for field in module.GAIA + module.MATCH}
+        complete["original_ext_source_id"] = "1"
+        supplement, counts = module.resolve_supplement(native, [complete], {1})
+        self.assertEqual(supplement, [])
+        self.assertEqual(counts["represented_by_complete_local_gaia"], 1)
+
+        incomplete = complete | {"pmra": ""}
+        supplement, counts = module.resolve_supplement(native, [incomplete], set())
+        self.assertEqual(supplement[0]["resolution_reason"],
+                         "published_gaia_missing_required_fields")
+        self.assertEqual(counts["published_gaia_missing_required_fields"], 1)
+
+    def test_resolution_retains_unmatched_hipparcos_candidate(self):
+        native = [{field: "1" for field in module.PREPARED}]
+        supplement, counts = module.resolve_supplement(native, [], set())
+        self.assertEqual(supplement[0]["resolution_reason"],
+                         "no_published_best_neighbour")
+        self.assertEqual(counts["no_published_best_neighbour"], 1)
 
     def test_duplicate_hip_fails(self):
         path = self.root / "hip.gz"

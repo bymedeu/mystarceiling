@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<VOTABLE version="1.3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+    xmlns:stc="http://www.ivoa.net/xml/STC/v1.30">
+    <RESOURCE type="results">
+        <LINK title="gaiadr3.hipparcos2_best_neighbour" content-role="doc" href="https://doi.org/10.17876/gaia/dr.3/14"/>
+        <INFO name="QUERY_STATUS" value="OK" />
+        <INFO name="QUERY" value="SELECT COUNT(*) AS match_count FROM gaiadr3.hipparcos2_best_neighbour AS x WHERE x.original_ext_source_id IN (3179,3419,5447,7588,9640,9884,11767,14135,15863,21421,24436,24608,25336,25428,26311,26727,27989,28360,30343,30438,31681,32349,33579,34444,36850,37279,37826,39953,41037,42913,44816,45238,46390,49669,50583,54061,60718,61084,62434,62956,65474,67301,68702,68933,69673,71681,71683,72607,80763,82273,85927,86228,87833,90185,91262,97649,100751,102098,107315,109268,112122,113368,113881)" />
+        <INFO name="QUERY_LANGUAGE" value="adql-2.0" />
+        <INFO name="SOURCE" value="gaiadr3.hipparcos2_best_neighbour" />
+        <TABLE name="gaia_user_anonymous.2026-09-12-19-18-21-963452">
+                <FIELD name="match_count" datatype="long" />
+            <DATA>
+                <TABLEDATA>
+                    <TR>
+                        <TD>3</TD>
+                    </TR>
+                </TABLEDATA>
+            </DATA>
+        </TABLE>
+    </RESOURCE>
+    <RESOURCE type="meta" utype="adhoc:service">
+        <PARAM name="standardID" datatype="char" arraysize="*" value="ivo://ivoa.net/std/DataLink#links-1.0" />
+        <PARAM name="accessURL" datatype="char" arraysize="*" value="https://gaia.aip.de/datalink/links" />
+        <GROUP name="inputParams">
+            <PARAM name="ID" datatype="char" arraysize="*" value="" ref="datalinkID"/>
+        </GROUP>
+    </RESOURCE>
+</VOTABLE>

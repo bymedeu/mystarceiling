@@ -4,4 +4,4 @@ repository_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 exec python3 -B "$repository_root/tools/acquire_hipparcos2.py" \
   --root "$repository_root/data/hipparcos2" \
   --gaia-root "$repository_root/data/gaia-dr3" \
-  --hp-limit 1.9425238 "$@"
+  --g-limit 1.9425238 "$@"

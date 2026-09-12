@@ -1,31 +1,48 @@
-# Separate Hipparcos-2 bright-star catalogue
+# Hipparcos-2 bright-star supplement
 
-Status: acquired and validated on 2026-09-12. Gaia remains the main catalogue.
-No database fusion, application loading, epoch propagation, or photometric
-conversion is implemented by this acquisition work.
+Status: prepared and validated on 2026-09-12. Gaia remains MSC's primary stellar
+catalogue. Hipparcos supplies bright stars that are not represented by a complete
+record in the project's current Gaia snapshot.
 
 See the [consolidated work log](hipparcos2-work-log.md) for the investigation,
-decisions, implementation, executed checks, problems and solutions, and remaining
-concerns. Exact per-run acquisition commands remain in each run's execution log.
+implementation, commands, failures, and validation evidence. Exact executed
+network commands remain in each run's immutable acquisition log.
 
-## Approved selection
+## Implemented preparation policy
 
-Use Hipparcos-2, the 2007 new reduction, distributed as CDS I/311. Require the
-nine native counterparts below to be present and finite, and select strictly
-**Hp < 1.9425238**. Sort by Hp, then HIP identifier. The owner explicitly approved
-this provisional Hp filter after discussing the difference between Hp and G.
-The numeric threshold came from the first, brightest row of the current ordered
-Gaia selection; it is fixed in the wrapper, not silently recomputed on reload.
+Use Hipparcos-2, the 2007 new reduction distributed as CDS I/311. A source row
+must contain finite values for these ten native fields: HIP identifier, reference
+epoch, RA, Dec, proper motion in RA and Dec, parallax, Hp magnitude, B-V, and V-I.
+The source's J1991.25 position is converted from radians to degrees; it is not
+propagated to another epoch.
 
-This selection is not equivalent to G < 1.9425238 and does not establish
-completeness at a Gaia G threshold. The same logarithmic magnitude convention
-can be applied to different wavelength bands. Hipparcos Hp and Gaia G measure
-different bands; B-V and Gaia BP-RP are different colour indices. No one-to-one
-numerical substitution is made.
+Estimate Gaia EDR3 G offline from Hipparcos photometry:
 
-The selected Hipparcos file retains every qualifying row, including published
-Gaia matches. It is not an automatic list of stars to add to Gaia. The separate
-cross-match file is evidence for a future decision, not an identity/fusion rule.
+```text
+G - Hp = -0.02392 - 0.4069(B-V) + 0.04569(B-V)^2 - 0.0452(B-V)^3
+```
+
+Use that lower-scatter relation for `-0.25 < B-V <= 1.4`. Outside that
+conservative range, use the documented V-I relation when `-0.25 < V-I < 5.0`:
+
+```text
+G - Hp = 0.01546 - 0.4308(V-I) - 0.01872(V-I)^2
+```
+
+The published population scatters are 0.02417 and 0.08191 magnitude,
+respectively. The derived G value is an estimate and remains labelled with its
+method; it never replaces the native measurements.
+
+Select strictly `estimated_g < 1.9425238`, the current lower boundary of MSC's
+complete nine-field Gaia selection. Sort by estimated G and then HIP identifier.
+Cross-match only those bright candidates through the published Gaia DR3
+Hipparcos-2 best-neighbour table.
+
+For each candidate, prefer an already downloaded Gaia row only when the published
+neighbour is complete under MSC's nine-field contract and its source ID is proven
+to be within the recorded local Gaia checkpoint. Otherwise retain the Hipparcos
+record. This is an offline preparation rule; the application is still intended
+to consume one normalized runtime catalogue.
 
 ## Reload command
 
@@ -35,121 +52,102 @@ From `msc/`:
 ./tools/download_hipparcos2_catalogue
 ```
 
-The wrapper runs [acquire_hipparcos2.py](../tools/acquire_hipparcos2.py) with the
-two separate data directories and the explicit Hp limit. It requires Python
-3.9 or newer, curl, Linux file locking, network access, and a valid local Gaia
-checkpoint/index or completed archive/manifest. It uses only the Python standard
-library; no new application dependency is introduced.
+The wrapper invokes [acquire_hipparcos2.py](../tools/acquire_hipparcos2.py) with
+separate Hipparcos and Gaia data roots and the explicit derived-G limit. It needs
+Python 3.9 or newer, curl, Linux file locking, network access, and a valid local
+Gaia checkpoint/index or completed Gaia archive/manifest. It uses the Python
+standard library and adds no application dependency.
 
-Every invocation downloads the roughly 9 MB compressed source again and creates
-`data/hipparcos2/runs/<UTC timestamp>/`. Previous runs are retained. Unlike the
-large Gaia acquisition, this small download restarts after failure rather than
-paging/resuming. A failed run has no completion manifest and does not change
-`data/hipparcos2/latest.json`. That pointer advances only after all validation
-and output writes succeed. Read it to find the latest completed run.
+Every invocation downloads the roughly 9 MB compressed source and creates
+`data/hipparcos2/runs/<UTC timestamp>/`. Previous completed runs remain immutable.
+A failed run has no completion manifest and cannot update
+`data/hipparcos2/latest.json`; the pointer advances only after complete
+validation and publication.
 
-The script accepts `--hp-limit`, `--root`, `--gaia-root`, and `--tap-endpoint`;
-the wrapper forwards additional arguments. Changing the limit is an explicit
-selection change, not a photometric conversion. No limit automatically changes
-in response to a Gaia download.
+The script accepts `--g-limit`, `--root`, `--gaia-root`, and `--tap-endpoint`.
+Changing the limit or conversion policy changes the derived dataset and must be
+reviewed and recorded.
 
-## Files and field meanings
+## Files and fields
 
 Each completed run contains:
 
-- `hip2.dat.gz` and `ReadMe`: the unmodified full source table and CDS schema,
-  preserving fields not selected into the small derived catalogue.
-- `hipparcos2.csv.gz`: nine complete native fields for the selected records.
-- `gaia-crossmatch.csv.gz`: links and any available Gaia measurements for those
-  HIP IDs, plus the local-download status. An unmatched HIP has an explicit row
-  with empty Gaia fields. Multiple returned links are retained, not collapsed.
-- `match-count.xml`, `matches.xml`, and their `.adql` files: original TAP
-  responses and exact queries.
-- `acquisition-log.md`: executed commands, endpoints, UTC times, exit codes,
-  diagnostics, and verified outcome.
-- `manifest.json`: selection, units, counts, hashes, script hash, and the local
-  Gaia snapshot used for comparison.
+- `hip2.dat.gz` and `ReadMe`: the unmodified full source table and CDS schema;
+- `hipparcos2.csv.gz`: all selected candidates, including derivation provenance;
+- `gaia-crossmatch.csv.gz`: the published neighbour evidence and local status;
+- `hipparcos2-supplement.csv.gz`: the Hipparcos rows that remain after the
+  approved record-resolution policy;
+- `match-count.xml`, `matches.xml`, and matching `.adql` files: original TAP
+  responses and exact queries;
+- `acquisition-log.md`: commands, endpoints, UTC times, exit codes, and outcome;
+- `manifest.json`: formulae, ranges, units, counts, hashes, script hash, and Gaia
+  snapshot provenance.
 
-| Hipparcos CSV field | Meaning |
+| Field | Meaning |
 | --- | --- |
-| `hip_id` | HIP identity, never a fabricated Gaia source ID |
+| `hip_id` | HIP identity; never fabricated as a Gaia source ID |
 | `ref_epoch` | Julian epoch 1991.25 |
 | `ra`, `dec` | ICRS angles in degrees, converted from source radians |
-| `pmra`, `pmdec` | Proper motions in mas/year; RA component includes cos(dec) |
-| `parallax` | Milliarcseconds; no positive-parallax cut |
+| `pmra`, `pmdec` | Proper motions in mas/year; RA includes cos(dec) |
+| `parallax` | Milliarcseconds; negative values would remain valid measurements |
 | `hp_mag` | Native Hipparcos Hp magnitude |
-| `b_v` | Native B-V colour index |
+| `b_v`, `v_i` | Native Hipparcos colour indices used by the documented relations |
+| `estimated_g` | Derived Gaia-like G selection value |
+| `g_estimation_method` | `edr3_hp_bv` or `edr3_hp_vi_fallback` |
+| `resolution_reason` | Why the Hipparcos row remains in the supplement |
 
-These are nine analogous roles, not nine interchangeable Gaia measurements.
-The different header intentionally prevents the Gaia-specific parser from
-silently interpreting Hipparcos photometry as G/BP-RP. The source's solution
-types, component counts, uncertainties, V-I and other information remain in
-`hip2.dat.gz`. No scientific quality cut or replacement of complex solutions
-with simple ones has been applied.
-
-In the cross-match CSV, the nine `gaia_*` fields retain the original Gaia DR3
-values, including G and BP-RP when available. Gaia positions remain at their
-own reference epoch. Blank means missing, not zero or an estimate. The file also
-retains published angular distance in arcseconds, neighbour count and `xm_flag`.
-Use `hip_id` to relate the two outputs; no positional match is invented locally.
+The different source schema intentionally prevents the Gaia parser from treating
+Hipparcos values as native Gaia measurements. Source flags, errors, solution
+types, and all unselected fields remain available in `hip2.dat.gz`.
 
 ## Cross-match and local-presence evidence
 
 The script queries `gaiadr3.hipparcos2_best_neighbour` and joins the linked
-`gaiadr3.gaia_source` rows. Gaia@AIP is the configured partner archive: the ESA
-endpoint timed out during access verification, whereas AIP responded. The exact
-endpoint is recorded per run and can be selected explicitly on reload.
+`gaiadr3.gaia_source` row through Gaia@AIP. The ESA endpoint was unavailable
+during development; the partner endpoint and every query are recorded.
 
-The official table selects positional best neighbours; it does not guarantee
-every match is correct or that every missing match represents a star absent
-from Gaia. Its match flags are preserved without assigning a new interpretation.
+The published table is probabilistic positional best-neighbour evidence. It does
+not guarantee that a match is physically correct, and absence does not prove a
+star is absent from Gaia. MSC does not invent a local positional match.
 
 | Status | Evidence |
 | --- | --- |
-| `matched_locally_downloaded` | The published Gaia source ID occurs in the local snapshot |
-| `matched_not_locally_downloaded` | A published link exists, but its Gaia ID does not occur in that snapshot |
-| `no_published_best_neighbour` | No row was returned from the official best-neighbour table for this HIP ID |
+| `matched_locally_downloaded` | Published Gaia source ID is within the recorded local checkpoint |
+| `matched_not_locally_downloaded` | Published link exists, but its ID is outside that snapshot |
+| `no_published_best_neighbour` | Official table returned no row for the HIP ID |
 
-For ongoing acquisition the script reads the existing SQLite index with
-`mode=ro` and a read transaction. It bounds membership by the recorded checkpoint
-row count, excluding index entries from a later, uncommitted append. It records
-the checkpoint and its SHA-256. It does not independently revalidate every byte
-of the partial Gaia archive. Missing/inconsistent state is an error, not absence.
+During an incomplete Gaia acquisition, membership uses the existing SQLite ID
+index in read-only mode and is bounded by the committed checkpoint row count.
+The manifest records that checkpoint and its SHA-256. When Gaia is complete, the
+script can instead stream and validate the completed CSV-gzip archive.
 
-Once Gaia is complete, its temporary index is removed by the existing downloader.
-The Hipparcos script then streams the completed CSV.gz, checks the header, gzip
-integrity, row widths, size and count against the Gaia manifest, and checks IDs.
-This requires one full pass through Gaia. It does not merge or rewrite Gaia.
-Refresh the report after Gaia finishes before deciding which stars to supplement.
+## Verified result: run `20260912T191816.016104Z`
 
-## Verified result on 2026-09-12
+| Measurement | Result |
+| --- | ---: |
+| Hipparcos-2 source rows | 117,955 |
+| Rows complete in all ten native fields | 117,955 |
+| Hp/B-V primary estimates | 106,255 |
+| Hp/V-I fallback estimates | 11,649 |
+| Rows outside both supported colour ranges | 51 |
+| Candidates with derived G below 1.9425238 | 63 |
+| No published best-neighbour | 60 |
+| Published neighbours incomplete under MSC's Gaia contract | 2 |
+| Complete candidates already represented in local Gaia | 1 |
+| Final Hipparcos supplement rows | 62 |
+| Gaia checkpoint rows used for resolution | 76,048,576 |
 
-- Source rows: **117,955**, all with finite values in the selected native roles.
-- Provisional Hp-selected rows: **42**.
-- No published best-neighbour match: **40**.
-- Published links absent from the local Gaia snapshot: **2**.
-- Published links present locally: **0**.
-- Local Gaia snapshot: **76,048,576** committed records, still incomplete.
+HIP 3179 is the first Gaia row in the local catalogue and is excluded from the
+supplement because its published neighbour is complete and locally present. HIP
+71681 and HIP 36850 have published neighbours, but both lack Gaia proper motion
+and parallax, so their Hipparcos rows remain. HIP 71681's large Hp/G discrepancy
+remains a documented identity concern rather than being silently accepted.
 
-Both matched Gaia sources lack `pmra`, `pmdec`, and `parallax`, so they fail the
-current nine-required-field Gaia selection, regardless of download progress.
-
-| HIP | Hp | Published Gaia source ID | Gaia G |
-| --- | ---: | --- | ---: |
-| 71681 | 1.2429 | 5877748442128924544 | 20.948614 |
-| 36850 | 1.5811 | 892348694913501952 | 2.9247973 |
-
-The large discrepancy for HIP 71681 is an unresolved cross-match concern.
-These are the returned values, not a claim that they measure the same physical
-component or that the difference is explained by the bands. Neither link was
-used to replace Hipparcos data or discard a selected star.
-
-Validation checks include source row length/count, unique HIP IDs, complete
-finite native fields, coordinate ranges, strict Hp selection, TAP query status
-including trailing truncation indicators, independently queried match count,
-requested HIP membership, unique match pairs, gzip/CSV round trips, and file
-hashes. Identifiers remain integers/text rather than passing through floating
-point. Gzip outputs use deterministic headers.
+Validation covers source row count and widths, unique integer identifiers,
+finite required fields, coordinate ranges, formula selection boundaries,
+strict derived-G selection, VOTable status and row count, match membership,
+ambiguous best-neighbour rejection, checkpoint-bounded local membership,
+deterministic gzip output, hashes, and resolution outcomes.
 
 Run focused tests with:
 
@@ -157,14 +155,24 @@ Run focused tests with:
 python3 -B -m unittest discover -s tools -p 'test_acquire_hipparcos2.py'
 ```
 
+## Limitations
+
+- Estimated G is derived photometry, not a Gaia measurement.
+- Reported fit scatter describes a population and is not a per-star error bar.
+- No position propagation or independent identity matching is performed.
+- No published best neighbour does not prove that a source is absent from Gaia.
+- Resolution is tied to the recorded local Gaia snapshot and must be regenerated
+  after that snapshot changes.
+- A future normalized runtime record still needs its approved C++ identity,
+  provenance, and source-measurement representation.
+
 ## Sources and attribution
 
 - [CDS Hipparcos-2 schema and source](https://cdsarc.cds.unistra.fr/ftp/I/311/ReadMe),
-  van Leeuwen (2007), Astronomy & Astrophysics 474, 653; corrected CDS distribution.
-- [Gaia DR3 Hipparcos-2 best-neighbour documentation](https://gaia.aip.de/metadata/gaiadr3/hipparcos2_best_neighbour/),
-  including algorithm references, attribution, and distribution terms.
-- [Gaia source field documentation](https://gaia.aip.de/metadata/gaiadr3/gaia_source/).
+  van Leeuwen (2007), Astronomy & Astrophysics 474, 653.
+- [Gaia EDR3 photometric relationships](https://gea.esac.esa.int/archive/documentation/GEDR3/Data_processing/chap_cu5pho/cu5pho_sec_photSystem/cu5pho_ssec_photRelations.html).
+- [Gaia DR3 Hipparcos-2 best-neighbour documentation](https://gaia.aip.de/metadata/gaiadr3/hipparcos2_best_neighbour/).
+- [Gaia DR3 source field documentation](https://gaia.aip.de/metadata/gaiadr3/gaia_source/).
 
-This dataset uses ESA Gaia data processed by DPAC, accessed through Gaia@AIP,
-and the Hipparcos new reduction distributed by CDS. Preserve those source
-attributions and consult the linked provider terms when distributing data.
+Preserve ESA/DPAC, Gaia@AIP, CDS, and catalogue-publication attribution when
+redistributing derived data.

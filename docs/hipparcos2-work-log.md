@@ -211,3 +211,48 @@ responses, failures, counts, hashes and snapshot provenance for each invocation.
 It does not automatically write an interpretation of new scientific anomalies;
 those require inspection and an explicit update to this work log or a new dated
 record. Keep the original run logs and manifests unchanged as historical evidence.
+
+## Derived-G preparation and consolidation — 2026-09-12
+
+The owner approved replacing the provisional raw-Hp selection with the documented
+offline preparation policy: estimate Gaia EDR3 G from Hp/B-V, use Hp/V-I outside
+the conservative B-V range, cross-match only the resulting candidates, and
+prefer a Gaia row only when it is both complete under MSC's nine-field contract
+and present in the recorded local snapshot.
+
+Implementation changes:
+
+- added V-I to the required native Hipparcos contract;
+- added the two official EDR3 photometric relations and recorded their method;
+- changed the fixed wrapper boundary from raw Hp to derived G;
+- rejected rows outside both documented colour ranges;
+- rejected ambiguous multiple best-neighbour rows for one HIP identifier;
+- generated `hipparcos2-supplement.csv.gz` after explicit record resolution;
+- expanded the manifest with formulae, ranges, scatter, resolution counts, and
+  limitations;
+- expanded focused tests from six to ten.
+
+The completed run is
+[`20260912T191816.016104Z`](../data/hipparcos2/runs/20260912T191816.016104Z/manifest.json).
+It parsed 117,955 complete source rows, used the B-V relation for 106,255, used
+the V-I fallback for 11,649, and rejected 51 from derived-G consideration because
+both colours were outside the supported ranges. Sixty-three candidates pass the
+strict derived-G boundary. Sixty have no published best neighbour; two published
+neighbours lack fields required by MSC; one complete Gaia neighbour is present
+in the 76,048,576-row local checkpoint. The final supplement therefore contains
+62 Hipparcos rows.
+
+The first visible tool call ended before reporting completion, but the acquisition
+process completed normally at 19:18:54 UTC and atomically advanced `latest.json`.
+There is no incomplete run to recover. The raw 9 MB Hipparcos source remains
+ignored by Git; all small derived outputs and provenance records are retained.
+
+Verification performed after completion:
+
+```sh
+python3 -B -m unittest discover -s tools -p 'test_acquire_hipparcos2.py'
+git diff --check
+```
+
+All ten focused tests passed and the whitespace check was clean. No C++ source or
+runtime catalogue integration changed in this preparation step.

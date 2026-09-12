@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Download a separate, native Hipparcos-2 Hp-selected catalogue and Gaia links.
+"""Prepare a Hipparcos-2 bright-star supplement and Gaia match evidence.
 
-Only Python's standard library and curl are required. No photometric conversion,
-epoch propagation, positional matching, Gaia writes, or application integration.
+Only Python's standard library and curl are required. Gaia G is estimated from
+published EDR3 relationships; no epoch propagation, positional matching, Gaia
+writes, or application integration is performed.
 """
 
 import argparse
@@ -24,7 +25,8 @@ import xml.etree.ElementTree as ET
 
 CDS = "https://cdsarc.cds.unistra.fr/ftp/I/311/"
 TAP = "https://gaia.aip.de/tap/sync"
-NATIVE = "hip_id ref_epoch ra dec pmra pmdec parallax hp_mag b_v".split()
+NATIVE = "hip_id ref_epoch ra dec pmra pmdec parallax hp_mag b_v v_i".split()
+PREPARED = NATIVE + ["estimated_g", "g_estimation_method"]
 GAIA = "source_id ref_epoch ra dec pmra pmdec parallax phot_g_mean_mag bp_rp".split()
 MATCH = "original_ext_source_id angular_distance number_of_neighbours xm_flag".split()
 EXPECTED_HIP_ROWS = 117955
@@ -42,8 +44,19 @@ def finite(text):
     return bool(text) and math.isfinite(float(text))
 
 
-def read_hipparcos(path, hp_limit):
-    """CDS I/311 hip2.dat fixed byte columns; retain native photometric bands."""
+def estimate_gaia_g(hp, b_v, v_i):
+    """Estimate EDR3 G from Hp using published colour relationships."""
+    if -0.25 < b_v <= 1.4:
+        correction = -0.02392 - 0.4069 * b_v + 0.04569 * b_v**2 - 0.0452 * b_v**3
+        return hp + correction, "edr3_hp_bv"
+    if -0.25 < v_i < 5.0:
+        correction = 0.01546 - 0.4308 * v_i - 0.01872 * v_i**2
+        return hp + correction, "edr3_hp_vi_fallback"
+    return None
+
+
+def read_hipparcos(path, g_limit):
+    """Read CDS I/311 fixed columns and select by derived Gaia G."""
     selected = []
     seen = set()
     counts = Counter()
@@ -60,22 +73,29 @@ def read_hipparcos(path, hp_limit):
             # RA/Dec are radians in the source, at Julian epoch 1991.25.
             values = [line[a:b].strip() for a, b in (
                 (15, 28), (29, 42), (51, 59), (60, 68),
-                (43, 50), (129, 136), (152, 158))]
+                (43, 50), (129, 136), (152, 158), (165, 171))]
             if not all(finite(v) for v in values):
                 counts["incomplete_native_rows"] += 1
                 continue
-            ra, dec, pmra, pmdec, parallax, hp, bv = values
+            ra, dec, pmra, pmdec, parallax, hp, bv, vi = values
             if not (0 <= float(ra) < 2 * math.pi and
                     -math.pi / 2 <= float(dec) <= math.pi / 2):
                 raise ValueError(f"Invalid Hipparcos coordinates for HIP {hip}")
             counts["complete_native_rows"] += 1
-            if float(hp) >= hp_limit:
-                counts["outside_hp_selection"] += 1
+            estimate = estimate_gaia_g(float(hp), float(bv), float(vi))
+            if estimate is None:
+                counts["unsupported_photometry_rows"] += 1
                 continue
-            selected.append(dict(zip(NATIVE, (
+            estimated_g, method = estimate
+            counts[method + "_rows"] += 1
+            if estimated_g >= g_limit:
+                counts["outside_derived_g_selection"] += 1
+                continue
+            selected.append(dict(zip(PREPARED, (
                 str(hip), "1991.25", repr(math.degrees(float(ra))),
-                repr(math.degrees(float(dec))), pmra, pmdec, parallax, hp, bv))))
-    selected.sort(key=lambda row: (float(row["hp_mag"]), int(row["hip_id"])))
+                repr(math.degrees(float(dec))), pmra, pmdec, parallax, hp, bv,
+                vi, repr(estimated_g), method))))
+    selected.sort(key=lambda row: (float(row["estimated_g"]), int(row["hip_id"])))
     counts["selected_rows"] = len(selected)
     return selected, dict(counts)
 
@@ -122,6 +142,7 @@ def match_query(hip_ids, count=False):
 
 def validate_matches(rows, hip_ids):
     seen = set()
+    matched_hip = set()
     for row in rows:
         hip = int(row["original_ext_source_id"])
         if hip not in hip_ids:
@@ -129,10 +150,38 @@ def validate_matches(rows, hip_ids):
         sid = int(row["source_id"])
         if sid <= 0 or (hip, sid) in seen:
             raise ValueError("Invalid or duplicate cross-match pair")
+        if hip in matched_hip:
+            raise ValueError("Best-neighbour table returned multiple rows for one HIP identifier")
         seen.add((hip, sid))
+        matched_hip.add(hip)
         for field in MATCH[1:] + GAIA[1:]:
             if row[field] and not finite(row[field]):
                 raise ValueError(f"Nonfinite Gaia/cross-match field: {field}")
+
+
+def resolve_supplement(selected, matches, locally_downloaded):
+    """Return Hipparcos rows not already represented by a complete local Gaia row."""
+    by_hip = {int(row["hip_id"]): [] for row in selected}
+    for match in matches:
+        by_hip[int(match["original_ext_source_id"])].append(match)
+    supplement = []
+    counts = Counter()
+    for native in selected:
+        links = by_hip[int(native["hip_id"])]
+        if not links:
+            reason = "no_published_best_neighbour"
+        else:
+            link = links[0]
+            gaia_complete = all(finite(link[field]) for field in GAIA)
+            gaia_local = int(link["source_id"]) in locally_downloaded
+            if gaia_complete and gaia_local:
+                counts["represented_by_complete_local_gaia"] += 1
+                continue
+            reason = ("published_gaia_missing_required_fields" if not gaia_complete
+                      else "complete_gaia_not_in_local_snapshot")
+        supplement.append(native | {"resolution_reason": reason})
+        counts[reason] += 1
+    return supplement, dict(counts)
 
 
 def local_membership(gaia_root, source_ids):
@@ -212,12 +261,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--gaia-root", type=Path, required=True)
-    parser.add_argument("--hp-limit", type=float, required=True,
-                        help="Strict native Hp cutoff; never interpreted as Gaia G")
+    parser.add_argument("--g-limit", type=float, required=True,
+                        help="Strict upper limit on the derived Gaia EDR3 G estimate")
     parser.add_argument("--tap-endpoint", default=TAP)
     args = parser.parse_args()
-    if not math.isfinite(args.hp_limit):
-        parser.error("hp-limit must be finite")
+    if not math.isfinite(args.g_limit):
+        parser.error("g-limit must be finite")
     root, gaia_root = args.root.resolve(), args.gaia_root.resolve()
     if root == gaia_root or root.is_relative_to(gaia_root) or gaia_root.is_relative_to(root):
         parser.error("Hipparcos and Gaia roots must be separate directories")
@@ -253,13 +302,13 @@ def main():
             raise RuntimeError(f"Download failed; see {log}. Previous completed runs are intact.")
         return target
 
-    print(f"Acquiring native Hipparcos-2 Hp < {args.hp_limit}; output: {run}", flush=True)
+    print(f"Acquiring Hipparcos-2 derived G < {args.g_limit}; output: {run}", flush=True)
     fetch("ReadMe", CDS + "ReadMe")
     hip = fetch("hip2.dat.gz", CDS + "hip2.dat.gz")
-    selected, counts = read_hipparcos(hip, args.hp_limit)
+    selected, counts = read_hipparcos(hip, args.g_limit)
     if counts["source_rows"] != EXPECTED_HIP_ROWS:
         raise ValueError("Hipparcos-2 source count changed; inspect before accepting")
-    write_csv(run / "hipparcos2.csv.gz", NATIVE, selected)
+    write_csv(run / "hipparcos2.csv.gz", PREPARED, selected)
     hip_ids = {int(row["hip_id"]) for row in selected}
     matches = []
     if hip_ids:
@@ -294,27 +343,41 @@ def main():
                                    [link[field] for field in MATCH[1:]])))
             status_counts[status] += 1
     write_csv(run / "gaia-crossmatch.csv.gz", fields, output)
+    supplement, resolution_counts = resolve_supplement(selected, matches, found)
+    write_csv(run / "hipparcos2-supplement.csv.gz",
+              PREPARED + ["resolution_reason"], supplement)
     manifest = {
         "format_version": 1, "release": "Hipparcos-2 (van Leeuwen 2007), CDS I/311",
         "utc_started": started.isoformat(),
         "utc_completed": dt.datetime.now(dt.timezone.utc).isoformat(),
         "script_sha256": digest(Path(__file__)), "source_url": CDS,
-        "selection": {"expression": "hp_mag < hp_limit", "hp_limit": args.hp_limit,
-                      "band": "Hipparcos Hp", "required_native_columns": NATIVE,
-                      "provisional": True, "equivalent_to_gaia_g_cut": False},
+        "selection": {
+            "expression": "estimated_g < g_limit", "g_limit": args.g_limit,
+            "target_band": "Gaia EDR3 G", "required_native_columns": NATIVE,
+            "formula_primary": "G-Hp=-0.02392-0.4069*(B-V)+0.04569*(B-V)^2-0.0452*(B-V)^3",
+            "primary_range": "-0.25 < B-V <= 1.4",
+            "formula_fallback": "G-Hp=0.01546-0.4308*(V-I)-0.01872*(V-I)^2",
+            "fallback_range": "-0.25 < V-I < 5.0",
+            "primary_reported_scatter_mag": 0.02417,
+            "fallback_reported_scatter_mag": 0.08191,
+            "source": "Gaia EDR3 documentation, photometric relationships"
+        },
         "counts": counts, "crossmatch_status_row_counts": dict(status_counts),
+        "resolution_counts": resolution_counts,
         "crossmatch_endpoint": args.tap_endpoint,
         "crossmatch_table": "gaiadr3.hipparcos2_best_neighbour",
         "gaia_snapshot": snapshot,
         "units": {"ra": "degrees ICRS", "dec": "degrees ICRS",
                   "ref_epoch": "Julian year 1991.25", "pmra": "mas/yr, RA motion with cos(dec)",
                   "pmdec": "mas/yr", "parallax": "mas", "hp_mag": "Hipparcos Hp mag",
-                  "b_v": "B minus V mag", "angular_distance": "arcsec"},
-        "order": ["hp_mag ASC", "hip_id ASC"],
-        "limitations": ["Hp cutoff is not a Gaia G cutoff.",
-                        "No photometric conversion or position propagation was performed.",
+                  "b_v": "B minus V mag", "v_i": "V minus I mag",
+                  "estimated_g": "derived Gaia EDR3 G mag", "angular_distance": "arcsec"},
+        "order": ["estimated_g ASC", "hip_id ASC"],
+        "limitations": ["Estimated G is derived photometry, not a Gaia measurement.",
+                        "Published fit scatter is population-level, not per-star uncertainty.",
+                        "No position propagation was performed.",
                         "No published best neighbour does not establish absence from Gaia.",
-                        "Local Gaia membership is a snapshot, not a final fusion decision.",
+                        "Resolution uses the recorded local Gaia snapshot and must be regenerated when it changes.",
                         "Native source flags, errors and other fields remain in hip2.dat.gz.",
                         "Multiple links are retained; no ambiguous identity is silently resolved."],
         "files": {path.name: {"bytes": path.stat().st_size, "sha256": digest(path)}

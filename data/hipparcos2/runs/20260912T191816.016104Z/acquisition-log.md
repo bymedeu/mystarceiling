@@ -1,0 +1,207 @@
+# Hipparcos-2 acquisition
+
+```sh
+/home/amade/.pyenv/versions/3.12.9/bin/python3 /home/amade/projects/portfolio/msc/tools/acquire_hipparcos2.py --root /home/amade/projects/portfolio/msc/data/hipparcos2 --gaia-root /home/amade/projects/portfolio/msc/data/gaia-dr3 --g-limit 1.9425238
+```
+
+## 2026-09-12T19:18:16.016443+00:00
+
+```sh
+curl --fail --silent --show-error --location --max-time 120 --output /home/amade/projects/portfolio/msc/data/hipparcos2/runs/20260912T191816.016104Z/ReadMe https://cdsarc.cds.unistra.fr/ftp/I/311/ReadMe
+```
+Exit code: 0
+
+```text
+
+```
+
+## 2026-09-12T19:18:16.242200+00:00
+
+```sh
+curl --fail --silent --show-error --location --max-time 120 --output /home/amade/projects/portfolio/msc/data/hipparcos2/runs/20260912T191816.016104Z/hip2.dat.gz https://cdsarc.cds.unistra.fr/ftp/I/311/hip2.dat.gz
+```
+Exit code: 0
+
+```text
+
+```
+
+## 2026-09-12T19:18:21.628060+00:00
+
+```sh
+curl --fail --silent --show-error --location --max-time 120 --output /home/amade/projects/portfolio/msc/data/hipparcos2/runs/20260912T191816.016104Z/match-count.xml --get --data-urlencode REQUEST=doQuery --data-urlencode LANG=ADQL --data-urlencode FORMAT=votable --data-urlencode MAXREC=1000000 --data-urlencode 'QUERY=SELECT COUNT(*) AS match_count FROM gaiadr3.hipparcos2_best_neighbour AS x WHERE x.original_ext_source_id IN (3179,3419,5447,7588,9640,9884,11767,14135,15863,21421,24436,24608,25336,25428,26311,26727,27989,28360,30343,30438,31681,32349,33579,34444,36850,37279,37826,39953,41037,42913,44816,45238,46390,49669,50583,54061,60718,61084,62434,62956,65474,67301,68702,68933,69673,71681,71683,72607,80763,82273,85927,86228,87833,90185,91262,97649,100751,102098,107315,109268,112122,113368,113881)' https://gaia.aip.de/tap/sync
+```
+Exit code: 0
+
+```text
+
+```
+
+## 2026-09-12T19:18:24.280443+00:00
+
+```sh
+curl --fail --silent --show-error --location --max-time 120 --output /home/amade/projects/portfolio/msc/data/hipparcos2/runs/20260912T191816.016104Z/matches.xml --get --data-urlencode REQUEST=doQuery --data-urlencode LANG=ADQL --data-urlencode FORMAT=votable --data-urlencode MAXREC=1000000 --data-urlencode 'QUERY=SELECT x.original_ext_source_id, x.angular_distance, x.number_of_neighbours, x.xm_flag, g.source_id, g.ref_epoch, g.ra, g.dec, g.pmra, g.pmdec, g.parallax, g.phot_g_mean_mag, g.bp_rp FROM gaiadr3.hipparcos2_best_neighbour AS x LEFT OUTER JOIN gaiadr3.gaia_source AS g ON x.source_id = g.source_id WHERE x.original_ext_source_id IN (3179,3419,5447,7588,9640,9884,11767,14135,15863,21421,24436,24608,25336,25428,26311,26727,27989,28360,30343,30438,31681,32349,33579,34444,36850,37279,37826,39953,41037,42913,44816,45238,46390,49669,50583,54061,60718,61084,62434,62956,65474,67301,68702,68933,69673,71681,71683,72607,80763,82273,85927,86228,87833,90185,91262,97649,100751,102098,107315,109268,112122,113368,113881) ORDER BY x.original_ext_source_id ASC, g.source_id ASC' https://gaia.aip.de/tap/sync
+```
+Exit code: 0
+
+```text
+
+```
+
+## Validated outcome
+
+```json
+{
+  "format_version": 1,
+  "release": "Hipparcos-2 (van Leeuwen 2007), CDS I/311",
+  "utc_started": "2026-09-12T19:18:16.016104+00:00",
+  "utc_completed": "2026-09-12T19:18:54.530449+00:00",
+  "script_sha256": "0e98ab2c9092e84bcc5e6429dec2e16f0c7a84284428c169e9785e3abaed62fb",
+  "source_url": "https://cdsarc.cds.unistra.fr/ftp/I/311/",
+  "selection": {
+    "expression": "estimated_g < g_limit",
+    "g_limit": 1.9425238,
+    "target_band": "Gaia EDR3 G",
+    "required_native_columns": [
+      "hip_id",
+      "ref_epoch",
+      "ra",
+      "dec",
+      "pmra",
+      "pmdec",
+      "parallax",
+      "hp_mag",
+      "b_v",
+      "v_i"
+    ],
+    "formula_primary": "G-Hp=-0.02392-0.4069*(B-V)+0.04569*(B-V)^2-0.0452*(B-V)^3",
+    "primary_range": "-0.25 < B-V <= 1.4",
+    "formula_fallback": "G-Hp=0.01546-0.4308*(V-I)-0.01872*(V-I)^2",
+    "fallback_range": "-0.25 < V-I < 5.0",
+    "primary_reported_scatter_mag": 0.02417,
+    "fallback_reported_scatter_mag": 0.08191,
+    "source": "Gaia EDR3 documentation, photometric relationships"
+  },
+  "counts": {
+    "source_rows": 117955,
+    "complete_native_rows": 117955,
+    "edr3_hp_bv_rows": 106255,
+    "outside_derived_g_selection": 117841,
+    "edr3_hp_vi_fallback_rows": 11649,
+    "unsupported_photometry_rows": 51,
+    "selected_rows": 63
+  },
+  "crossmatch_status_row_counts": {
+    "no_published_best_neighbour": 60,
+    "matched_not_locally_downloaded": 2,
+    "matched_locally_downloaded": 1
+  },
+  "resolution_counts": {
+    "no_published_best_neighbour": 60,
+    "published_gaia_missing_required_fields": 2,
+    "represented_by_complete_local_gaia": 1
+  },
+  "crossmatch_endpoint": "https://gaia.aip.de/tap/sync",
+  "crossmatch_table": "gaiadr3.hipparcos2_best_neighbour",
+  "gaia_snapshot": {
+    "kind": "incomplete_checkpoint",
+    "path": "/home/amade/projects/portfolio/msc/data/gaia-dr3/gaia-dr3.csv.gz.partial",
+    "checkpoint": {
+      "max_bytes": 10000000000,
+      "rows": 76048576,
+      "bytes": 4878012154,
+      "batch": 26,
+      "cursor": [
+        15.981961250305176,
+        5938936058012995200
+      ],
+      "job": null,
+      "job_started": false,
+      "job_limit": 1500000,
+      "done": false,
+      "benchmarks": {
+        "4096": {
+          "gzip_prefix_bytes": 273074
+        },
+        "65536": {
+          "gzip_prefix_bytes": 4341059
+        },
+        "262144": {
+          "gzip_prefix_bytes": 17247588
+        },
+        "1048576": {
+          "gzip_prefix_bytes": 68641402
+        }
+      },
+      "rejected_rows": 0,
+      "target_rows": 134217728
+    },
+    "checkpoint_sha256": "e79936711066053a136c31d113d97fe26be05ac47d3e8ac41b430ec5f2a02f7d",
+    "membership_evidence": "read-only acquisition ID index, bounded by checkpoint row count"
+  },
+  "units": {
+    "ra": "degrees ICRS",
+    "dec": "degrees ICRS",
+    "ref_epoch": "Julian year 1991.25",
+    "pmra": "mas/yr, RA motion with cos(dec)",
+    "pmdec": "mas/yr",
+    "parallax": "mas",
+    "hp_mag": "Hipparcos Hp mag",
+    "b_v": "B minus V mag",
+    "v_i": "V minus I mag",
+    "estimated_g": "derived Gaia EDR3 G mag",
+    "angular_distance": "arcsec"
+  },
+  "order": [
+    "estimated_g ASC",
+    "hip_id ASC"
+  ],
+  "limitations": [
+    "Estimated G is derived photometry, not a Gaia measurement.",
+    "Published fit scatter is population-level, not per-star uncertainty.",
+    "No position propagation was performed.",
+    "No published best neighbour does not establish absence from Gaia.",
+    "Resolution uses the recorded local Gaia snapshot and must be regenerated when it changes.",
+    "Native source flags, errors and other fields remain in hip2.dat.gz.",
+    "Multiple links are retained; no ambiguous identity is silently resolved."
+  ],
+  "files": {
+    "ReadMe": {
+      "bytes": 10375,
+      "sha256": "6c017925d658447d40983da3b459ba16bf9789c8f7573e263952c75692622499"
+    },
+    "gaia-crossmatch.csv.gz": {
+      "bytes": 695,
+      "sha256": "a0410860fef16d1ea8b2653d18a84e62c3df2892c9c7aac3185e3651d7d665b5"
+    },
+    "hip2.dat.gz": {
+      "bytes": 8977907,
+      "sha256": "8e624f843d4254a9b7c2e8dda8e3158dbe825bf98f6bf3dbbae7f0d0b73d6858"
+    },
+    "hipparcos2-supplement.csv.gz": {
+      "bytes": 3598,
+      "sha256": "ac51c4fe9334432fff34a0a27c6352c05629ac2b785e95fc937d786ea12c9f08"
+    },
+    "hipparcos2.csv.gz": {
+      "bytes": 3514,
+      "sha256": "4427700c6647d14d2dccf2bca6df3357883b963972e530ddf5a0763f1362e497"
+    },
+    "match-count.xml": {
+      "bytes": 1841,
+      "sha256": "f2103ffad522d8ed9f2f4e9ec05a81255e361d3a7fa487d93ad2dcdb38bfe372"
+    },
+    "match-count.xml.adql": {
+      "bytes": 490,
+      "sha256": "075a2b2721ba05faf06f836628447888a80c2ffec236aebfd9fd80cb96fff74e"
+    },
+    "matches.xml": {
+      "bytes": 6255,
+      "sha256": "44c7afc4eaf935f33b83aede3927a68b309c03dbd02deb3c5eb9d527957314d6"
+    },
+    "matches.xml.adql": {
+      "bytes": 767,
+      "sha256": "85c026b35d0d2546c3a4b11a79fd5c7e67bf9d5ea09afa8bd3568b396a2467ca"
+    }
+  }
+}
+```
