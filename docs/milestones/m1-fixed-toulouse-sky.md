@@ -183,12 +183,14 @@ and rasterization differences would make that test unnecessarily fragile.
   projected stars retain the same three-pixel size and remain visible; relative
   flux is square-root compressed for the display. Exposure control, calibrated
   magnitude mapping, colour, and scintillation remain later work.
-- The real repository builds successfully and all 96 discovered tests pass.
+- At the original M1 implementation checkpoint, the real repository built
+  successfully and all 96 then-discovered tests passed.
 - The application smoke test loaded 4,096 real Gaia rows, projected 834 into the
   fixed 90-degree view, created the GLFW/OpenGL context, and entered its draw
   loop. The first reported source identifier was `418551920284673408`.
 
 The milestone screenshot remains. M1 renders fixed-size grayscale points with a
-minimal relative brightness cue. Calibrated magnitude-based appearance, BP-RP
-colour, proper-motion propagation, and a full high-accuracy observed-place
-transformation remain later work.
+minimal relative brightness cue. A tested proper-motion operation now exists in
+the core, but M1 deliberately does not call it. Calibrated magnitude-based
+appearance, BP-RP colour, application-level motion integration, and a full
+high-accuracy observed-place transformation remain later work.

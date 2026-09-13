@@ -1,6 +1,7 @@
 add_library(mystarceiling_core
             foo.cc
             coordinates/icrs_direction.cc
+            coordinates/propagate_proper_motion.cc
             coordinates/icrs_to_enu.cc
             projection/zenith_perspective.cc
             time/earth_rotation.cc

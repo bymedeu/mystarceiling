@@ -6,6 +6,7 @@ add_executable(mystarceiling_tests
             catalogue/binary_catalogue_tests.cc
             catalogue/gaia_csv_tests.cc
             core/coordinates/declination_tests.cc
+            core/coordinates/propagate_proper_motion_tests.cc
             core/coordinates/icrs_direction_tests.cc
             core/coordinates/icrs_to_enu_tests.cc
             core/coordinates/latitude_tests.cc
