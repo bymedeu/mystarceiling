@@ -5,6 +5,9 @@ Last updated: 2026-09-13.
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
 
+M1 is complete on 2026-09-13. M2 — scalable and inspectable stellar rendering —
+is the next planning target.
+
 ## Implemented and verified
 
 - M1 normalizes the 4096-row Gaia prefix and resolved 62-row Hipparcos supplement
@@ -20,15 +23,20 @@ session. Detailed decisions remain in the linked focused documents.
   Three-pixel grayscale points use stronger brightness contrast without a floor.
 - Debug build and all 117 C++ tests passed. Real-data execution selected 4096,
   reported 0 propagation failures, excluded 720 visible records by magnitude,
-  and created 125 screen points. GLFW initialization failed here; visual review
-  remains outstanding. See [M1](milestones/m1-fixed-toulouse-sky.md).
+  and created 125 screen points. The owner successfully ran the combined
+  application in a graphical session and supplied the closeout screenshot.
+  They found the rendering very nice and the magnitude distribution realistic,
+  without recognizing their usual constellations. The screenshot is visual
+  evidence; automated known-row catalogue-to-screen tests provide positional
+  and orientation evidence. See [M1](milestones/m1-fixed-toulouse-sky.md).
 - Hipparcos preparation and the source files are unchanged by this integration.
 
 ## Future direction, not implemented
 
-Automatic visibility and future CLI/GUI controls remain future work. Current local time is the approved future time default; the default observer and place-name resolution remain open. M1 still uses
-fixed Toulouse/time. Colour, glow, exposure, camera controls, and scintillation
-are not implemented.
+Automatic visibility and future CLI/GUI controls remain future work. Current
+local time is the approved future time default; the default observer and
+place-name resolution remain open. M1 still uses fixed Toulouse/time. Colour,
+glow, exposure, camera controls, and scintillation are not implemented.
 
 ## Acquisition status
 
@@ -60,7 +68,6 @@ Regenerate the supplement after Gaia materially changes.
 - conflict reporting for otherwise usable source records;
 - whether magnitude layers first appear during M1 binary preparation or after
   measuring the existing 4,096-row baseline;
-- the remaining M1 screenshot/acceptance record;
 - the Gaia acquisition recovery strategy.
 
 ## Key records

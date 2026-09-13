@@ -1,17 +1,16 @@
 # M1 — Fixed Toulouse sky
 
-Status: end-to-end implementation and graphics smoke test complete; the
-milestone screenshot remains.
+Status: complete on 2026-09-13. M2 is the next planning target.
 
 Target: 29 November 2026.
 
 ## Objective
 
-Load the 4,096 brightest combined qualifying Gaia DR3 and Hipparcos-2 sources into the project's typed
-stellar representation, construct their local directions for Toulouse at one
-fixed instant, and render the visible result in a window. This is the first
-complete path through catalogue ingestion, interpretation, astronomy,
-projection, and rendering.
+Load the 4,096 brightest combined qualifying Gaia DR3 and Hipparcos-2 sources
+into the project's typed stellar representation, construct their local
+directions for Toulouse at one fixed instant, and render the visible result in
+a window. This is the first complete path through catalogue ingestion,
+interpretation, astronomy, projection, and rendering.
 
 ```mermaid
 flowchart TD
@@ -214,7 +213,9 @@ catalogue composition. It is an uncalibrated grayscale display choice. No colour
 glow, scintillation, exposure, camera, or GUI controls were added.
 
 Toulouse and the fixed 2016 instant remain fixed M1 inputs, not permanent defaults.
-Current local time is the approved future time default; an explicit timestamp without a timezone means UTC. The future default observer and place-name resolution remain open.
+Current local time is the approved future time default; an explicit timestamp
+without a timezone means UTC. The future default observer and place-name
+resolution remain open.
 The CLI now takes Gaia, resolved Hipparcos supplement, and output binary paths;
 future CLI/GUI time, location, and display controls are not implemented. Their
 interface and division of responsibilities remain open.
@@ -223,6 +224,29 @@ Verification: Debug build and 117 C++ tests passed. Real input accepted 4096 Gai
 and 62 Hipparcos rows without rejection, retained all 62 in the selected 4096,
 reported zero propagation failures, excluded 720 otherwise visible records at
 G>4, and produced 125 screen points. Independent binary/source comparison verified
-exact ordering, native IDs/epochs, and unchanged Gaia BP-RP. GLFW initialization
-failed in this environment, so this update has no windowed visual verification;
-the screenshot and owner appearance review remain outstanding.
+exact ordering, native IDs/epochs, and unchanged Gaia BP-RP. The owner subsequently
+ran the combined application successfully in a graphical session and supplied
+the screenshot below, completing the windowed visual review.
+
+## Visual closeout — 2026-09-13
+
+![Combined Gaia/Hipparcos fixed Toulouse zenith sky](../assets/m1-fixed-toulouse-sky.png)
+
+*Owner-supplied screenshot of the combined Gaia/Hipparcos application: Toulouse
+at 2016-01-01 00:00 UTC, with a symmetric zenith-centered perspective crop,
+90-degree vertical field of view, north up and east right. The temporary G<=4
+filter produces 125 rendered three-pixel grayscale points from 4,096 selected
+stars, including all 62 Hipparcos supplement records.*
+
+The owner reports that the rendering looks very nice and the magnitude
+distribution looks realistic. This is a visual assessment of the uncalibrated
+display mapping. The owner did not recognize their usual constellations; that
+is not a failure, because this fixed January 2016 zenith crop differs from their
+current September east-southeast view. No constellation recognition is claimed.
+
+The screenshot is visual evidence of the successful graphical run and its
+appearance. The automated known-row catalogue-to-screen tests provide positional
+and orientation evidence under the documented M1 approximation; the screenshot
+alone does not establish those properties. Together with the recorded 117
+passing tests, zero propagation failures, 720 G>4 exclusions, and 125 rendered
+points, the owner review closes M1 on 2026-09-13. M2 is the next planning target.

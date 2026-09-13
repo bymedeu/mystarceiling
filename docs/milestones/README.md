@@ -7,7 +7,9 @@ work starts.
 
 | Milestone | Status | Record |
 | --- | --- | --- |
-| M1 — Fixed Toulouse sky | In progress; catalogue/binary/projection slice verified | [M1 record](m1-fixed-toulouse-sky.md) |
+| M1 — Fixed Toulouse sky | Complete on 2026-09-13 | [M1 record](m1-fixed-toulouse-sky.md) |
+
+M2 is the next planning target.
 
 The public [README roadmap](../../README.md#milestones) remains the canonical
 schedule. Project-wide policies and dated history remain in

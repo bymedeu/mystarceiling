@@ -6,7 +6,7 @@
 
 ### Recreate the night sky. Any place. Any time.
 
-[![Status](https://img.shields.io/badge/Status-Foundations-111827)]()
+[![Status](https://img.shields.io/badge/Status-M1%20complete-111827)]()
 [![Language](https://img.shields.io/badge/C%2B%2B-26-00599C?logo=cplusplus)]()
 [![Platform](https://img.shields.io/badge/Platform-Linux-0F172A?logo=linux)]()
 [![Focus](https://img.shields.io/badge/Focus-Astronomy%20%2B%20Simulation-4338CA)]()
@@ -37,7 +37,7 @@ testing, architecture, scalability, profiling, and measured optimization.
 
 ---
 
-## Run the current M1 slice
+## Run the completed M1 slice
 
 After configuring the project, build and test with:
 
@@ -53,7 +53,10 @@ build/src/cli/mystarceiling_cli \
 The Gaia argument uses the existing local acquisition checkpoint's ordered prefix.
 The application selects 4096 combined Gaia/Hipparcos stars, calculates the fixed
 Toulouse sky, and applies an owner-approved **temporary G<=4 display filter**.
-It requires a working graphical session. Automatic visibility and future CLI/GUI controls remain unimplemented; see the
+It requires a working graphical session. **M1 is complete on 2026-09-13**, with
+117 passing tests and owner visual review of the combined application.
+**M2 is the next planning target.** Automatic visibility and future CLI/GUI
+controls remain unimplemented; see the screenshot and evidence in the
 [M1 record](docs/milestones/m1-fixed-toulouse-sky.md).
 
 ## Product Objectives
@@ -142,9 +145,12 @@ unit, frame, or lifetime assumptions.
 
 ### M1 — Fixed Toulouse sky · target 29 November 2026
 
-**Objective:** load 4,096 real Gaia DR3 sources into the project's typed stellar
-representation and render a sky above Toulouse at one declared instant in 2016,
-using the Gaia J2016 catalogue positions without proper-motion propagation.
+**Status:** complete on 2026-09-13; see the
+[M1 closeout](docs/milestones/m1-fixed-toulouse-sky.md#visual-closeout--2026-09-13).
+
+**Objective:** select the 4,096 brightest combined qualifying Gaia DR3 and
+Hipparcos-2 sources and render Toulouse at 2016-01-01 00:00 UTC. Gaia J2016
+positions stay unchanged; Hipparcos directions propagate from J1991.25 to J2016.
 
 **Introduces:** source-specific CSV-gzip parsing, a source-independent catalogue
 boundary, the approved nine-field record, structured `std::expected` errors,
@@ -159,6 +165,8 @@ reach the expected screen region. M1 uses GLFW with OpenGL 3.3 Core and a
 north at the top and east on the right.
 
 ### M2 — Scalable and inspectable stellar rendering · target 31 January 2027
+
+**Status:** next planning target.
 
 **Objective:** preserve correctness while growing through the nested 65,536 and
 262,144-source workloads and make the rendered result useful to inspect.
