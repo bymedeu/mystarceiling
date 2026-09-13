@@ -1,6 +1,6 @@
 # Current project state
 
-Last updated: 2026-09-12.
+Last updated: 2026-09-13.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
@@ -10,11 +10,13 @@ session. Detailed decisions remain in the linked focused documents.
 - M1 has an end-to-end 4,096-row Gaia path from CSV-gzip parsing through the
   typed catalogue, binary round trip, fixed Toulouse transformation, zenith
   projection, and GLFW/OpenGL rendering.
-- The current C++ automated suite contains 96 discovered tests and passed at the
+- The current C++ automated suite contains 106 discovered tests and passed at the
   last recorded verification.
 - The display uses fixed-size grayscale points with a minimal relative Gaia G
-  brightness cue. Colour, calibrated exposure, scintillation, and proper-motion
-  propagation are not implemented.
+  brightness cue. Colour, calibrated exposure, and scintillation are not
+  implemented.
+- Source-independent tangent-vector proper-motion propagation is implemented and
+  tested in the core. The current M1 application does not call it.
 - Hipparcos-2 offline preparation derives Gaia-like G from Hp/B-V with an Hp/V-I
   fallback, cross-matches 63 bright candidates, and produces a resolved 62-row
   supplement. Ten focused Python tests pass.
@@ -68,4 +70,6 @@ Regenerate the supplement after Gaia materially changes.
 - [Gaia acquisition](gaia-datasets.md)
 - [Hipparcos-2 supplement](hipparcos2-datasets.md)
 - [Catalogue integration and Stellarium reference](decisions/catalogue-integration.md)
+- [Stellar proper-motion propagation](decisions/stellar-motion.md)
+- [Development discussion history](development-history/README.md)
 - [Project objectives and decision history](objectives-and-decisions.md)

@@ -13,6 +13,10 @@ It is plain Markdown for now; Doxygen and MkDocs integration are deferred.
   benchmark counts, and storage constraints.
 - [Hipparcos-2 supplement](hipparcos2-datasets.md): separate provisional Hp-selected
   catalogue, reproducible acquisition, and official Gaia cross-match evidence.
+- [Stellar-motion propagation](decisions/stellar-motion.md): selected vector
+  model, core boundary, validation, and accuracy limits.
+- [Development discussion history](development-history/README.md): concise
+  owner decisions, reasons, alternatives, progress, and AI contributions.
 - [Objectives and decisions](objectives-and-decisions.md): current direction,
   project-wide direction and dated historical record.
 - [Milestone records](milestones/README.md): focused decisions, acceptance
