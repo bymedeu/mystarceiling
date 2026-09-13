@@ -15,6 +15,8 @@ It is plain Markdown for now; Doxygen and MkDocs integration are deferred.
   catalogue, reproducible acquisition, and official Gaia cross-match evidence.
 - [Stellar-motion propagation](decisions/stellar-motion.md): selected vector
   model, core boundary, validation, and accuracy limits.
+- [Application controls](decisions/application-controls.md): settled CLI/GUI
+  behavior, open place resolution, catalogue controls, and milestone boundaries.
 - [Development discussion history](development-history/README.md): concise
   owner decisions, reasons, alternatives, progress, and AI contributions.
 - [Objectives and decisions](objectives-and-decisions.md): current direction,
