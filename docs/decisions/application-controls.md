@@ -62,9 +62,15 @@ adding them during the fixed M1 acceptance would interrupt the more linear path
 of completing catalogue integration and recognizable output. Location, full
 date/time input, and time progression remain M3 work.
 
-A lightweight exposure appearance preset can be explored with M2 rendering.
-A physically meaningful long-exposure or astrophotography simulation belongs
-with M9 after time progression exists: it may require temporal accumulation,
-star trails, point-spread/optics behavior, sensor response, colour, noise, and
-atmospheric/light-pollution models. Calling a static brightness multiplier a
-long-exposure simulation would overstate its realism.
+M2 may establish star colour, glow/PSF, exposure appearance controls, and perhaps
+static image export. A static brightness multiplier must not be called a long
+exposure.
+
+The owner requires real astrophotography and long-exposure simulation in M9;
+this is accepted scope, not merely a suggested brightness preset. Long exposure
+must model radiance integrated over an exposure duration. Full M9 work may support
+tracked and fixed cameras/star trails, sensor response/saturation/noise, optical
+PSF, atmosphere/light pollution, photographic colour/tone mapping, and
+reproducible high-resolution output. It depends on M3 time and may consume M8
+bodies. Detailed models, parameter values, and APIs remain undecided. None of
+this simulation is implemented by the current appearance mapping.

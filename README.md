@@ -176,6 +176,10 @@ BP-RP colour, camera movement and zoom, horizon culling, stage-level timing,
 memory measurements, and a repeatable benchmark harness. M1 uses only a minimal
 relative brightness cue so its fixed sky can be inspected.
 
+M2 may establish star colour, glow/PSF, exposure appearance controls, and perhaps
+static image export. A brightness multiplier must not be called a long exposure;
+the full simulation is required in M9.
+
 **Engineering questions:** mapping measurements to display appearance without
 pretending they are RGB values, distinguishing loading from update and draw
 costs, choosing representative warm and cold runs, and avoiding optimizations
@@ -278,11 +282,20 @@ adoption.
 ### M9 — Dynamic, atmospheric, and synthetic skies · target 28 June 2028
 
 **Objective:** use the mature engine for reproducible procedural skies and
-time-dependent objects while clearly labelling reconstruction and invention.
+time-dependent objects, including real astrophotography and long-exposure
+simulation, while clearly labelling reconstruction and invention.
 
 **Introduces:** deterministic generation, meteors and comets, configurable light
 pollution and exposure, star scintillation, photographic colour treatments, and
 an experimental cloud/atmosphere layer where it creates a useful challenge.
+
+**Owner-required scope:** long exposure must model radiance integrated over an
+exposure duration, not only a brightness preset. Full M9 work may support tracked
+and fixed cameras/star trails, sensor response/saturation/noise, optical PSF,
+atmosphere/light pollution, photographic colour/tone mapping, and reproducible
+high-resolution output. It depends on M3 time and may consume M8 bodies. Detailed
+models, parameters, and APIs remain open; see
+[application controls](docs/decisions/application-controls.md#milestone-boundary).
 
 **Engineering questions:** deterministic randomness, plausible trajectories,
 temporal coherence, atmospheric versus stellar effects, visual validation, and
