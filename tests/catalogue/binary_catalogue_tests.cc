@@ -9,14 +9,17 @@
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/right_ascension.hh>
 #include <mystarceiling/core/maths/angle.hh>
+#include <mystarceiling/core/coordinates/proper_motion.hh>
+#include <mystarceiling/core/time/reference_epoch.hh>
 #include <vector>
 
 using msc::catalogue::ApparentMagnitude;
 using msc::catalogue::ColourIndex;
 using msc::catalogue::Parallax;
-using msc::catalogue::ProperMotion;
+using msc::core::coordinates::ProperMotion;
+using msc::core::coordinates::ProperMotionComponents;
 using msc::catalogue::read_binary_catalogue;
-using msc::catalogue::ReferenceEpoch;
+using msc::core::time::ReferenceEpoch;
 using msc::catalogue::Star;
 using msc::catalogue::write_binary_catalogue;
 using msc::core::coordinates::Declination;
@@ -35,8 +38,11 @@ TEST(BinaryCatalogueTest, PreservesAllSelectedValues) {
   const auto colour = ColourIndex::try_from_gaia_bp_minus_rp(1.25);
   ASSERT_TRUE(epoch && ra && dec && pmra && pmdec && parallax && magnitude &&
               colour);
-  const std::vector stars{Star{42, *epoch, IcrsDirection{*ra, *dec}, *pmra,
-                               *pmdec, *parallax, *magnitude, *colour}};
+  const std::vector stars{Star{
+      42, *epoch, IcrsDirection{*ra, *dec},
+      ProperMotionComponents{.right_ascension_cos_declination = *pmra,
+                             .declination = *pmdec},
+      *parallax, *magnitude, *colour}};
   const auto filename = std::filesystem::temp_directory_path() /
                         "mystarceiling-catalogue-test.bin";
 
@@ -58,9 +64,14 @@ TEST(BinaryCatalogueTest, PreservesAllSelectedValues) {
       loaded->front().direction().get_declination().get_angle().to_degrees(),
       -20.25);
   EXPECT_DOUBLE_EQ(
-      loaded->front().right_ascension_motion().milliarcseconds_per_year(), 3.5);
+      loaded->front()
+          .proper_motion()
+          .right_ascension_cos_declination
+          .milliarcseconds_per_year(),
+      3.5);
   EXPECT_DOUBLE_EQ(
-      loaded->front().declination_motion().milliarcseconds_per_year(), -4.5);
+      loaded->front().proper_motion().declination.milliarcseconds_per_year(),
+      -4.5);
   EXPECT_DOUBLE_EQ(loaded->front().parallax().milliarcseconds(), -0.25);
   EXPECT_DOUBLE_EQ(loaded->front().magnitude().gaia_g(), 5.75);
   EXPECT_DOUBLE_EQ(loaded->front().colour().gaia_bp_minus_rp(), 1.25);

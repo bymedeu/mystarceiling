@@ -56,9 +56,13 @@ TEST(GaiaCatalogueTest, InterpretsKnownGaiaRow) {
       10.12724197930297);
   EXPECT_DOUBLE_EQ(star.direction().get_declination().get_angle().to_degrees(),
                    56.53718879378639);
-  EXPECT_DOUBLE_EQ(star.right_ascension_motion().milliarcseconds_per_year(),
+  EXPECT_DOUBLE_EQ(star.proper_motion()
+                       .right_ascension_cos_declination
+                       .milliarcseconds_per_year(),
                    49.12564571845064);
-  EXPECT_DOUBLE_EQ(star.declination_motion().milliarcseconds_per_year(),
+  EXPECT_DOUBLE_EQ(star.proper_motion()
+                       .declination
+                       .milliarcseconds_per_year(),
                    -31.595374311196693);
   EXPECT_DOUBLE_EQ(star.parallax().milliarcseconds(), 14.090976249252234);
   EXPECT_DOUBLE_EQ(star.magnitude().gaia_g(), 1.9425238);

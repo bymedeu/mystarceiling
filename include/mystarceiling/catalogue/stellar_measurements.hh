@@ -10,52 +10,6 @@ namespace msc::catalogue
         NonFinite
     };
 
-    class ReferenceEpoch
-    {
-    public:
-        [[nodiscard]] static constexpr std::expected<ReferenceEpoch,
-                                                     MeasurementError>
-        try_from_julian_year(double value) noexcept
-        {
-            if (!std::isfinite(value))
-                return std::unexpected{MeasurementError::NonFinite};
-            return ReferenceEpoch{value};
-        }
-
-        [[nodiscard]] constexpr double julian_year() const noexcept
-        {
-            return value_;
-        }
-
-    private:
-        explicit constexpr ReferenceEpoch(double value) noexcept : value_{value}
-        {}
-        double value_;
-    };
-
-    class ProperMotion
-    {
-    public:
-        [[nodiscard]] static constexpr std::expected<ProperMotion,
-                                                     MeasurementError>
-        try_from_milliarcseconds_per_year(double value) noexcept
-        {
-            if (!std::isfinite(value))
-                return std::unexpected{MeasurementError::NonFinite};
-            return ProperMotion{value};
-        }
-
-        [[nodiscard]] constexpr double milliarcseconds_per_year() const noexcept
-        {
-            return value_;
-        }
-
-    private:
-        explicit constexpr ProperMotion(double value) noexcept : value_{value}
-        {}
-        double value_;
-    };
-
     class Parallax
     {
     public:

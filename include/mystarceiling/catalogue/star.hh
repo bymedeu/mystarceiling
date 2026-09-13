@@ -3,22 +3,27 @@
 #include <cstdint>
 #include <mystarceiling/catalogue/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
+#include <mystarceiling/core/coordinates/proper_motion.hh>
+#include <mystarceiling/core/time/reference_epoch.hh>
 
 namespace msc::catalogue
 {
+    using core::coordinates::IcrsDirection;
+    using core::coordinates::ProperMotionComponents;
+    using core::time::ReferenceEpoch;
+
     class Star
     {
     public:
-        constexpr Star(std::uint64_t source_id, ReferenceEpoch reference_epoch,
-                       core::coordinates::IcrsDirection direction,
-                       ProperMotion right_ascension_motion,
-                       ProperMotion declination_motion, Parallax parallax,
+        constexpr Star(std::uint64_t source_id,
+                       ReferenceEpoch reference_epoch,
+                       IcrsDirection direction,
+                       ProperMotionComponents proper_motion, Parallax parallax,
                        ApparentMagnitude magnitude, ColourIndex colour) noexcept
             :
             source_id_{source_id}, reference_epoch_{reference_epoch},
             direction_{direction},
-            right_ascension_motion_{right_ascension_motion},
-            declination_motion_{declination_motion}, parallax_{parallax},
+            proper_motion_{proper_motion}, parallax_{parallax},
             magnitude_{magnitude}, colour_{colour}
         {}
 
@@ -30,19 +35,14 @@ namespace msc::catalogue
         {
             return reference_epoch_;
         }
-        [[nodiscard]] constexpr core::coordinates::IcrsDirection
-        direction() const noexcept
+        [[nodiscard]] constexpr IcrsDirection direction() const noexcept
         {
             return direction_;
         }
-        [[nodiscard]] constexpr ProperMotion
-        right_ascension_motion() const noexcept
+        [[nodiscard]] constexpr ProperMotionComponents
+        proper_motion() const noexcept
         {
-            return right_ascension_motion_;
-        }
-        [[nodiscard]] constexpr ProperMotion declination_motion() const noexcept
-        {
-            return declination_motion_;
+            return proper_motion_;
         }
         [[nodiscard]] constexpr Parallax parallax() const noexcept
         {
@@ -60,9 +60,8 @@ namespace msc::catalogue
     private:
         std::uint64_t source_id_;
         ReferenceEpoch reference_epoch_;
-        core::coordinates::IcrsDirection direction_;
-        ProperMotion right_ascension_motion_;
-        ProperMotion declination_motion_;
+        IcrsDirection direction_;
+        ProperMotionComponents proper_motion_;
         Parallax parallax_;
         ApparentMagnitude magnitude_;
         ColourIndex colour_;

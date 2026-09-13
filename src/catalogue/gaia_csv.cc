@@ -13,6 +13,8 @@
 #include <mystarceiling/core/coordinates/declination.hh>
 #include <mystarceiling/core/coordinates/right_ascension.hh>
 #include <mystarceiling/core/maths/angle.hh>
+#include <mystarceiling/core/coordinates/proper_motion.hh>
+#include <mystarceiling/core/time/reference_epoch.hh>
 #include <spdlog/spdlog.h>
 #include <string>
 #include <string_view>
@@ -22,8 +24,11 @@
 namespace msc::catalogue {
 using core::coordinates::Declination;
 using core::coordinates::IcrsDirection;
+using core::coordinates::ProperMotion;
+using core::coordinates::ProperMotionComponents;
 using core::coordinates::RightAscension;
 using core::maths::Angle;
+using core::time::ReferenceEpoch;
 
 namespace {
 using u64 = std::uint64_t;
@@ -157,7 +162,10 @@ load_gaia_csv_gzip(const std::filesystem::path &filename,
     const auto magnitude = ApparentMagnitude::try_from_gaia_g(values[6]);
     const auto colour = ColourIndex::try_from_gaia_bp_minus_rp(values[7]);
     result.stars.emplace_back(source_id, *epoch, IcrsDirection{*ra, *dec},
-                              *pmra, *pmdec, *parallax, *magnitude, *colour);
+                              ProperMotionComponents{
+                                  .right_ascension_cos_declination = *pmra,
+                                  .declination = *pmdec},
+                              *parallax, *magnitude, *colour);
     ++result.statistics.accepted;
   }
 

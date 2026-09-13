@@ -14,6 +14,8 @@
 #include <mystarceiling/core/coordinates/declination.hh>
 #include <mystarceiling/core/coordinates/right_ascension.hh>
 #include <mystarceiling/core/maths/angle.hh>
+#include <mystarceiling/core/coordinates/proper_motion.hh>
+#include <mystarceiling/core/time/reference_epoch.hh>
 #include <ostream>
 #include <span>
 #include <string>
@@ -25,8 +27,11 @@
 namespace msc::catalogue {
 using core::coordinates::Declination;
 using core::coordinates::IcrsDirection;
+using core::coordinates::ProperMotion;
+using core::coordinates::ProperMotionComponents;
 using core::coordinates::RightAscension;
 using core::maths::Angle;
+using core::time::ReferenceEpoch;
 
 namespace {
 using u16 = std::uint16_t;
@@ -105,8 +110,12 @@ write_binary_catalogue(const std::filesystem::path &filename,
     write_double(output,
                  star.direction().get_declination().get_angle().to_degrees());
     write_double(output,
-                 star.right_ascension_motion().milliarcseconds_per_year());
-    write_double(output, star.declination_motion().milliarcseconds_per_year());
+                 star.proper_motion()
+                     .right_ascension_cos_declination
+                     .milliarcseconds_per_year());
+    write_double(
+        output,
+        star.proper_motion().declination.milliarcseconds_per_year());
     write_double(output, star.parallax().milliarcseconds());
     write_double(output, star.magnitude().gaia_g());
     write_double(output, star.colour().gaia_bp_minus_rp());
@@ -193,8 +202,11 @@ read_binary_catalogue(const std::filesystem::path &filename) {
         !parallax || !magnitude || !colour)
       return std::unexpected{error(BinaryCatalogueErrorCode::InvalidRecord,
                                    "Invalid stellar record")};
-    stars.emplace_back(source_id, *epoch, IcrsDirection{*ra, *dec}, *pmra,
-                       *pmdec, *parallax, *magnitude, *colour);
+    stars.emplace_back(
+        source_id, *epoch, IcrsDirection{*ra, *dec},
+        ProperMotionComponents{.right_ascension_cos_declination = *pmra,
+                               .declination = *pmdec},
+        *parallax, *magnitude, *colour);
   }
   return stars;
 }
