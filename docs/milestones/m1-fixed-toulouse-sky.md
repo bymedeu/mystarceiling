@@ -7,7 +7,7 @@ Target: 29 November 2026.
 
 ## Objective
 
-Load the 4,096 brightest qualifying Gaia DR3 sources into the project's typed
+Load the 4,096 brightest combined qualifying Gaia DR3 and Hipparcos-2 sources into the project's typed
 stellar representation, construct their local directions for Toulouse at one
 fixed instant, and render the visible result in a window. This is the first
 complete path through catalogue ingestion, interpretation, astronomy,
@@ -16,11 +16,15 @@ projection, and rendering.
 ```mermaid
 flowchart TD
     GZ["Gaia CSV.gz<br/>4,096 rows"] --> P["Gaia parser"]
-    P --> C["Typed catalogue<br/>vector baseline"]
+    H["Resolved Hipparcos supplement<br/>62 rows"] --> HP["Hipparcos parser"]
+    HP --> C["Normalized brightest 4,096<br/>vector baseline"]
+    P --> C
     C --> B["Versioned binary<br/>runtime catalogue"]
-    B --> A["ICRS to local ENU<br/>Toulouse, fixed instant"]
+    B --> PM["Hipparcos J1991.25 to J2016<br/>Gaia unchanged"]
+    PM --> A["ICRS to local ENU<br/>Toulouse, fixed instant"]
     A --> S["Visible scene"]
-    S --> R["Perspective projection<br/>GLFW + OpenGL"]
+    S --> F["Zenith projection/visibility<br/>temporary G <= 4 filter"]
+    F --> R["GLFW + OpenGL"]
 ```
 
 ## Accepted decisions
@@ -38,8 +42,9 @@ flowchart TD
 - Preserve negative parallax. Direction rendering remains valid; future distance
   conversion must reject nonpositive parallax. Never replace it with its absolute
   value.
-- Do not propagate proper motion in M1. Preserve the motion measurements for
-  later milestones.
+- Propagate only Hipparcos directions from J1991.25 to J2016 before the local
+  transformation using the approved tangent-vector operation. Preserve native
+  source state; skip failures with an aggregate count. Gaia J2016 stays unchanged.
 - Use a `std::vector` as the initial catalogue baseline.
 - Source brightness and colour measurements remain domain data. The renderer
   derives appearance later instead of storing an RGB pixel in the star record.
@@ -189,8 +194,35 @@ and rasterization differences would make that test unnecessarily fragile.
   fixed 90-degree view, created the GLFW/OpenGL context, and entered its draw
   loop. The first reported source identifier was `418551920284673408`.
 
-The milestone screenshot remains. M1 renders fixed-size grayscale points with a
-minimal relative brightness cue. A tested proper-motion operation now exists in
-the core, but M1 deliberately does not call it. Calibrated magnitude-based
-appearance, BP-RP colour, application-level motion integration, and a full
-high-accuracy observed-place transformation remain later work.
+## Combined M1 update — 2026-09-13
+
+Owner-approved bounded integration adds the resolved 62-row supplement, separate
+provenance and optional BP-RP, deterministic brightest-4096 selection, binary
+version/schema 2, and Hipparcos scene propagation. See the
+[catalogue contract](../decisions/catalogue-integration.md).
+
+A **temporary**, owner-approved Toulouse M1 display cutoff retains G-like
+magnitude <= 4.0 after astronomical projection/visibility and before ScreenPoint
+creation. The exclusion count includes only otherwise visible records. This is
+not an automatic limiting-magnitude model. Future automatic visibility must
+replace this provisional policy after its requirements are decided.
+
+Points remain three pixels. Display intensity is `clamp(10^(-0.2*(G+1.5)),0,1)`:
+a fixed G=-1.5 white reference and square-root flux compression without the old
+0.15 floor. This keeps contrast throughout the displayed range, independently of
+catalogue composition. It is an uncalibrated grayscale display choice. No colour,
+glow, scintillation, exposure, camera, or GUI controls were added.
+
+Toulouse and the fixed 2016 instant remain fixed M1 inputs, not permanent defaults.
+Current local time is the approved future time default; an explicit timestamp without a timezone means UTC. The future default observer and place-name resolution remain open.
+The CLI now takes Gaia, resolved Hipparcos supplement, and output binary paths;
+future CLI/GUI time, location, and display controls are not implemented. Their
+interface and division of responsibilities remain open.
+
+Verification: Debug build and 117 C++ tests passed. Real input accepted 4096 Gaia
+and 62 Hipparcos rows without rejection, retained all 62 in the selected 4096,
+reported zero propagation failures, excluded 720 otherwise visible records at
+G>4, and produced 125 screen points. Independent binary/source comparison verified
+exact ordering, native IDs/epochs, and unchanged Gaia BP-RP. GLFW initialization
+failed in this environment, so this update has no windowed visual verification;
+the screenshot and owner appearance review remain outstanding.

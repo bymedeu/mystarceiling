@@ -7,29 +7,28 @@ session. Detailed decisions remain in the linked focused documents.
 
 ## Implemented and verified
 
-- M1 has an end-to-end 4,096-row Gaia path from CSV-gzip parsing through the
-  typed catalogue, binary round trip, fixed Toulouse transformation, zenith
-  projection, and GLFW/OpenGL rendering.
-- The current C++ automated suite contains 106 discovered tests and passed at the
-  last recorded verification.
-- The display uses fixed-size grayscale points with a minimal relative Gaia G
-  brightness cue. Colour, calibrated exposure, and scintillation are not
-  implemented.
-- Source-independent tangent-vector proper-motion propagation is implemented and
-  tested in the core. The current M1 application does not call it.
-- Hipparcos-2 offline preparation derives Gaia-like G from Hp/B-V with an Hp/V-I
-  fallback, cross-matches 63 bright candidates, and produces a resolved 62-row
-  supplement. Ten focused Python tests pass.
-- Build/include/test cleanup and portfolio-level agent-contract consolidation
-  are complete in the current commit history.
+- M1 normalizes the 4096-row Gaia prefix and resolved 62-row Hipparcos supplement
+  through separate parsers, then selects the brightest 4096 combined records.
+  All 62 supplement stars survive selection. IDs are native uint64 values with
+  separate provenance; Hipparcos BP-RP is absent and Gaia BP-RP is preserved.
+- Binary version/schema 2 preserves provenance and optional colour. Regenerate
+  old binaries through the CLI; version 1 is rejected.
+- The fixed Toulouse scene propagates Hipparcos from J1991.25 to J2016 using the
+  tested tangent-vector operation, leaves Gaia unchanged, and reports/skips
+  propagation failures.
+- The owner-approved temporary G<=4 filter follows astronomical visibility.
+  Three-pixel grayscale points use stronger brightness contrast without a floor.
+- Debug build and all 117 C++ tests passed. Real-data execution selected 4096,
+  reported 0 propagation failures, excluded 720 visible records by magnitude,
+  and created 125 screen points. GLFW initialization failed here; visual review
+  remains outstanding. See [M1](milestones/m1-fixed-toulouse-sky.md).
+- Hipparcos preparation and the source files are unchanged by this integration.
 
-## Approved, not yet implemented
+## Future direction, not implemented
 
-- Keep Gaia and Hipparcos source parsers separate, resolve them offline, and
-  normalize accepted records into one source-independent runtime catalogue.
-- Preserve separate measurement, calculated-state, and visual-state boundaries.
-- The application should ultimately load the normalized combined catalogue;
-  current C++ loading still consumes the Gaia-specific M1 input.
+Automatic visibility and future CLI/GUI controls remain future work. Current local time is the approved future time default; the default observer and place-name resolution remain open. M1 still uses
+fixed Toulouse/time. Colour, glow, exposure, camera controls, and scintillation
+are not implemented.
 
 ## Acquisition status
 
@@ -56,8 +55,8 @@ Regenerate the supplement after Gaia materially changes.
 
 ## Open owner decisions
 
-- normalized source identity and provenance representation;
-- representation of native versus derived photometry;
+- classification taxonomy/bit allocation and future metadata layout;
+- richer native/derived photometry beyond the bounded runtime contract;
 - conflict reporting for otherwise usable source records;
 - whether magnitude layers first appear during M1 binary preparation or after
   measuring the existing 4,096-row baseline;

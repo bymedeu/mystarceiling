@@ -3,6 +3,8 @@ find_package(spdlog REQUIRED)
 
 add_library(mystarceiling_catalogue
     gaia_csv.cc
+    hipparcos_csv.cc
+    select_brightest.cc
     binary_catalogue.cc
 )
 

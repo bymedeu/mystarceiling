@@ -5,6 +5,7 @@
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/proper_motion.hh>
 #include <mystarceiling/core/time/reference_epoch.hh>
+#include <optional>
 
 namespace msc::catalogue
 {
@@ -12,19 +13,26 @@ namespace msc::catalogue
     using core::coordinates::ProperMotionComponents;
     using core::time::ReferenceEpoch;
 
+    // Values are also the version-2 binary provenance encoding, not ID bits.
+    enum class CatalogueSource : std::uint8_t
+    {
+        GaiaDr3 = 0,
+        Hipparcos2 = 1
+    };
+
     class Star
     {
     public:
-        constexpr Star(std::uint64_t source_id,
-                       ReferenceEpoch reference_epoch,
+        constexpr Star(std::uint64_t source_id, ReferenceEpoch reference_epoch,
                        IcrsDirection direction,
                        ProperMotionComponents proper_motion, Parallax parallax,
-                       ApparentMagnitude magnitude, ColourIndex colour) noexcept
-            :
+                       ApparentMagnitude magnitude,
+                       std::optional<ColourIndex> colour,
+                       CatalogueSource source_catalogue) noexcept :
             source_id_{source_id}, reference_epoch_{reference_epoch},
-            direction_{direction},
-            proper_motion_{proper_motion}, parallax_{parallax},
-            magnitude_{magnitude}, colour_{colour}
+            direction_{direction}, proper_motion_{proper_motion},
+            parallax_{parallax}, magnitude_{magnitude}, colour_{colour},
+            source_catalogue_{source_catalogue}
         {}
 
         [[nodiscard]] constexpr std::uint64_t source_id() const noexcept
@@ -52,9 +60,17 @@ namespace msc::catalogue
         {
             return magnitude_;
         }
-        [[nodiscard]] constexpr ColourIndex colour() const noexcept
+        // Gaia BP-RP only; unavailable for the Hipparcos supplement.
+        [[nodiscard]] constexpr std::optional<ColourIndex>
+        colour() const noexcept
         {
             return colour_;
+        }
+
+        [[nodiscard]] constexpr CatalogueSource
+        source_catalogue() const noexcept
+        {
+            return source_catalogue_;
         }
 
     private:
@@ -64,6 +80,7 @@ namespace msc::catalogue
         ProperMotionComponents proper_motion_;
         Parallax parallax_;
         ApparentMagnitude magnitude_;
-        ColourIndex colour_;
+        std::optional<ColourIndex> colour_;
+        CatalogueSource source_catalogue_;
     };
 } // namespace msc::catalogue

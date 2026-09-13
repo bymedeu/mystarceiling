@@ -1,7 +1,7 @@
 # Stellar proper-motion propagation
 
-Status: core operation implemented and verified on 2026-09-13; application
-integration remains pending.
+Status: core operation and bounded Hipparcos M1 scene integration implemented
+and verified on 2026-09-13.
 
 ## Selected model
 
@@ -42,15 +42,16 @@ depending on Gaia, Hipparcos, identifiers, photometry, parallax, observer state,
 projection, or rendering.
 
 The two components are grouped and named so the propagation boundary does not
-accept two indistinguishable positional arguments. The catalogue binary schema
-is unchanged because it still stores the same two binary64 values in the same
-order.
+accept two indistinguishable positional arguments. The original core-only change left the binary schema unchanged. Combined M1
+integration subsequently introduced version/schema 2 for provenance and optional
+colour; the two motion values retain their binary64 order.
 
 ## Errors and logging
 
 The operation returns `std::expected` and distinguishes a non-finite epoch
 difference, a non-finite displacement, and an invalid calculated direction. It
-does not log. Future bulk propagation should report aggregate counts and timings
+does not log. M1 reports an aggregate failure count and skips failed records.
+Future bulk propagation should report timings
 at the orchestration boundary and sample individual failures only when detailed
 diagnostics are enabled. Per-star logging would distort the performance of the
 hot loop.
@@ -85,8 +86,10 @@ The complete suite passed 106 of 106 tests on 2026-09-13.
 - Passing numerical tests does not establish accuracy over arbitrary historical
   or future intervals. A supported date range and tolerance remain an M3
   decision.
-- The M1 application continues to render its fixed J2016 Gaia view without
-  propagation. Combined Hipparcos application integration is still pending.
+- M1 leaves Gaia J2016 directions unchanged and propagates Hipparcos J1991.25
+  directions to J2016 before local transformation. Source measurements remain
+  unchanged. This is the approved catalogue epoch target, not a claim that
+  `2016-01-01 00:00:00 UTC` equals the precise J2016 Julian epoch.
 
 ## Reference behavior
 

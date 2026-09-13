@@ -1,8 +1,7 @@
 # Catalogue integration and runtime layering
 
-Status: source/runtime boundary and offline Hipparcos preparation implemented on
-2026-09-12. Runtime normalization remains an approved direction whose concrete
-C++ representation still needs owner review.
+Status: bounded combined M1 runtime integration implemented on 2026-09-13
+under explicit owner approval.
 
 ## Approved boundary
 
@@ -24,9 +23,26 @@ flowchart TD
     S --> V["Visual state and rendering"]
 ```
 
-The normalized catalogue is a boundary, not an approved C++ class or storage
-layout. Its identity, provenance, source-measurement representation, and binary
-encoding remain visible owner decisions.
+The bounded runtime uses `Star` with a native `uint64_t` identifier and a separate
+`CatalogueSource : uint8_t` enum (`GaiaDr3`, `Hipparcos2`). No identifier bits are
+reserved; classification and its bit scheme remain open. `colour()` is optional
+Gaia BP-RP: Gaia values survive unchanged; Hipparcos colour is absent. Hipparcos
+`estimated_g` supplies the common ordering/display magnitude, identified as
+estimated by provenance. Native Hp/B-V/V-I, estimation method, and resolution
+evidence remain in the unchanged source supplement, rather than the hot record.
+
+Separate gzip parsers normalize records before one stable sort by ascending
+G-like magnitude, catalogue, then native ID; identical keys retain input order.
+The current ordered Gaia prefix contributes 4096 records, the resolved supplement
+62; truncating the combined set to 4096 retains all 62. This is a small vector
+baseline, not a new deduplication or large-catalogue preparation system.
+
+Binary version/schema 2 retains the 32-byte header and uses 74-byte records:
+the original ID and eight binary64 slots, followed by a provenance byte and a
+colour-presence byte. An absent colour has zero padding in its unused slot,
+never a runtime numeric colour. Version 1 is rejected; rerun the CLI to regenerate
+its derived binary. Source epochs and directions remain native in storage;
+[scene propagation](stellar-motion.md) calculates Hipparcos directions at J2016.
 
 Appending Hipparcos rows to the Gaia CSV is rejected because identifiers,
 reference epochs, magnitude bands, colour indices, schemas, provenance, and
@@ -57,8 +73,7 @@ table. Prefer a Gaia record only when the published link supplies all nine MSC
 fields and that source is within the recorded local Gaia snapshot. Otherwise
 retain the Hipparcos-derived record. The current 76,048,576-row Gaia snapshot
 already contains one complete candidate, so the generated supplement contains
-62 rows. This implements the preparation policy without changing the application
-loader yet.
+62 rows. The M1 application now consumes that resolved supplement.
 
 A published best neighbour remains evidence rather than proof. HIP 71681's large
 photometric discrepancy demonstrates why a match cannot be trusted merely because
@@ -89,10 +104,10 @@ Principles worth retaining for later measured work:
 - distribute large levels separately with manifests and checksums;
 - introduce spatial partitioning and memory mapping only after profiling.
 
-## Decisions still required before runtime normalization
+## Remaining decisions
 
-- the normalized identity and provenance representation;
-- how native and derived photometry are represented without confusing them;
+- classification taxonomy/bit scheme and any later cold-metadata layout;
+- richer native/derived photometry beyond this bounded two-source runtime;
 - conflict reporting if two otherwise usable sources disagree;
 - whether magnitude layers first enter binary preparation during M1 or after the
   4,096-row baseline has been measured.

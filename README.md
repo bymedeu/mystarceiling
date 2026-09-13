@@ -37,6 +37,25 @@ testing, architecture, scalability, profiling, and measured optimization.
 
 ---
 
+## Run the current M1 slice
+
+After configuring the project, build and test with:
+
+```sh
+cmake --build build -j4
+ctest --test-dir build --output-on-failure
+build/src/cli/mystarceiling_cli \
+  data/gaia-dr3/gaia-dr3.csv.gz.partial \
+  data/hipparcos2/runs/20260912T191816.016104Z/hipparcos2-supplement.csv.gz \
+  /tmp/msc-m1.bin
+```
+
+The Gaia argument uses the existing local acquisition checkpoint's ordered prefix.
+The application selects 4096 combined Gaia/Hipparcos stars, calculates the fixed
+Toulouse sky, and applies an owner-approved **temporary G<=4 display filter**.
+It requires a working graphical session. Automatic visibility and future CLI/GUI controls remain unimplemented; see the
+[M1 record](docs/milestones/m1-fixed-toulouse-sky.md).
+
 ## Product Objectives
 
 The project aims to:
@@ -85,10 +104,7 @@ compilers is not guaranteed.
 
 ## Status
 
-MyStarCeiling is in early development. Coordinate and time foundations are
-under construction. The next major outcome is a validated end-to-end path from
-real catalog data and observer parameters through coordinate transformation to
-a useful visualization; this is not yet complete.
+MyStarCeiling is in early development. The fixed M1 Toulouse path now loads real catalogue data, transforms it, and renders a zenith view. Visual acceptance remains, while configurable observer/time controls and measured scaling belong to later milestones.
 
 ## Milestones
 
