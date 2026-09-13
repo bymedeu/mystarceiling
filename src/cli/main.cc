@@ -6,10 +6,10 @@
 #include <span>
 
 #include <mystarceiling/catalogue/binary_catalogue.hh>
+#include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/catalogue/gaia_csv.hh>
 #include <mystarceiling/catalogue/hipparcos_csv.hh>
 #include <mystarceiling/catalogue/select_brightest.hh>
-#include <mystarceiling/catalogue/star.hh>
 #include <mystarceiling/render/opengl_renderer.hh>
 #include <utility>
 #include "cli/m1_scene.hh"

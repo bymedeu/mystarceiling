@@ -8,6 +8,7 @@ add_executable(mystarceiling_tests
             catalogue/hipparcos_csv_tests.cc
             catalogue/select_brightest_tests.cc
             cli/m1_scene_tests.cc
+            core/astronomy/stellar_measurements_tests.cc
             core/coordinates/declination_tests.cc
             core/coordinates/propagate_proper_motion_tests.cc
             core/coordinates/icrs_direction_tests.cc

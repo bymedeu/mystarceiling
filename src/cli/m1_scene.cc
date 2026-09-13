@@ -2,7 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <mystarceiling/catalogue/star.hh>
+#include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/core/astronomy/star.hh>
 #include <mystarceiling/core/coordinates/icrs_to_enu.hh>
 #include <mystarceiling/core/coordinates/latitude.hh>
 #include <mystarceiling/core/coordinates/longitude.hh>
@@ -19,7 +20,7 @@
 namespace msc::cli
 {
     using catalogue::CatalogueSource;
-    using catalogue::Star;
+    using catalogue::CatalogueStar;
     using core::coordinates::icrs_to_enu;
     using core::coordinates::Latitude;
     using core::coordinates::Longitude;
@@ -41,7 +42,7 @@ namespace msc::cli
             std::clamp(std::pow(10.0, -0.2 * (magnitude + 1.5)), 0.0, 1.0));
     }
 
-    M1Scene make_m1_scene(std::span<const Star> stars)
+    M1Scene make_m1_scene(std::span<const CatalogueStar> stars)
     {
         const ObserverLocation observer{
             *Latitude::try_from(Angle::from_degrees(43.6045)),
@@ -52,10 +53,11 @@ namespace msc::cli
         const auto target = *ReferenceEpoch::try_from_julian_year(2016.0);
         M1Scene scene;
         scene.points.reserve(stars.size());
-        for (const auto& star : stars)
+        for (const auto& entry : stars)
         {
+            const auto& star = entry.star();
             auto direction = star.direction();
-            if (star.source_catalogue() == CatalogueSource::Hipparcos2)
+            if (entry.source_catalogue() == CatalogueSource::Hipparcos2)
             {
                 const auto propagated =
                     propagate_proper_motion(direction, star.proper_motion(),

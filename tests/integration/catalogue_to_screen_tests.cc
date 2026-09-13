@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <mystarceiling/catalogue/hipparcos_csv.hh>
+#include <mystarceiling/core/astronomy/star.hh>
 #include "cli/m1_scene.hh"
 
 #include <filesystem>
@@ -89,7 +90,7 @@ TEST(CatalogueToScreenTest, ProjectsKnownGaiaSourceForFixedM1Scene)
 
     const ObserverLocation observer{*latitude, *longitude};
     const auto rotation = earth_rotation_angle(JulianDate{2457388.5, 0.0});
-    const auto enu = icrs_to_enu(star.direction(), observer, rotation);
+    const auto enu = icrs_to_enu(star.star().direction(), observer, rotation);
     const auto projected = project_zenith_perspective(enu, 1280.0 / 720.0);
 
     ASSERT_TRUE(projected.has_value());
@@ -118,7 +119,7 @@ TEST(CatalogueToScreenTest,
     // omitting motion changes the result by much more than this tolerance.
     EXPECT_NEAR(scene.points[0].x, -0.1532045692891902, 2e-8);
     EXPECT_NEAR(scene.points[0].y, 0.08015878094575217, 2e-8);
-    EXPECT_DOUBLE_EQ(loaded->stars.front().reference_epoch().julian_year(),
-                     1991.25);
-    EXPECT_FALSE(loaded->stars.front().colour());
+    EXPECT_DOUBLE_EQ(
+        loaded->stars.front().star().reference_epoch().julian_year(), 1991.25);
+    EXPECT_FALSE(loaded->stars.front().star().colour());
 }

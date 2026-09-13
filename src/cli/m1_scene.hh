@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <mystarceiling/catalogue/star.hh>
+#include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/render/opengl_renderer.hh>
 #include <span>
 #include <vector>
@@ -17,5 +17,6 @@ namespace msc::cli
 
     // Temporary display policy, independent of astronomical visibility.
     [[nodiscard]] float m1_display_intensity(double magnitude) noexcept;
-    [[nodiscard]] M1Scene make_m1_scene(std::span<const catalogue::Star> stars);
+    [[nodiscard]] M1Scene
+    make_m1_scene(std::span<const catalogue::CatalogueStar> stars);
 } // namespace msc::cli

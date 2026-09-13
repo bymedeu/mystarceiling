@@ -2,7 +2,7 @@
 
 #include <expected>
 #include <filesystem>
-#include <mystarceiling/catalogue/star.hh>
+#include <mystarceiling/catalogue/catalogue_star.hh>
 #include <span>
 #include <string>
 #include <vector>
@@ -30,8 +30,9 @@ namespace msc::catalogue
 
     [[nodiscard]] std::expected<void, BinaryCatalogueError>
     write_binary_catalogue(const std::filesystem::path& filename,
-                           std::span<const Star> stars);
+                           std::span<const CatalogueStar> stars);
 
-    [[nodiscard]] std::expected<std::vector<Star>, BinaryCatalogueError>
+    [[nodiscard]] std::expected<std::vector<CatalogueStar>,
+                                BinaryCatalogueError>
     read_binary_catalogue(const std::filesystem::path& filename);
 } // namespace msc::catalogue

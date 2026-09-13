@@ -8,6 +8,14 @@ session. Detailed decisions remain in the linked focused documents.
 M1 is complete on 2026-09-13. M2 — scalable and inspectable stellar rendering —
 is the next planning target.
 
+The first bounded M2 refactor separates source-independent
+`core::astronomy::Star` and its measurement wrappers from
+`catalogue::CatalogueStar` identity/provenance. See the
+[boundary decision](decisions/catalogue-integration.md#first-bounded-m2-refactor--owner-decision-2026-09-13).
+The version-2 binary contract and M1 scene behavior are preserved. The current
+suite passes all 119 tests, including a frozen-byte compatibility check against
+the pre-refactor writer.
+
 ## Implemented and verified
 
 - M1 normalizes the 4096-row Gaia prefix and resolved 62-row Hipparcos supplement

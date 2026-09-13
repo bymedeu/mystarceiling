@@ -8,8 +8,9 @@
 #include <expected>
 #include <filesystem>
 #include <memory>
-#include <mystarceiling/catalogue/star.hh>
-#include <mystarceiling/catalogue/stellar_measurements.hh>
+#include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/core/astronomy/star.hh>
+#include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/proper_motion.hh>
@@ -25,6 +26,10 @@
 
 namespace msc::catalogue
 {
+    using core::astronomy::ApparentMagnitude;
+    using core::astronomy::ColourIndex;
+    using core::astronomy::Parallax;
+    using core::astronomy::Star;
     using core::coordinates::Declination;
     using core::coordinates::IcrsDirection;
     using core::coordinates::ProperMotion;
@@ -194,10 +199,12 @@ namespace msc::catalogue
             const auto colour =
                 ColourIndex::try_from_gaia_bp_minus_rp(values[7]);
             result.stars.emplace_back(
-                source_id, *epoch, IcrsDirection{*ra, *dec},
-                ProperMotionComponents{.right_ascension_cos_declination = *pmra,
-                                       .declination = *pmdec},
-                *parallax, *magnitude, *colour, CatalogueSource::GaiaDr3);
+                source_id, CatalogueSource::GaiaDr3,
+                Star{*epoch, IcrsDirection{*ra, *dec},
+                     ProperMotionComponents{.right_ascension_cos_declination =
+                                                *pmra,
+                                            .declination = *pmdec},
+                     *parallax, *magnitude, *colour});
             ++result.statistics.accepted;
         }
 

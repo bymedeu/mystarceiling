@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <filesystem>
 #include <mystarceiling/catalogue/hipparcos_csv.hh>
+#include <mystarceiling/core/astronomy/star.hh>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -68,22 +69,24 @@ TEST(HipparcosCatalogueTest, InterpretsSiriusWithoutInventingBpRp)
     EXPECT_EQ(star.source_id(), 32349);
     EXPECT_EQ(star.source_catalogue(),
               msc::catalogue::CatalogueSource::Hipparcos2);
-    EXPECT_FALSE(star.colour());
-    EXPECT_DOUBLE_EQ(star.reference_epoch().julian_year(), 1991.25);
+    EXPECT_FALSE(star.star().colour());
+    EXPECT_DOUBLE_EQ(star.star().reference_epoch().julian_year(), 1991.25);
     EXPECT_DOUBLE_EQ(
-        star.direction().get_right_ascension().get_angle().to_degrees(),
+        star.star().direction().get_right_ascension().get_angle().to_degrees(),
         101.2885410520664);
     EXPECT_DOUBLE_EQ(
-        star.direction().get_declination().get_angle().to_degrees(),
+        star.star().direction().get_declination().get_angle().to_degrees(),
         -16.713143062644765);
     EXPECT_DOUBLE_EQ(
-        star.proper_motion()
+        star.star()
+            .proper_motion()
             .right_ascension_cos_declination.milliarcseconds_per_year(),
         -546.01);
     EXPECT_DOUBLE_EQ(
-        star.proper_motion().declination.milliarcseconds_per_year(), -1223.07);
-    EXPECT_DOUBLE_EQ(star.parallax().milliarcseconds(), 379.21);
-    EXPECT_DOUBLE_EQ(star.magnitude().gaia_g(), -1.1151784320607998);
+        star.star().proper_motion().declination.milliarcseconds_per_year(),
+        -1223.07);
+    EXPECT_DOUBLE_EQ(star.star().parallax().milliarcseconds(), 379.21);
+    EXPECT_DOUBLE_EQ(star.star().magnitude().gaia_g(), -1.1151784320607998);
 }
 
 TEST(HipparcosCatalogueTest, RejectsMalformedRowsAndContinues)

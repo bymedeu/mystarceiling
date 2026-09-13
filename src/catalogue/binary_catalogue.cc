@@ -9,8 +9,9 @@
 #include <fstream>
 #include <istream>
 #include <limits>
-#include <mystarceiling/catalogue/star.hh>
-#include <mystarceiling/catalogue/stellar_measurements.hh>
+#include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/core/astronomy/star.hh>
+#include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/proper_motion.hh>
@@ -28,6 +29,10 @@
 
 namespace msc::catalogue
 {
+    using core::astronomy::ApparentMagnitude;
+    using core::astronomy::ColourIndex;
+    using core::astronomy::Parallax;
+    using core::astronomy::Star;
     using core::coordinates::Declination;
     using core::coordinates::IcrsDirection;
     using core::coordinates::ProperMotion;
@@ -101,7 +106,7 @@ namespace msc::catalogue
 
     std::expected<void, BinaryCatalogueError>
     write_binary_catalogue(const std::filesystem::path& filename,
-                           std::span<const Star> stars)
+                           std::span<const CatalogueStar> stars)
     {
         std::ofstream output{filename, std::ios::binary | std::ios::trunc};
         if (!output)
@@ -115,9 +120,10 @@ namespace msc::catalogue
         write_unsigned(output, u32{0});
         write_unsigned(output, static_cast<u64>(stars.size()));
 
-        for (const auto& star : stars)
+        for (const auto& entry : stars)
         {
-            write_unsigned(output, star.source_id());
+            const auto& star = entry.star();
+            write_unsigned(output, entry.source_id());
             write_double(output, star.reference_epoch().julian_year());
             write_double(output,
                          star.direction()
@@ -140,7 +146,7 @@ namespace msc::catalogue
                          star.colour() ? star.colour()->gaia_bp_minus_rp()
                                        : 0.0);
             write_unsigned(output,
-                           static_cast<std::uint8_t>(star.source_catalogue()));
+                           static_cast<std::uint8_t>(entry.source_catalogue()));
             write_unsigned(
                 output, static_cast<std::uint8_t>(star.colour().has_value()));
         }
@@ -150,7 +156,7 @@ namespace msc::catalogue
         return {};
     }
 
-    std::expected<std::vector<Star>, BinaryCatalogueError>
+    std::expected<std::vector<CatalogueStar>, BinaryCatalogueError>
     read_binary_catalogue(const std::filesystem::path& filename)
     {
         std::ifstream input{filename, std::ios::binary};
@@ -199,12 +205,12 @@ namespace msc::catalogue
             return std::unexpected{
                 error(BinaryCatalogueErrorCode::InvalidFileSize,
                       "File length does not match row count")};
-        if (count > std::vector<Star>{}.max_size())
+        if (count > std::vector<CatalogueStar>{}.max_size())
             return std::unexpected{
                 error(BinaryCatalogueErrorCode::InvalidFileSize,
                       "Row count exceeds vector capacity")};
 
-        std::vector<Star> stars;
+        std::vector<CatalogueStar> stars;
         stars.reserve(static_cast<std::size_t>(count));
         for (u64 index = 0; index < count; ++index)
         {
@@ -248,12 +254,13 @@ namespace msc::catalogue
                     error(BinaryCatalogueErrorCode::InvalidRecord,
                           "Invalid stellar record")};
             stars.emplace_back(
-                source_id, *epoch, IcrsDirection{*ra, *dec},
-                ProperMotionComponents{.right_ascension_cos_declination = *pmra,
-                                       .declination = *pmdec},
-                *parallax, *magnitude,
-                has_colour ? std::optional{*colour} : std::nullopt,
-                static_cast<CatalogueSource>(provenance));
+                source_id, static_cast<CatalogueSource>(provenance),
+                Star{*epoch, IcrsDirection{*ra, *dec},
+                     ProperMotionComponents{.right_ascension_cos_declination =
+                                                *pmra,
+                                            .declination = *pmdec},
+                     *parallax, *magnitude,
+                     has_colour ? std::optional{*colour} : std::nullopt});
         }
         return stars;
     }

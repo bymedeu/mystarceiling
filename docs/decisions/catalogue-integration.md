@@ -23,7 +23,8 @@ flowchart TD
     S --> V["Visual state and rendering"]
 ```
 
-The bounded runtime uses `Star` with a native `uint64_t` identifier and a separate
+The bounded runtime uses `msc::catalogue::CatalogueStar` with a native
+`uint64_t` identifier, an owned `msc::core::astronomy::Star` value, and a separate
 `CatalogueSource : uint8_t` enum (`GaiaDr3`, `Hipparcos2`). No identifier bits are
 reserved; classification and its bit scheme remain open. `colour()` is optional
 Gaia BP-RP: Gaia values survive unchanged; Hipparcos colour is absent. Hipparcos
@@ -103,6 +104,22 @@ Principles worth retaining for later measured work:
 - derive nested brightness levels instead of duplicating complete catalogues;
 - distribute large levels separately with manifests and checksums;
 - introduce spatial partitioning and memory mapping only after profiling.
+
+## First bounded M2 refactor — owner decision, 2026-09-13
+
+The main source-independent `Star` belongs in `core/astronomy`, never catalogue.
+It owns validated reference epoch, ICRS direction, proper motion, parallax,
+G-like apparent magnitude, and optional BP-RP. The stellar measurement wrappers
+and their finite-value validation now live beside it. `CatalogueStar` owns native
+identity and provenance and exposes its physical value through `star()`;
+astronomy calculations explicitly access that core value. There is no old
+`catalogue::Star` alias or forwarding header.
+
+The field-by-field version-2 binary encoding remains unchanged (32-byte header,
+74-byte records), as do sorting, parsing errors, and bounded M1 propagation and
+display policy. This is an ownership boundary, not a performance layout change.
+AI implemented and validated the owner-directed refactor; no additional M2
+rendering or control features are included.
 
 ## Remaining decisions
 

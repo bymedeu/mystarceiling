@@ -3,13 +3,14 @@
 #include <cmath>
 #include <expected>
 
-namespace msc::catalogue
+namespace msc::core::astronomy
 {
     enum class MeasurementError
     {
         NonFinite
     };
 
+    // Finite measured parallax in mas; zero and negative values are valid.
     class Parallax
     {
     public:
@@ -32,6 +33,7 @@ namespace msc::catalogue
         double value_;
     };
 
+    // G-like apparent magnitude: Gaia G or a source-prepared estimate of G.
     class ApparentMagnitude
     {
     public:
@@ -56,6 +58,7 @@ namespace msc::catalogue
         double value_;
     };
 
+    // Gaia BP-RP colour index, not display RGB or Johnson B-V.
     class ColourIndex
     {
     public:
@@ -78,4 +81,4 @@ namespace msc::catalogue
         {}
         double value_;
     };
-} // namespace msc::catalogue
+} // namespace msc::core::astronomy

@@ -4,9 +4,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/catalogue/select_brightest.hh>
-#include <mystarceiling/catalogue/star.hh>
-#include <mystarceiling/catalogue/stellar_measurements.hh>
+#include <mystarceiling/core/astronomy/star.hh>
+#include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/proper_motion.hh>
@@ -16,11 +17,12 @@
 #include <optional>
 #include <vector>
 
-using msc::catalogue::ApparentMagnitude;
 using msc::catalogue::CatalogueSource;
-using msc::catalogue::Parallax;
+using msc::catalogue::CatalogueStar;
 using msc::catalogue::select_brightest;
-using msc::catalogue::Star;
+using msc::core::astronomy::ApparentMagnitude;
+using msc::core::astronomy::Parallax;
+using msc::core::astronomy::Star;
 using msc::core::coordinates::Declination;
 using msc::core::coordinates::IcrsDirection;
 using msc::core::coordinates::ProperMotion;
@@ -31,19 +33,19 @@ using msc::core::time::ReferenceEpoch;
 
 namespace
 {
-    Star star(std::uint64_t id, CatalogueSource source, double magnitude)
+    CatalogueStar star(std::uint64_t id, CatalogueSource source,
+                       double magnitude)
     {
         const auto zero = *ProperMotion::try_from_milliarcseconds_per_year(0);
-        return Star{
-            id,
-            *ReferenceEpoch::try_from_julian_year(2016),
-            IcrsDirection{*RightAscension::try_from(Angle::from_degrees(0)),
-                          *Declination::try_from(Angle::from_degrees(0))},
-            ProperMotionComponents{zero, zero},
-            *Parallax::try_from_milliarcseconds(1),
-            *ApparentMagnitude::try_from_gaia_g(magnitude),
-            std::nullopt,
-            source};
+        return CatalogueStar{
+            id, source,
+            Star{
+                *ReferenceEpoch::try_from_julian_year(2016),
+                IcrsDirection{*RightAscension::try_from(Angle::from_degrees(0)),
+                              *Declination::try_from(Angle::from_degrees(0))},
+                ProperMotionComponents{zero, zero},
+                *Parallax::try_from_milliarcseconds(1),
+                *ApparentMagnitude::try_from_gaia_g(magnitude), std::nullopt}};
     }
 } // namespace
 
@@ -73,7 +75,7 @@ TEST(SelectBrightestTest, OrdersTiesBySeparateProvenanceAndFullNativeId)
 
 TEST(SelectBrightestTest, RetainsAllBrighterSupplementRecordsWithin4096Cap)
 {
-    std::vector<Star> input;
+    std::vector<CatalogueStar> input;
     for (std::uint64_t id = 1; id <= 4096; ++id)
         input.push_back(star(id, CatalogueSource::GaiaDr3, 2 + id / 4096.0));
     for (std::uint64_t id = 1; id <= 62; ++id)
@@ -82,7 +84,7 @@ TEST(SelectBrightestTest, RetainsAllBrighterSupplementRecordsWithin4096Cap)
     ASSERT_EQ(selected.size(), 4096);
     EXPECT_EQ(
         std::count_if(
-            selected.begin(), selected.end(), [](const Star& s)
+            selected.begin(), selected.end(), [](const CatalogueStar& s)
             { return s.source_catalogue() == CatalogueSource::Hipparcos2; }),
         62);
     EXPECT_EQ(selected.back().source_id(), 4034);

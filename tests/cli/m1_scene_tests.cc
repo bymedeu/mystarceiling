@@ -4,8 +4,9 @@
 
 #include <array>
 #include <limits>
-#include <mystarceiling/catalogue/star.hh>
-#include <mystarceiling/catalogue/stellar_measurements.hh>
+#include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/core/astronomy/star.hh>
+#include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/proper_motion.hh>
@@ -14,12 +15,13 @@
 #include <mystarceiling/core/time/reference_epoch.hh>
 #include <optional>
 
-using msc::catalogue::ApparentMagnitude;
 using msc::catalogue::CatalogueSource;
-using msc::catalogue::Parallax;
-using msc::catalogue::Star;
+using msc::catalogue::CatalogueStar;
 using msc::cli::m1_display_intensity;
 using msc::cli::make_m1_scene;
+using msc::core::astronomy::ApparentMagnitude;
+using msc::core::astronomy::Parallax;
+using msc::core::astronomy::Star;
 using msc::core::coordinates::Declination;
 using msc::core::coordinates::IcrsDirection;
 using msc::core::coordinates::ProperMotion;
@@ -30,23 +32,22 @@ using msc::core::time::ReferenceEpoch;
 
 namespace
 {
-    Star star(double magnitude, double dec = 33.16601472318802,
-              CatalogueSource source = CatalogueSource::GaiaDr3,
-              double epoch = 2016, double motion = 0)
+    CatalogueStar star(double magnitude, double dec = 33.16601472318802,
+                       CatalogueSource source = CatalogueSource::GaiaDr3,
+                       double epoch = 2016, double motion = 0)
     {
-        return Star{
-            1,
-            *ReferenceEpoch::try_from_julian_year(epoch),
-            IcrsDirection{*RightAscension::try_from(
-                              Angle::from_degrees(74.24843702624405)),
-                          *Declination::try_from(Angle::from_degrees(dec))},
-            ProperMotionComponents{
-                *ProperMotion::try_from_milliarcseconds_per_year(motion),
-                *ProperMotion::try_from_milliarcseconds_per_year(0)},
-            *Parallax::try_from_milliarcseconds(1),
-            *ApparentMagnitude::try_from_gaia_g(magnitude),
-            std::nullopt,
-            source};
+        return CatalogueStar{
+            1, source,
+            Star{
+                *ReferenceEpoch::try_from_julian_year(epoch),
+                IcrsDirection{*RightAscension::try_from(
+                                  Angle::from_degrees(74.24843702624405)),
+                              *Declination::try_from(Angle::from_degrees(dec))},
+                ProperMotionComponents{
+                    *ProperMotion::try_from_milliarcseconds_per_year(motion),
+                    *ProperMotion::try_from_milliarcseconds_per_year(0)},
+                *Parallax::try_from_milliarcseconds(1),
+                *ApparentMagnitude::try_from_gaia_g(magnitude), std::nullopt}};
     }
 } // namespace
 

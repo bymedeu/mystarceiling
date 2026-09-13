@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <expected>
 #include <filesystem>
-#include <mystarceiling/catalogue/star.hh>
+#include <mystarceiling/catalogue/catalogue_star.hh>
 #include <string>
 #include <vector>
 
@@ -36,7 +36,7 @@ namespace msc::catalogue
 
     struct GaiaLoadResult
     {
-        std::vector<Star> stars;
+        std::vector<CatalogueStar> stars;
         GaiaLoadStatistics statistics;
     };
 

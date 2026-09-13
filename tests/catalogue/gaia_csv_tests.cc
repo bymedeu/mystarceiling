@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <filesystem>
 #include <mystarceiling/catalogue/gaia_csv.hh>
+#include <mystarceiling/core/astronomy/star.hh>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -67,24 +68,26 @@ TEST(GaiaCatalogueTest, InterpretsKnownGaiaRow)
     EXPECT_EQ(star.source_id(), 418551920284673408ULL);
     EXPECT_EQ(star.source_catalogue(),
               msc::catalogue::CatalogueSource::GaiaDr3);
-    ASSERT_TRUE(star.colour());
-    EXPECT_DOUBLE_EQ(star.reference_epoch().julian_year(), 2016.0);
+    ASSERT_TRUE(star.star().colour());
+    EXPECT_DOUBLE_EQ(star.star().reference_epoch().julian_year(), 2016.0);
     EXPECT_DOUBLE_EQ(
-        star.direction().get_right_ascension().get_angle().to_degrees(),
+        star.star().direction().get_right_ascension().get_angle().to_degrees(),
         10.12724197930297);
     EXPECT_DOUBLE_EQ(
-        star.direction().get_declination().get_angle().to_degrees(),
+        star.star().direction().get_declination().get_angle().to_degrees(),
         56.53718879378639);
     EXPECT_DOUBLE_EQ(
-        star.proper_motion()
+        star.star()
+            .proper_motion()
             .right_ascension_cos_declination.milliarcseconds_per_year(),
         49.12564571845064);
     EXPECT_DOUBLE_EQ(
-        star.proper_motion().declination.milliarcseconds_per_year(),
+        star.star().proper_motion().declination.milliarcseconds_per_year(),
         -31.595374311196693);
-    EXPECT_DOUBLE_EQ(star.parallax().milliarcseconds(), 14.090976249252234);
-    EXPECT_DOUBLE_EQ(star.magnitude().gaia_g(), 1.9425238);
-    EXPECT_DOUBLE_EQ(star.colour()->gaia_bp_minus_rp(), 1.1434835);
+    EXPECT_DOUBLE_EQ(star.star().parallax().milliarcseconds(),
+                     14.090976249252234);
+    EXPECT_DOUBLE_EQ(star.star().magnitude().gaia_g(), 1.9425238);
+    EXPECT_DOUBLE_EQ(star.star().colour()->gaia_bp_minus_rp(), 1.1434835);
 }
 
 TEST(GaiaCatalogueTest, RejectsBadRowsAndContinuesToAcceptedLimit)
@@ -116,5 +119,6 @@ TEST(GaiaCatalogueTest, PreservesNegativeParallax)
 
     ASSERT_TRUE(result.has_value()) << result.error().detail;
     ASSERT_EQ(result->stars.size(), 1);
-    EXPECT_DOUBLE_EQ(result->stars.front().parallax().milliarcseconds(), -0.5);
+    EXPECT_DOUBLE_EQ(result->stars.front().star().parallax().milliarcseconds(),
+                     -0.5);
 }

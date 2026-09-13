@@ -8,8 +8,9 @@
 #include <expected>
 #include <filesystem>
 #include <memory>
-#include <mystarceiling/catalogue/star.hh>
-#include <mystarceiling/catalogue/stellar_measurements.hh>
+#include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/core/astronomy/star.hh>
+#include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/proper_motion.hh>
@@ -26,6 +27,9 @@
 
 namespace msc::catalogue
 {
+    using core::astronomy::ApparentMagnitude;
+    using core::astronomy::Parallax;
+    using core::astronomy::Star;
     using core::coordinates::Declination;
     using core::coordinates::IcrsDirection;
     using core::coordinates::ProperMotion;
@@ -192,11 +196,12 @@ namespace msc::catalogue
             const auto magnitude =
                 ApparentMagnitude::try_from_gaia_g(values[9]);
             result.stars.emplace_back(
-                source_id, *epoch, IcrsDirection{*ra, *dec},
-                ProperMotionComponents{.right_ascension_cos_declination = *pmra,
-                                       .declination = *pmdec},
-                *parallax, *magnitude, std::nullopt,
-                CatalogueSource::Hipparcos2);
+                source_id, CatalogueSource::Hipparcos2,
+                Star{*epoch, IcrsDirection{*ra, *dec},
+                     ProperMotionComponents{.right_ascension_cos_declination =
+                                                *pmra,
+                                            .declination = *pmdec},
+                     *parallax, *magnitude, std::nullopt});
             ++result.statistics.accepted;
         }
 
