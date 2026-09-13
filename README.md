@@ -261,6 +261,12 @@ illumination phases, occultation ordering, and validation at known events.
 apparent size, occlusion, light contribution, and keeping these models separate
 from the distant-star catalogue pipeline.
 
+**Possible source:** Michal Poznik's 2022
+[*Night Sky Rendering*](https://dcgi.fel.cvut.cz/en/theses/2022/poznimic/)
+thesis may provide useful references for Sun/Moon rendering and runtime
+location/time handling. Its individual methods still require evaluation before
+adoption.
+
 ### M9 — Dynamic, atmospheric, and synthetic skies · target 28 June 2028
 
 **Objective:** use the mature engine for reproducible procedural skies and
@@ -273,6 +279,9 @@ an experimental cloud/atmosphere layer where it creates a useful challenge.
 **Engineering questions:** deterministic randomness, plausible trajectories,
 temporal coherence, atmospheric versus stellar effects, visual validation, and
 using these workloads to test the engine without weakening astronomical claims.
+
+**Possible source:** Poznik's *Night Sky Rendering* may also provide references
+for tone mapping and approximate atmospheric scattering.
 
 The detailed decision record and milestone acceptance evidence live in
 [the project documentation](docs/README.md).
