@@ -1,6 +1,6 @@
 # Current project state
 
-Last updated: 2026-09-13.
+Last updated: 2026-09-14.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
@@ -15,6 +15,22 @@ The first bounded M2 refactor separates source-independent
 The version-2 binary contract and M1 scene behavior are preserved. The current
 suite passes all 119 tests, including a frozen-byte compatibility check against
 the pre-refactor writer.
+
+## Required understanding checkpoint
+
+Owner decision, 2026-09-14: catalogue integration is the first identified debt
+in algorithmic understanding. Before the next substantial implementation task,
+pause for the [Algorithmic Ownership Gate](../README.md#algorithmic-ownership-gate).
+The owner must explain the current pipeline against its seven questions where
+applicable, close any gaps through discussion and teach-back, and explicitly
+approve implementation before work proceeds. Status: open; understanding has
+not yet been demonstrated. Earlier implementation approvals do not close it.
+
+Start from [catalogue integration](decisions/catalogue-integration.md) and trace
+the actual acquisition/preparation, overlap resolution, parsers, normalized
+records, brightness selection, binary storage, and scene hand-off. Inspect code
+and tests to distinguish implemented behavior from intended design. See the
+[decision history](development-history/2026-09-14.md).
 
 ## Implemented and verified
 

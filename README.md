@@ -105,6 +105,24 @@ compilers is not guaranteed.
 
 ---
 
+## Algorithmic Ownership Gate
+
+AI-generated implementation is welcome; ownership of the algorithms, data
+structures, and important decisions stays with the owner. Before non-trivial
+implementation, stop until the owner can explain the problem, data structures,
+data flow, correctness assumptions, time and memory complexity, alternatives,
+and debugging or optimization starting points in their own words, then explicitly
+approve implementation. Missing understanding requires explanation, questions,
+and owner teach-back; documentation or model answers alone do not pass the gate.
+
+Depth is proportional to the change; mechanical work and trivial plumbing do
+not require this ceremony. Gaps in existing mechanisms are understanding debt
+to close before building important functionality on them. The current catalogue
+pipeline is the first checkpoint, required before the next substantial
+implementation task; see [current project state](docs/project-state.md).
+The enforceable rule lives in the portfolio-level
+[AGENTS.md](../AGENTS.md#algorithmic-ownership-gate).
+
 ## Status
 
 MyStarCeiling is in early development. The fixed M1 Toulouse path now loads real catalogue data, transforms it, and renders a zenith view. Visual acceptance remains, while configurable observer/time controls and measured scaling belong to later milestones.

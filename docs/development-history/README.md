@@ -19,4 +19,5 @@ documents and records how the result was reached.
 
 ## Entries
 
+- [2026-09-14](2026-09-14.md)
 - [2026-09-13](2026-09-13.md)
