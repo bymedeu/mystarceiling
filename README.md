@@ -114,6 +114,8 @@ data flow, correctness assumptions, time and memory complexity, alternatives,
 and debugging or optimization starting points in their own words, then explicitly
 approve implementation. Missing understanding requires explanation, questions,
 and owner teach-back; documentation or model answers alone do not pass the gate.
+These are understanding criteria, not a questionnaire to repeat: discussion and
+focused follow-ups can establish them in any order.
 
 Depth is proportional to the change; mechanical work and trivial plumbing do
 not require this ceremony. Gaps in existing mechanisms are understanding debt
