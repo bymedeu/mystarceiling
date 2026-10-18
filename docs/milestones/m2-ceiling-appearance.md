@@ -1,8 +1,10 @@
 # M2 — Ceiling appearance and data controls
 
 Planning note, 2026-10-18, MODE GREEN. **Estimate: 13 December 2026; scope to
-discuss**, not implementation approval. The owner supplied this capacity-based
-baseline with lower availability starting January–February 2027. See the
+discuss**, not implementation approval. The primary assistant proposed this
+date from the owner’s capacity constraints, lower availability starting
+January–February 2027 and September release goal; the owner did not choose
+the intermediate milestone dates. See the
 [roadmap](../../README.md#milestones). The
 [owner-understanding checkpoint](../project-state.md#required-understanding-checkpoint)
 remains open before substantial implementation.
