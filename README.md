@@ -52,12 +52,14 @@ After configuring the project, build and test with:
 cmake --build build -j4
 ctest --test-dir build --output-on-failure
 build/src/cli/mystarceiling_cli \
-  data/gaia-dr3/gaia-dr3.csv.gz.partial \
+  data/gaia-dr3/gaia-dr3.csv.gz \
   data/hipparcos2/runs/20260912T191816.016104Z/hipparcos2-supplement.csv.gz \
   /tmp/msc-m1.bin
 ```
 
-The Gaia argument uses the existing local acquisition checkpoint's ordered prefix.
+The Gaia argument uses the completed local archive's ordered prefix. The existing
+Hipparcos preparation is tied to the previous Gaia snapshot; see the
+[acquisition and supplement caveat](docs/project-state.md#acquisition-status).
 The application selects 4096 combined Gaia/Hipparcos stars, calculates the fixed
 Toulouse sky, and applies an owner-approved **temporary G<=4 display filter**.
 It requires a working graphical session. **M1 is complete on 2026-09-13**, with

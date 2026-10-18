@@ -240,9 +240,11 @@ stars, including all 62 Hipparcos supplement records.*
 
 The owner reports that the rendering looks very nice and the magnitude
 distribution looks realistic. This is a visual assessment of the uncalibrated
-display mapping. The owner did not recognize their usual constellations; that
-is not a failure, because this fixed January 2016 zenith crop differs from their
-current September east-southeast view. No constellation recognition is claimed.
+display mapping. The owner did not recognize their usual constellations. The
+January zenith crop and their September east-southeast view differ in season,
+hour and view; ten years alone does not explain gross pattern changes. No
+matched reference comparison has been performed and no mismatch has been
+disproved. No constellation recognition is claimed.
 
 The screenshot is visual evidence of the successful graphical run and its
 appearance. The automated known-row catalogue-to-screen tests provide positional

@@ -1,6 +1,6 @@
 # Current project state
 
-Last updated: 2026-09-14.
+Last updated: 2026-10-18.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
@@ -12,8 +12,8 @@ The first bounded M2 refactor separates source-independent
 `core::astronomy::Star` and its measurement wrappers from
 `catalogue::CatalogueStar` identity/provenance. See the
 [boundary decision](decisions/catalogue-integration.md#first-bounded-m2-refactor--owner-decision-2026-09-13).
-The version-2 binary contract and M1 scene behavior are preserved. The current
-suite passes all 119 tests, including a frozen-byte compatibility check against
+The version-2 binary contract and M1 scene behavior are preserved. The recorded
+post-refactor suite passed all 119 tests, including a frozen-byte compatibility check against
 the pre-refactor writer.
 
 ## Required understanding checkpoint
@@ -64,32 +64,22 @@ glow, exposure, camera controls, and scintillation are not implemented.
 
 ## Acquisition status
 
-The 2026-10-18 recovery verified 76,298,576 complete, unique,
-brightness-ordered records. The target remains 134,217,728 records, subject to
-the 10,000,000,000-byte compressed-file limit. A final Gaia catalogue does not
-exist until acquisition verification creates `manifest.json`.
+The selected Gaia acquisition completed at **2026-10-18T18:20:08.887686+00:00**:
+134,217,728 rows / 8,575,699,250 compressed bytes, below the 10,000,000,000-byte
+cap. Final archive and manifest exist; the partial archive and duplicate index
+are absent. Checkpoint `done=true`, counts and cursor agree with the manifest;
+archive size agrees with both. See [completion evidence](gaia-datasets.md#verified-acquisition-evidence)
+for the SHA256 and distinction between downloader verification and independent
+metadata checks. No archive rehash or service change was performed for this
+record; live service status was unavailable through the sandbox's user bus.
+Earlier incomplete checkpoints and service observations in the
+[recovery record](gaia-recovery.md) are historical.
 
-Authenticated recovery accepted a 600-second job duration and committed a checked
-250,000-row batch, reaching 4,893,971,496 bytes. A transient background user
-service continues with `Restart=no`; no login/reboot startup was enabled.
-See [recovery commands, tests and limitations](gaia-recovery.md). The failures
-below are historical and superseded by this verified recovery.
-
-ESA failed repeatedly while submitting or transferring batch 26. The retry loop
-reached restart 58 without adding rows and was stopped at 19:04 local time on
-2026-09-12. That transient service no longer exists.
-
-The subsequent 2026-09-12 recovery attempt reduced batch size from 1,500,000 to
-750,000 rows. `msc-gaia-acquisition-750k.service` ran once without automatic
-restart. ESA async submission timed out after 300000 ms with zero bytes received
-(curl exit 28); no job was recorded. The checkpoint remains 76,048,576 rows and
-4,878,012,154 bytes. The service is stopped/failed; the checkpoint is intact and
-resumable, but acquisition remains incomplete. Further recovery implementation
-requires separate owner approval.
-
-The latest Hipparcos completed run is `20260912T191816.016104Z`. It records the
-76,048,576-row Gaia snapshot used to exclude one already represented star.
-Regenerate the supplement after Gaia materially changes.
+The latest Hipparcos completed run is `20260912T191816.016104Z`, tied to the
+previous 76,048,576-row Gaia snapshot. Its overlap preparation has not been
+revalidated against completed Gaia. Regeneration requires separate authorization
+and was not performed. Do not treat the old supplement as freshly prepared for
+the final archive.
 
 ## Open owner decisions
 
@@ -98,10 +88,18 @@ Regenerate the supplement after Gaia materially changes.
 - conflict reporting for otherwise usable source records;
 - whether magnitude layers first appear during M1 binary preparation or after
   measuring the existing 4,096-row baseline;
-- the Gaia acquisition recovery strategy.
+- full M2 scope/order, including camera scope;
+- output geometry/projection, fixture mapping, transport and controller contract;
+- preparation-time colour/radiance conversion and runtime/cache representation.
+
+Owner requirements and proposals are distinguished from agent explanations and
+implementation state in the [ceiling/output decision note](decisions/ceiling-product-output.md).
+No launcher, camera/time, colour/cache or device implementation is authorized by
+these documentation clarifications. The understanding checkpoint remains open.
 
 ## Key records
 
+- [Star ceiling and output boundaries](decisions/ceiling-product-output.md)
 - [M1 fixed Toulouse sky](milestones/m1-fixed-toulouse-sky.md)
 - [Gaia acquisition](gaia-datasets.md)
 - [Hipparcos-2 supplement](hipparcos2-datasets.md)

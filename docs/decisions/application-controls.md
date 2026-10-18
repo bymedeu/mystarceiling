@@ -1,6 +1,8 @@
 # Application controls and interface direction
 
-Status: requirements clarified on 2026-09-13; controls are not implemented.
+Status: requirements clarified on 2026-09-13 and 2026-10-18; controls are not
+implemented. The [ceiling/output note](ceiling-product-output.md) records current
+owner priorities, proposals and open decisions; it does not approve implementation.
 
 ## Shared behavior
 
@@ -29,7 +31,9 @@ visualization remains visible. A change must not require restarting the app.
 
 ## Catalogue controls
 
-Catalogue size and limiting magnitude are independent:
+Selection remains magnitude based, brightest first. Catalogue size and limiting
+magnitude are independent concepts. The count option below is a proposal, not
+approved implementation or a spatial-selection requirement:
 
 - a record-count limit selects the first N records of the common
   brightness-ordered catalogue and defines reproducible performance workloads;
@@ -57,14 +61,16 @@ context-dependent rather than one universal rule.
 
 ## Milestone boundary
 
-Camera movement and zoom remain M2 work. They are valuable inspection tools, but
-adding them during the fixed M1 acceptance would interrupt the more linear path
-of completing catalogue integration and recognizable output. Location, full
-date/time input, and time progression remain M3 work.
+The existing roadmap places camera movement and zoom in M2. The owner now
+clarifies that camera exploration is secondary; M2 camera scope and full scope/order
+remain open for discussion. No established milestone or target date is removed
+or moved by this clarification. Location, full date/time input and astronomical
+time progression remain M3 work. Camera orientation and astronomical time are
+independent; see the [transform explanation](ceiling-product-output.md#agent-explanations-and-recommendations).
 
-M2 may establish star colour, glow/PSF, exposure appearance controls, and perhaps
-static image export. A static brightness multiplier must not be called a long
-exposure.
+M2 planning includes star colour, glow/PSF and exposure appearance controls;
+the full scope is still to be agreed. Screenshot export is only an idea, not
+required scope. A static brightness multiplier must not be called a long exposure.
 
 The owner requires real astrophotography and long-exposure simulation in M9;
 this is accepted scope, not merely a suggested brightness preset. Long exposure

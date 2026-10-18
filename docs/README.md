@@ -7,6 +7,9 @@ It is plain Markdown for now; Doxygen and MkDocs integration are deferred.
 
 - [Current project state](project-state.md): concise cross-session hand-off,
   verified progress, approved work, and open decisions.
+- [Star ceiling and output boundaries](decisions/ceiling-product-output.md):
+  current owner priorities, colour/cache proposal, camera/time distinction,
+  device flexibility and unselected implementation choices.
 - [Catalogue integration](decisions/catalogue-integration.md): approved
   Gaia/Hipparcos boundary, Hp/G choices, and Stellarium-derived lessons.
 - [Gaia datasets](gaia-datasets.md): current acquisition scope, field review,

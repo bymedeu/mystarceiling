@@ -5,6 +5,11 @@ Owner-approved YELLOW scope: add external session support and bounded recovery t
 implementation, scientific selection change, manual checkpoint repair, account
 creation or credential entry by the agent. The user performed login locally.
 
+Current status: acquisition subsequently completed at 18:20:08 UTC on
+2026-10-18. See [final metadata and verification limits](gaia-datasets.md#verified-acquisition-evidence).
+The incomplete checkpoints and service observations below describe the recovery
+session, not the current acquisition state.
+
 ## Cause and recovery contract
 
 The saved 250,000-row job was ABORTED after 60.096 seconds, with
@@ -135,9 +140,10 @@ and remove its own jar. The downloader reads but does not refresh the jar.
 A live accepted duration proves at least that allowance, not the account's
 maximum quota or the success of future batches. Later queries may still exceed
 600 seconds; account storage limits, session lifetime, disk space and network
-failures remain operational limits. The catalogue remains incomplete until final
-gzip/count/hash checks create the final archive and manifest. No full acquisition
-or full-archive revalidation is claimed by the one-batch recovery evidence.
+failures remain operational limits. At the recovery checkpoint, the catalogue
+was incomplete pending final gzip/count/hash checks. The later completion is recorded separately above; the
+one-batch recovery evidence alone did not establish full acquisition or
+full-archive revalidation.
 
 Official references: [ESA login/logout](https://www.cosmos.esa.int/web/gaia-users/archive/programmatic-access#Sect_2_ss2.1),
 [ESA quota/encoding FAQ](https://www.cosmos.esa.int/web/gaia/faqs),

@@ -2,7 +2,10 @@
 
 Status: prepared and validated on 2026-09-12. Gaia remains MSC's primary stellar
 catalogue. Hipparcos supplies bright stars that are not represented by a complete
-record in the project's current Gaia snapshot.
+record in its recorded Gaia snapshot. The latest prepared run uses the previous
+76,048,576-row checkpoint, not the now-completed 134,217,728-row archive. Its
+membership/overlap results have not been revalidated against final Gaia;
+regeneration is not authorized by the 2026-10-18 documentation update.
 
 See the [consolidated work log](hipparcos2-work-log.md) for the investigation,
 implementation, commands, failures, and validation evidence. Exact executed

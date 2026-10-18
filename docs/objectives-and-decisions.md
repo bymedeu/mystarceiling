@@ -25,9 +25,16 @@ Numerical accuracy targets will be decided later from evidence and intended use.
 
 ## Current direction and owner policies
 
+Current ceiling priorities, output requirements and open M2 scope are recorded in
+the [focused decision note](decisions/ceiling-product-output.md). It supersedes
+earlier inspection/export priorities without changing milestone dates. Older
+implementation-status statements below are dated history; use
+[project state](project-state.md) for current evidence.
+
 - Gaia acquisition targets 134,217,728 records (2^27), the largest power of two
   estimated to fit under the hard 10,000,000,000-byte compressed safety limit.
-  Benchmark datasets are prefixes. Acquisition is incomplete; see gaia-datasets.md.
+  Benchmark datasets are prefixes. Selected acquisition is complete; see
+  [current evidence](gaia-datasets.md#verified-acquisition-evidence).
 - The current Gaia contract supersedes historical choices below: nine required
   fields (source_id, ref_epoch, ra, dec, pmra, pmdec, parallax, phot_g_mean_mag,
   bp_rp). All _error fields, radial_velocity, and designation are excluded.
@@ -50,8 +57,10 @@ Numerical accuracy targets will be decided later from evidence and intended use.
 - Preserve signed Gaia parallax, including negative measurements. Direction-only
   use remains valid; distance conversion must reject nonpositive parallax rather
   than applying an absolute value.
-- Source brightness and colour measurements remain distinct from RGB/pixels;
-  display appearance is derived later, as now approved by the owner.
+- Source measurements and display appearance remain conceptually distinct. The
+  owner now proposes preparation-time colour/radiance derivation; representation
+  and layer boundaries remain unselected. See the
+  [current ceiling/output note](decisions/ceiling-product-output.md).
 - Continue past rejected records. Aggregate accepted/rejected counts, rejection
   reasons, and the percentage accepted; detailed row diagnostics can be optional
   debug/trace output, not per-row warnings. This is owner-approved.

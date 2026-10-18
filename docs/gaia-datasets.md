@@ -1,13 +1,12 @@
 # Gaia dataset acquisition
 
-Status: the 2026-10-18 authenticated recovery verified 76,298,576 committed
-rows in 4,893,971,496 compressed bytes, after adding one checked 250,000-row
-batch. ESA accepted a 600-second execution duration for the authenticated job.
-Background continuation uses a transient user service with `Restart=no` and no
-login/reboot startup. This is incomplete; see [recovery evidence and limits](gaia-recovery.md).
+Status: the selected 134,217,728-row acquisition completed on 2026-10-18,
+using 8,575,699,250 compressed bytes. See [completion evidence](#verified-acquisition-evidence)
+and [authenticated recovery history](gaia-recovery.md).
 Last updated 2026-10-18.
 This record supersedes earlier proposed caps and pending ten-field decisions in
-objectives-and-decisions.md. No application loader or star class is implemented.
+objectives-and-decisions.md. The bounded M1 application loader is implemented;
+see [catalogue integration](decisions/catalogue-integration.md).
 
 ## Selected scope
 
@@ -86,7 +85,8 @@ The owner prefers one brightness-ordered catalogue, taking prefixes for the
 benchmark sizes above. This supersedes the disjoint-increment proposal.
 CSV with gzip compression is used for acquisition. Distribution remains open:
 a 10 GB file exceeds the GitHub Free/Pro LFS per-file limit; LFS is not configured.
-No LFS installation, configuration, commit, or push has been authorized here.
+No LFS installation, configuration or large-data publication is authorized by
+this acquisition record; the 2026-10-18 source/documentation push excludes data.
 Retain the current usable source until the replacement is verified.
 
 ## Acquisition and resume command
@@ -117,7 +117,8 @@ See [execution log](../data/gaia-dr3/acquisition-log.md) for exact executed
 commands and [download utility](../tools/acquire_gaia.py) for resumable acquisition.
 The final catalogue is not complete until manifest.json exists alongside
 gaia-dr3.csv.gz; a .partial file is unfinished. Benchmark CSV hashes are recorded
-in the completion manifest. No application loader is implemented.
+in the completion manifest. The bounded M1 loader is implemented; this acquisition
+does not extend it.
 
 ## Volume and storage evidence
 
@@ -126,7 +127,8 @@ The main Gaia DR3 source table contains roughly 1.8 billion sources; around
 million have radial velocities. None is the exact count for MSC's intersection
 of required fields.
 
-Local disk currently has approximately 162 GiB available. /tmp is a 7.6 GiB
+The earlier storage-planning snapshot recorded approximately 162 GiB available.
+/tmp was a 7.6 GiB
 memory filesystem and cannot stage the full catalogue.
 
 A historical 1000-row sample of the then-selected 12 columns used 153904 bytes as CSV and 69556
@@ -173,7 +175,8 @@ not a selected memory layout.
 
 Distribution of the capped catalogue remains open. Fields, brightness ordering,
 and the 10 Go storage cap are settled. The name-enrichment file is an owner proposal; its concrete
-format is not selected. No loader or star class has been implemented.
+format is not selected. The bounded M1 loader and core Star exist; no new runtime
+layout is selected here.
 
 ## References
 
@@ -186,10 +189,31 @@ format is not selected. No loader or star class has been implemented.
 
 ## Verified acquisition evidence
 
-The first authenticated recovery batch on 2026-10-18 brought the checkpoint to
-76,298,576 records and 4,893,971,496 compressed bytes. The new 250,000-row gzip
-tail passed ordering checks, and every new source ID matched its exact SQLite
-row ordinal; the index count matched the checkpoint. The continuation key is
-(15.986473083496094, 5314559860260730368). This is a verified snapshot while
-background acquisition may advance further. It remains incomplete until the exact
-target and final integrity checks create the manifest. See [recovery record](gaia-recovery.md).
+The final local `gaia-dr3.csv.gz` and untracked `manifest.json` exist. The
+manifest records 134,217,728 rows, 8,575,699,250 compressed bytes and completion
+at `2026-10-18T18:20:08.887686+00:00`, stopping at the target row count.
+SHA256 recorded by the downloader:
+
+```text
+cf0db34640b44208036bdeb2660e0bf9213acf83d793503f9187d367b37764f2
+```
+
+Downloader final verification streams the gzip archive to EOF, checks the data
+row count, computes benchmark-prefix CSV hashes and the compressed archive's
+SHA256, writes the manifest, renames the partial archive and removes the
+SQLite duplicate-ID index. Per-batch validation checks schema, strict ordering
+and duplicate IDs before committing progress. See [utility](../tools/acquire_gaia.py).
+
+Independent documentation-session checks were limited to archive/manifest/state
+existence and metadata: archive length equals manifest and checkpoint bytes;
+both record the target row count and final key
+`(16.78596305847168, 5311740746825005568)`; checkpoint `done=true` and
+`stop_reason="target row count"`. The partial archive and duplicate index are
+absent. The archive was not independently rehashed, decompressed or recounted.
+The manifest and acquisition log were preserved and excluded from commits.
+Live service status could not be read through the sandbox user bus; no service
+was modified. Earlier recovery checkpoints are historical, not current status.
+
+This is the completed selected catalogue, not the full Gaia release. The old
+Hipparcos supplement remains tied to the 76,048,576-row Gaia snapshot; regeneration
+and revalidation against final Gaia are not authorized by this documentation work.
