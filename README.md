@@ -35,6 +35,13 @@ substantial astronomy, systems, and performance problem. Its implementation
 emphasizes ownership, data modeling, numerical correctness, algorithms,
 testing, architecture, scalability, profiling, and measured optimization.
 
+## Licence
+
+Original MyStarCeiling software is licensed under the [MIT License](LICENSE),
+copyright (c) 2026 bymedeu, using the [official MIT text](https://opensource.org/license/mit).
+Dependencies and catalogue data retain their own licences and attribution
+requirements; this licence does not relicense them.
+
 ---
 
 ## Run the completed M1 slice
