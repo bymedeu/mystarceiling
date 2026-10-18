@@ -64,10 +64,16 @@ glow, exposure, camera controls, and scintillation are not implemented.
 
 ## Acquisition status
 
-The latest verified Gaia checkpoint contains 76,048,576 complete, unique,
+The 2026-10-18 recovery verified 76,298,576 complete, unique,
 brightness-ordered records. The target remains 134,217,728 records, subject to
 the 10,000,000,000-byte compressed-file limit. A final Gaia catalogue does not
 exist until acquisition verification creates `manifest.json`.
+
+Authenticated recovery accepted a 600-second job duration and committed a checked
+250,000-row batch, reaching 4,893,971,496 bytes. A transient background user
+service continues with `Restart=no`; no login/reboot startup was enabled.
+See [recovery commands, tests and limitations](gaia-recovery.md). The failures
+below are historical and superseded by this verified recovery.
 
 ESA failed repeatedly while submitting or transferring batch 26. The retry loop
 reached restart 58 without adding rows and was stopped at 19:04 local time on

@@ -1,11 +1,11 @@
 # Gaia dataset acquisition
 
-Status: 76,048,576 rows downloaded and validated; checkpoint size remains
-4,878,012,154 bytes. On 2026-09-12 batch size was reduced from 1,500,000 to
-750,000 rows and `msc-gaia-acquisition-750k.service` ran once without automatic
-restart. ESA async submission for batch 26 timed out after 300000 ms with zero
-bytes received (curl exit 28). No job was recorded. The service is stopped/failed
-and acquisition remains incomplete. Last updated 2026-09-12.
+Status: the 2026-10-18 authenticated recovery verified 76,298,576 committed
+rows in 4,893,971,496 compressed bytes, after adding one checked 250,000-row
+batch. ESA accepted a 600-second execution duration for the authenticated job.
+Background continuation uses a transient user service with `Restart=no` and no
+login/reboot startup. This is incomplete; see [recovery evidence and limits](gaia-recovery.md).
+Last updated 2026-10-18.
 This record supersedes earlier proposed caps and pending ten-field decisions in
 objectives-and-decisions.md. No application loader or star class is implemented.
 
@@ -186,9 +186,10 @@ format is not selected. No loader or star class has been implemented.
 
 ## Verified acquisition evidence
 
-The acquisition has committed 76,048,576 records in 4,878,012,154 compressed
-bytes. All committed rows passed the nine-field, finite-number, coordinate-range,
-unique-ID, and strict G-magnitude/source-ID ordering checks. The continuation key
-is (15.981961250305176, 5938936058012995200). This remains an incomplete prefix
-until the exact target is reached and the final integrity checks create the
-manifest.
+The first authenticated recovery batch on 2026-10-18 brought the checkpoint to
+76,298,576 records and 4,893,971,496 compressed bytes. The new 250,000-row gzip
+tail passed ordering checks, and every new source ID matched its exact SQLite
+row ordinal; the index count matched the checkpoint. The continuation key is
+(15.986473083496094, 5314559860260730368). This is a verified snapshot while
+background acquisition may advance further. It remains incomplete until the exact
+target and final integrity checks create the manifest. See [recovery record](gaia-recovery.md).

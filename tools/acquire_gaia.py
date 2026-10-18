@@ -15,8 +15,10 @@ from pathlib import Path
 import shlex
 import shutil
 import sqlite3
+import stat
 import struct
 import subprocess
+import tempfile
 import time
 import xml.etree.ElementTree as ET
 
@@ -33,7 +35,28 @@ def main():
     ap.add_argument("--initial-job")
     ap.add_argument("--initial-query", type=Path)
     ap.add_argument("--initial-result", type=Path)
+    ap.add_argument(
+        "--cookie-jar", type=Path, default=os.environ.get("MSC_GAIA_COOKIE_JAR")
+    )
+    ap.add_argument("--execution-duration", type=int, default=600)
+    ap.add_argument("--replace-aborted-job")
+    ap.add_argument("--max-batches", type=int)
     args = ap.parse_args()
+    if args.execution_duration <= 60:
+        ap.error("execution-duration must exceed the anonymous 60-second quota")
+    if args.max_batches is not None and args.max_batches <= 0:
+        ap.error("max-batches must be positive")
+    if args.replace_aborted_job and not args.cookie_jar:
+        ap.error("replacement requires an authenticated external cookie jar")
+    if args.cookie_jar:
+        jar = args.cookie_jar
+        info = jar.lstat()
+        if (not jar.is_absolute() or not stat.S_ISREG(info.st_mode)
+                or info.st_uid != os.getuid() or info.st_mode & 0o077):
+            ap.error("cookie jar must be an absolute, owned, private regular file")
+        repository = Path(__file__).resolve().parents[1]
+        if jar.resolve().is_relative_to(repository):
+            ap.error("cookie jar must be outside the repository")
     if args.target_rows <= 0:
         ap.error("target-rows must be positive")
     if args.max_bytes <= 0:
@@ -70,15 +93,19 @@ def main():
     def curl(options, *, limit=60):
         command = [
             "curl",
+            "--disable",
+            "--proto", "=https",
+            "--proto-redir", "=https",
             "--fail",
             "--silent",
             "--show-error",
             "--location",
             "--max-time",
             str(limit),
-        ] + options
-        # Do not automatically follow the POST->303 submission below: GET job next.
-        if "--dump-header" in options:
+        ] + (["--cookie", str(args.cookie_jar)] if args.cookie_jar else []) + options
+        # A custom DELETE method would survive a redirect to the job collection.
+        # Submission also needs its original Location, not the redirected response.
+        if "--dump-header" in options or "--request" in options:
             command.remove("--location")
         for attempt in range(3):
             record(
@@ -88,17 +115,65 @@ def main():
                 + shlex.join(command)
                 + "\n```"
             )
-            result = subprocess.run(command, capture_output=True, text=True)
+            # Never persist a session-bearing Set-Cookie header in the repository.
+            with tempfile.TemporaryDirectory(prefix="msc-gaia-headers-") as directory:
+                actual = command.copy()
+                header_path = None
+                if "--dump-header" in actual:
+                    index = actual.index("--dump-header") + 1
+                    header_path = Path(actual[index])
+                    actual[index] = str(Path(directory) / "headers")
+                result = subprocess.run(actual, capture_output=True, text=True)
+                if header_path is not None and Path(actual[index]).exists():
+                    header_path.write_text("".join(
+                        line for line in Path(actual[index]).read_text().splitlines(True)
+                        if not line.lower().startswith("set-cookie:")
+                    ))
             record("Exit code: " + str(result.returncode))
             if result.returncode == 0:
                 return
             record("```text\n" + result.stderr + "\n```")
-            # Retrying submissions can create orphan jobs; leave them to manual recovery.
-            if "--dump-header" in options:
+            # A lost response to RUN may already have started the saved job.
+            # Read its phase on resume instead of blindly repeating a mutation.
+            if "--data-urlencode" in options or "--request" in options:
                 break
             if attempt < 2:
                 time.sleep(10)
         raise RuntimeError("Transfer failed; see acquisition-log.md")
+
+    def job_metadata(job):
+        if not job.startswith(ENDPOINT + "/"):
+            raise RuntimeError("Unexpected job URL")
+        path = work / "recovery-job.xml"
+        curl(["--output", str(path), job])
+        tree = ET.parse(path)
+        return {e.tag.split("}")[-1]: e.text for e in tree.iter()}
+
+    def validate_job(tree, query, query_limit):
+        meta = {e.tag.split("}")[-1]: e.text for e in tree.iter()}
+        if not meta.get("ownerId") or meta["ownerId"].lower() == "anonymous":
+            raise RuntimeError("Session is not authenticated; refusing start")
+        # Verify the actual submitted continuation query, not just the HTTP status.
+        params = {e.attrib.get("id", "").lower(): e.text for e in tree.iter()
+                  if e.tag.split("}")[-1] == "parameter"}
+        if (params.get("query", "").strip() != query.strip()
+                or int(params.get("maxrec", "0")) < query_limit):
+            raise RuntimeError("Server query or row limit differs; refusing start")
+        return meta
+
+    def configure_job(job, query, query_limit):
+        job_metadata(job)
+        meta = validate_job(ET.parse(work / "recovery-job.xml"), query, query_limit)
+        if meta.get("phase") != "PENDING":
+            raise RuntimeError("New job is not pending; refusing start")
+        curl(["--output", str(work / "duration.body"), "--data-urlencode",
+              f"EXECUTIONDURATION={args.execution_duration}", job + "/executionduration"])
+        job_metadata(job)
+        meta = validate_job(ET.parse(work / "recovery-job.xml"), query, query_limit)
+        if (meta.get("phase") != "PENDING"
+                or int(meta.get("executionDuration", "0")) != args.execution_duration):
+            raise RuntimeError("Requested execution duration was not accepted")
+        record(f"Authenticated pending job verified: {job}; duration {args.execution_duration}s")
 
     def save(state):
         tmp = statepath.with_suffix(".new")
@@ -154,8 +229,21 @@ def main():
             ["python3", "-B", str(Path(__file__).resolve())] + os.sys.argv[1:]
         )
     record("\n## Invocation\n\n```sh\n" + invocation + "\n```")
+    replacement = args.replace_aborted_job
+    if replacement:
+        if state["job"] != replacement or not state["job_started"]:
+            raise RuntimeError("Replacement URL does not match the started checkpoint job")
+        meta = job_metadata(replacement)
+        if (meta.get("phase") != "ABORTED"
+                or "Maximum execution time" not in (meta.get("message") or "")):
+            raise RuntimeError("Replacement requires a verified timeout-aborted job")
+        record(f"Requested replacement of timeout-aborted job: {replacement}")
+    committed_batches = 0
+    configured_job = None
     # Recover an interrupted append: the JSON checkpoint is the commit boundary.
     if archive.exists():
+        if archive.stat().st_size < state["bytes"]:
+            raise RuntimeError("Archive is shorter than its committed checkpoint")
         with archive.open("r+b") as f:
             f.truncate(state["bytes"])
     elif state["bytes"]:
@@ -175,7 +263,7 @@ def main():
             raise RuntimeError(
                 "Less than 2 GB free for bounded working files; resume after freeing disk"
             )
-        if not state["job"]:
+        if not state["job"] or replacement:
             query_limit = min(
                 state.get("job_limit", 3000000), args.target_rows - state["rows"]
             )
@@ -226,9 +314,35 @@ def main():
             ]
             if not locations or not locations[-1].startswith(ENDPOINT + "/"):
                 raise RuntimeError("No trusted job URL")
-            state.update(job=locations[-1], job_started=False, job_limit=query_limit)
+            candidate = locations[-1]
+            if args.cookie_jar:
+                try:
+                    configure_job(candidate, query, query_limit)
+                    configured_job = candidate
+                except Exception:
+                    # The old checkpoint job and committed cursor are still intact.
+                    record(f"Pending candidate rejected: {candidate}; attempting deletion")
+                    curl(["--request", "DELETE", "--output", str(work / "delete.body"), candidate])
+                    raise
+            state.update(job=candidate, job_started=False, job_limit=query_limit)
+            replacement = None
             save(state)
         job = state["job"]
+        qfile = work / f"batch-{state['batch']:05d}.adql"
+        if not state["job_started"] and args.cookie_jar and configured_job != job:
+            job_metadata(job)
+            meta = validate_job(
+                ET.parse(work / "recovery-job.xml"), qfile.read_text(), state["job_limit"]
+            )
+            if meta.get("phase") == "PENDING":
+                configure_job(job, qfile.read_text(), state["job_limit"])
+            elif (meta.get("phase") in ("QUEUED", "EXECUTING", "COMPLETED")
+                  and int(meta.get("executionDuration", "0")) == args.execution_duration):
+                # RUN succeeded but its response/checkpoint was interrupted.
+                state["job_started"] = True
+                save(state)
+            else:
+                raise RuntimeError("Saved job cannot safely be started or adopted")
         if not state["job_started"]:
             curl(
                 [
@@ -241,7 +355,10 @@ def main():
             )
             state["job_started"] = True
             save(state)
+        poll_deadline = time.monotonic() + args.execution_duration + 300
         while True:
+            if args.cookie_jar and time.monotonic() > poll_deadline:
+                raise RuntimeError("Job observation deadline exceeded; checkpoint retained")
             xmlfile = work / "job.xml"
             curl(["--output", str(xmlfile), job])
             tree = ET.parse(xmlfile)
@@ -250,6 +367,10 @@ def main():
                 f"Batch {state['batch']}: {phase}; committed {state['rows']:,} rows / {state['bytes']:,} bytes"
             )
             if phase == "COMPLETED":
+                if args.cookie_jar:
+                    metadata = validate_job(tree, qfile.read_text(), state["job_limit"])
+                    if int(metadata.get("executionDuration", "0")) != args.execution_duration:
+                        raise RuntimeError("Authenticated job metadata changed; refusing result")
                 break
             if phase in ("ERROR", "ABORTED"):
                 curl(["--output", str(work / "error.xml"), job + "/error"])
@@ -358,6 +479,8 @@ def main():
 
             for row in reader:
                 batch_count += 1
+                if batch_count > state["job_limit"]:
+                    raise RuntimeError("Unexpected row overflow")
                 if len(row) != 9 or any(x == "" for x in row):
                     raise RuntimeError("Malformed/incomplete archive row")
                 sid = int(row[0])
@@ -387,6 +510,8 @@ def main():
         if not state["done"]:
             if batch_count > state["job_limit"]:
                 raise RuntimeError("Unexpected row overflow")
+            if args.cookie_jar and batch_count < state["job_limit"]:
+                raise RuntimeError("Short authenticated result; refusing to declare source exhaustion")
             if batch_count < state["job_limit"]:
                 state["done"] = True
                 state["stop_reason"] = "source exhausted"
@@ -397,6 +522,16 @@ def main():
         )
         report(f"Committed {state['rows']:,} sources, {state['bytes']:,} bytes")
         raw.unlink()
+        if args.cookie_jar and not state["done"]:
+            # Commit the next-batch checkpoint before releasing remote storage.
+            # Failure stops here with committed data intact; no restart loop.
+            curl(["--request", "DELETE", "--output", str(work / "delete.body"), job])
+            record(f"Deleted committed authenticated job: {job}")
+        committed_batches += 1
+        if args.max_batches and committed_batches >= args.max_batches and not state["done"]:
+            report("Requested batch bound reached; checkpoint retained for resume")
+            db.close()
+            return
     db.close()
     if state["rows"] < max(BENCHMARKS):
         raise RuntimeError("Catalogue does not contain all agreed benchmark sizes")
