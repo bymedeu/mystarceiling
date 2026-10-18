@@ -52,20 +52,32 @@ binary-schema change is approved or implemented by this clarification.
 
 “Animated” means realistic-looking colour, modest glow and subtle effects.
 Meteors/Perseids/clouds are possible later, not mandatory near-term feature count.
-Long exposure should eventually be automatically/mathematically integrated over
-time, physically motivated and validated for a bounded model. A brightness slider
-is not exposure integration. Tracked versus fixed camera, PSF/lens/aperture,
-sensor response/noise/saturation, atmosphere/background and filter response are
-separate model choices. A bounded visible-light prototype may be the single
-optional September–December 2027 extension; full photographic realism is not a
+The owner accepts deterministic artistic long-exposure/universe imagery.
+Procedural gas, dust and nebula content may be invented, but must be labelled
+synthetic/artistic rather than reconstructed from Gaia. This adds no mandatory
+scope or implementation approval. A bounded visible-light exposure prototype
+remains one possible optional extension; full photographic realism is not a
 release promise. See [M2 planning](../milestones/m2-ceiling-appearance.md).
 
-Current Gaia G + BP-RP and derived display RGB cannot uniquely recover spectra,
-infrared flux or nebular/cloud emission. Meaningful IR needs additional spectral
-or multiband data plus wavelength, sensor and filter models. Pseudo-colour/style
-filters must be labelled artistic. RGBE does not preserve spectroscopy;
-multiple-source/filter or photometric models may need information unavailable
-in RGBE. No filter model is selected.
+Visible exposure changes can use linear HDR radiance/intensity (possibly RGBE)
+plus a scene/time model. A final clipped or tone-mapped image alone cannot recover
+lost range or generate motion integration. Time integration is distinct from a
+brightness slider; tracking, optics/PSF/aperture, sensor noise/response/saturation
+and atmosphere/background remain explicit model choices.
+
+A display consumes image updates; it need not know astronomy or carry spectra.
+Artistic colour treatment needs no real spectrum. A different physically
+wavelength-selective filter requires spectral/multiband information or an explicit
+approximation: G + BP-RP/display RGB cannot uniquely recover spectra, infrared
+flux or nebular emission. RGBE does not retain spectroscopy. Real filtered
+astrophotography can be physically grounded; the limitation concerns information
+available to this model, not all filtering. No filter model is selected.
+
+The owner welcomes the 134,217,728-source workload as an optimisation challenge.
+This promises neither simultaneous interactive rendering on the 16 GB laptop nor
+a change to core deadlines. Define offline throughput separately from interactive
+latency before making performance claims. No memory layout, indexing, streaming
+or renderer algorithm is selected. See [current memory evidence](memory-accounting.md).
 
 The owner is concerned about duplicating physical photometry and derived pixels.
 Different representations need not coexist at every stage. Compact prepared

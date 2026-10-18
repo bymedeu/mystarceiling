@@ -22,18 +22,17 @@ chosen future layout or portable wire contract.
 
 ## One-vector arithmetic, not peak memory
 
-Every cell below is `count × sizeof(T)` bytes, followed by MiB/GiB (binary units).
-It assumes exactly N elements; it excludes vector metadata, spare capacity,
-allocator overhead and every other simultaneous allocation. The binary column
-uses the current version-2 **74-byte** serialized record, not in-memory padding;
-add its **32-byte header** for the full uncompressed file size.
+Each cell is `count × sizeof(T)` in binary units, assuming exactly N elements.
+It excludes vector metadata, spare capacity, allocator overhead and simultaneous
+allocations. Version-2 binary records use **74 bytes**, plus a **32-byte header**
+per full file, independently of in-memory padding.
 
-| Source count | Star bytes (MiB / GiB) | CatalogueStar bytes (MiB / GiB) | ScreenPoint bytes (MiB / GiB) | Binary record bytes (MiB / GiB) |
+| Sources | Star | CatalogueStar | ScreenPoint | Binary records |
 | ---: | ---: | ---: | ---: | ---: |
-| 4,096 | 294,912 (0.28125 MiB / 0.000274658 GiB) | 360,448 (0.34375 MiB / 0.000335693 GiB) | 49,152 (0.046875 MiB / 4.57764e-05 GiB) | 303,104 (0.289062 MiB / 0.000282288 GiB) |
-| 262,144 | 18,874,368 (18 MiB / 0.0175781 GiB) | 23,068,672 (22 MiB / 0.0214844 GiB) | 3,145,728 (3 MiB / 0.00292969 GiB) | 19,398,656 (18.5 MiB / 0.0180664 GiB) |
-| 1,048,576 | 75,497,472 (72 MiB / 0.0703125 GiB) | 92,274,688 (88 MiB / 0.0859375 GiB) | 12,582,912 (12 MiB / 0.0117188 GiB) | 77,594,624 (74 MiB / 0.0722656 GiB) |
-| 134,217,728 | 9,663,676,416 (9216 MiB / 9 GiB) | 11,811,160,064 (11264 MiB / 11 GiB) | 1,610,612,736 (1536 MiB / 1.5 GiB) | 9,932,111,872 (9472 MiB / 9.25 GiB) |
+| 4,096 | 0.28125 MiB | 0.34375 MiB | 0.046875 MiB | 0.2890625 MiB |
+| 262,144 | 18 MiB | 22 MiB | 3 MiB | 18.5 MiB |
+| 1,048,576 | 72 MiB | 88 MiB | 12 MiB | 74 MiB |
+| 134,217,728 | 9 GiB | 11 GiB | 1.5 GiB | 9.25 GiB |
 
 The completed gzip CSV archive is **8,575,699,250 bytes** (7.986742 GiB,
 8.575699250 decimal GB). Compression and CSV contents differ from binary
