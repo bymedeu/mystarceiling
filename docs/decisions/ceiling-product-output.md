@@ -76,10 +76,12 @@ this work. See [project state](../project-state.md) and
 ## M1 comparison correction
 
 Ten years alone does not explain gross changes in familiar stellar patterns.
-The owner's comparison involved different season, hour and view (the fixed
-January zenith crop versus a September east-southeast view). Those differences
-can change the visible sky; they do not disprove a mismatch. No matched
-reference comparison has been performed. M1 visual acceptance and automated
-checks remain recorded evidence with their stated limits, not a resolved
-independent sky comparison. See the [M1 record](../milestones/m1-fixed-toulouse-sky.md#visual-closeout--2026-09-13)
+The latest comparison is with tonight's sky on 2026-10-18; its exact observing
+hour and direction have not been established here. The September east-southeast
+observation belongs to the historical M1 closeout. The fixed January zenith
+crop differs in season from both observations. Hour and view must also be
+matched before drawing conclusions; these possible differences do not disprove
+a mismatch. No matched reference comparison has been performed. M1 visual
+acceptance and automated checks remain evidence with their stated limits, not
+a resolved independent sky comparison. See the [M1 record](../milestones/m1-fixed-toulouse-sky.md#visual-closeout--2026-09-13)
 and [discussion history](../development-history/2026-10-18.md).
