@@ -136,202 +136,66 @@ The enforceable rule lives in the portfolio-level
 
 ## Status
 
-MyStarCeiling is in early development. The fixed M1 Toulouse path now loads real catalogue data, transforms it, and renders a zenith view. Visual acceptance remains, while configurable observer/time controls and measured scaling belong to later milestones.
+MyStarCeiling is in early development. The fixed M1 Toulouse path now loads real catalogue data, transforms it, and renders a zenith view. Owner visual acceptance is recorded; configurable observer/time controls and measured scaling remain future work.
 
 ## Milestones
 
-The milestones build one measured system rather than a collection of unrelated
-features. Dates are target completion dates, based on roughly alternating one
-week of MyStarCeiling work with one week on another portfolio project and lower
-availability from February 2027. M0--M6 form the portfolio track; later dates
-are deliberately provisional.
+Dates below are **planning estimates**, revised on 2026-10-18 from owner
+capacity constraints: roughly alternating project weeks now, with significantly
+lower availability starting January–February 2027. They are capacity assumptions,
+not hourly estimates. Detailed scope remains **to discuss**, not implementation
+approval. Reduce optional scope before correctness or reproducible evidence.
 
-```mermaid
-flowchart TD
-    M0["M0<br/>Foundations"] --> M1["M1<br/>Fixed real sky"]
-    M1 --> M2["M2<br/>Scalable renderer"]
-    M2 --> M3["M3<br/>Any observer and time"]
-    M3 --> M4["M4<br/>Million-source pipeline"]
-    M4 --> M5["M5<br/>Measured CPU optimization"]
-    M5 --> M6["M6<br/>CUDA comparison"]
-    M6 --> M7["M7<br/>Large-catalogue systems"]
-    M7 --> M8["M8<br/>Solar-system geometry"]
-    M8 --> M9["M9<br/>Dynamic and synthetic skies"]
-```
+| Stage | Planning estimate | Intended evidence / scope to discuss |
+| --- | --- | --- |
+| M0 — Typed astronomy foundations | Existing foundations retained | Working typed path supporting M1; no new accuracy claim |
+| M1 — Fixed Toulouse sky | Completed 2026-09-13 | Working 4096-source catalogue-to-screen baseline |
+| M2 — Ceiling appearance and data controls | 2026-12-13 | Realistic-looking colour/brightness, modest glow, magnitude-first selection, proposed optional quantity cap, useful bounded inspection/projection |
+| M3 — Validated observer and time | 2027-02-28 | Declared model/range, independent validation, controlled astronomical progression |
+| M4 — Million-source CPU baseline | 2027-04-25 | Actually measured 1,048,576-source pipeline and bounded-memory preparation baseline |
+| M5 — Profile-guided CPU work and output boundary | 2027-06-27 | Justified improvements, explicit consumer boundary, reproducible before/after evidence |
+| Clean release gate | 2027-08-31 | Demonstrable, documented, tested portable CPU release; July–August buffer and hardening |
 
-### M0 — Typed astronomy foundations · target 4 October 2026
+The clean project must be demonstrable by September 2027. July–August is reserved
+for validation, documentation, usability, reproducibility and scope recovery,
+without new mandatory features. A quantity control bounds selected work; it does
+not eliminate measured million-source scaling work. Larger nested workloads are
+measurement cases, not a requirement to display every source.
 
-**Objective:** finish a trustworthy base for angles, coordinates, time,
-directions, and local frames before application data depends on it.
+The **16 GB Linux laptop has no NVIDIA GPU** and is the core delivery target.
+The RTX 3060 belongs to a **separate Windows desktop**; Linux there is only a
+future possibility. CUDA must not block portable CPU delivery. No desktop access,
+CUDA installation or system change is assumed.
 
-**Introduces:** explicit units and validity rules; the existing coordinate and
-time wrappers; geometric property tests; documented frame and epoch conventions.
+M6–M9 retain ambitions as a **conditional optional backlog**, with no mandatory
+2028 dates and no committed milestones after December 2027. At most **one**
+extension may be selected for September–December 2027, according to evidence,
+capacity and owner priority; selecting none is valid:
 
-**Engineering questions:** where validation belongs, how errors remain explicit,
-and which parts of the current ICRS-to-local transformation are complete versus
-still approximations. Completion means the core can support M1 without hidden
-unit, frame, or lifetime assumptions.
+- **M6 — CUDA comparison:** only for a justified measured workload and available
+  separate desktop/setup; include transfer/synchronization costs and CPU agreement.
+- **M7 — Large-catalogue runtime:** measured out-of-core processing within bounded
+  RAM; acquisition of 134,217,728 rows is already complete, but loading/rendering
+  them simultaneously is not demonstrated. Chunking, mapping, indexing or streaming
+  remain candidates requiring approval, not selected architecture.
+- **M8 — Physical bodies:** Sun/Moon/planet geometry, illumination and validated
+  events, with declared ephemerides/range; independent optional scope.
+- **M9 — Advanced physical, procedural and photographic appearance:** deterministic
+  synthetic skies, meteors/Perseids, clouds and bounded exposure experiments remain
+  ambitions, not a mandatory feature count. A bounded visible-light long-exposure
+  prototype could be the single extension. Full infrared/spectral realism is not
+  promised by release or by current catalogue data.
 
-### M1 — Fixed Toulouse sky · target 29 November 2026
+Camera orientation and astronomical time remain independent. Share appropriate
+coordinate mathematics where justified, without forcing one universal implementation.
+M2 camera extent remains open; observer/time validation belongs to M3. See the
+focused M2 plan and appearance/output decisions before discussing implementation.
 
-**Status:** complete on 2026-09-13; see the
-[M1 closeout](docs/milestones/m1-fixed-toulouse-sky.md#visual-closeout--2026-09-13).
-
-**Objective:** select the 4,096 brightest combined qualifying Gaia DR3 and
-Hipparcos-2 sources and render Toulouse at 2016-01-01 00:00 UTC. Gaia J2016
-positions stay unchanged; Hipparcos directions propagate from J1991.25 to J2016.
-
-**Introduces:** source-specific CSV-gzip parsing, a source-independent catalogue
-boundary, the approved nine-field record, structured `std::expected` errors,
-aggregate rejection reporting, a minimal versioned binary catalogue, a vector
-baseline, scene construction, projection, and the first graphics window.
-
-**Engineering questions:** preserving Gaia units and meanings, rejecting bad rows
-without hiding systemic failure, defining the binary contract, separating
-catalogue work from astronomy and rendering, and validating that known Gaia rows
-reach the expected screen region. M1 uses GLFW with OpenGL 3.3 Core and a
-90-degree rectangular perspective view whose camera points at the zenith, with
-north at the top and east on the right.
-
-### M2 — Scalable and inspectable stellar rendering · target 31 January 2027
-
-**Status:** next planning target.
-
-**Objective:** preserve correctness while growing through the nested 65,536 and
-262,144-source workloads and make the rendered result useful to inspect.
-
-**Introduces:** a calibrated and controllable Gaia G-magnitude brightness model,
-BP-RP colour, camera movement and zoom, horizon culling, stage-level timing,
-memory measurements, and a repeatable benchmark harness. M1 uses only a minimal
-relative brightness cue so its fixed sky can be inspected.
-
-M2 may establish star colour, glow/PSF, exposure appearance controls, and perhaps
-static image export. A brightness multiplier must not be called a long exposure;
-the full simulation is required in M9.
-
-**Engineering questions:** mapping measurements to display appearance without
-pretending they are RGB values, distinguishing loading from update and draw
-costs, choosing representative warm and cold runs, and avoiding optimizations
-before profiles show where time is spent.
-
-### M3 — Arbitrary observer and time · target 28 March 2027
-
-**Objective:** reconstruct a stellar sky for a chosen Earth location and instant,
-with Toulouse as the default, and support controlled movement through time.
-
-**Introduces:** propagation from Gaia's J2016 epoch using proper motion, declared
-time-scale and Earth-orientation conventions, observer input, a complete
-catalogue-to-local transformation, and pause/resume/rate controls.
-
-**Engineering questions:** separating per-frame, per-observer, and per-star work;
-documenting valid date ranges and zero-radial-motion approximation; validating
-against an independent reference; and changing time or place by recomputing the
-sky rather than rotating an already rendered image.
-
-### M4 — Million-source interactive pipeline · target 9 May 2027
-
-**Objective:** keep the M3 behavior usable with 1,048,576 catalogue sources and
-establish the correct CPU baseline for serious optimization.
-
-**Introduces:** stable update/render loops, explicit frame and catalogue memory
-budgets, performance traces, visibility statistics, and reproducible release-mode
-benchmarks on named hardware.
-
-**Engineering questions:** latency versus throughput, catalogue load versus
-interactive update costs, avoiding unnecessary allocations and transfers, and
-identifying whether transformation, filtering, projection, or rendering is the
-real bottleneck.
-
-### M5 — Profile-guided CPU engine · target 27 June 2027
-
-**Objective:** use measured evidence to improve the million-source pipeline while
-preserving the typed public astronomy model and numerical behavior.
-
-**Introduces:** only the CPU techniques justified by M4 evidence, potentially
-batch-oriented storage, parallel work, SIMD, spatial selection, memory mapping,
-or streaming; each accepted technique receives a before/after benchmark and a
-correctness comparison.
-
-**Engineering questions:** semantic wrappers versus efficient batch kernels,
-memory bandwidth versus computation, thread scaling, visibility-query rebuild
-cost when time or location changes, and whether a more complex representation
-pays for itself. This is the **preferred portfolio-ready milestone**: it must
-include a working demonstration, reproducible benchmarks, profiles, trade-off
-analysis, and a concise technical report rather than only a fast executable.
-
-### M6 — CUDA acceleration and honest comparison · target 29 August 2027
-
-**Objective:** implement and measure a GPU path on the RTX 3060, retaining a
-correct CPU path and treating CUDA as an engineering experiment rather than an
-assumed win.
-
-**Introduces:** GPU-friendly batches, kernels for profile-selected stages,
-transfer and synchronization measurements, OpenGL/CUDA buffer interoperability
-where it improves the measured pipeline, and automated CPU/GPU output comparison.
-
-**Engineering questions:** transfer overhead, crossover sizes, precision,
-occupancy and memory access, CPU/GPU synchronization, portability, and whether
-end-to-end latency improves. This is a **stronger acceleration milestone after
-the main portfolio gate**. A result showing where CUDA does not win is still
-valuable when the experiment and explanation are sound.
-
-### M7 — Large-catalogue systems · target 28 November 2027
-
-**Objective:** process the target 134,217,728-source catalogue without
-requiring the entire source archive and every intermediate form in RAM at once.
-
-**Introduces:** measured out-of-core loading, chunks or mapped storage as evidence
-requires, resumable catalogue preparation, larger nested benchmarks, and an
-optional one-billion-record batch experiment using generated or externally
-stored data if it answers a clear performance question.
-
-**Engineering questions:** disk throughput, decompression, page faults, working
-set, ordering, partial visibility, and separating a batch-throughput claim from
-an interactive rendering claim. One billion sources is not a success criterion
-unless the workload, hardware, and measurement are stated.
-
-### M8 — Solar-system geometry and illumination · target 27 February 2028
-
-**Objective:** add the Sun, Moon, and planets as physically distinct objects and
-allow alignments such as eclipses to emerge from their geometry.
-
-**Introduces:** ephemerides, finite angular discs, object-specific rendering,
-illumination phases, occultation ordering, and validation at known events.
-
-**Engineering questions:** accuracy range and ephemeris source, scale differences,
-apparent size, occlusion, light contribution, and keeping these models separate
-from the distant-star catalogue pipeline.
-
-**Possible source:** Michal Poznik's 2022
-[*Night Sky Rendering*](https://dcgi.fel.cvut.cz/en/theses/2022/poznimic/)
-thesis may provide useful references for Sun/Moon rendering and runtime
-location/time handling. Its individual methods still require evaluation before
-adoption.
-
-### M9 — Dynamic, atmospheric, and synthetic skies · target 28 June 2028
-
-**Objective:** use the mature engine for reproducible procedural skies and
-time-dependent objects, including real astrophotography and long-exposure
-simulation, while clearly labelling reconstruction and invention.
-
-**Introduces:** deterministic generation, meteors and comets, configurable light
-pollution and exposure, star scintillation, photographic colour treatments, and
-an experimental cloud/atmosphere layer where it creates a useful challenge.
-
-**Owner-required scope:** long exposure must model radiance integrated over an
-exposure duration, not only a brightness preset. Full M9 work may support tracked
-and fixed cameras/star trails, sensor response/saturation/noise, optical PSF,
-atmosphere/light pollution, photographic colour/tone mapping, and reproducible
-high-resolution output. It depends on M3 time and may consume M8 bodies. Detailed
-models, parameters, and APIs remain open; see
-[application controls](docs/decisions/application-controls.md#milestone-boundary).
-
-**Engineering questions:** deterministic randomness, plausible trajectories,
-temporal coherence, atmospheric versus stellar effects, visual validation, and
-using these workloads to test the engine without weakening astronomical claims.
-
-**Possible source:** Poznik's *Night Sky Rendering* may also provide references
-for tone mapping and approximate atmospheric scattering.
+See the [M2 planning note](docs/milestones/m2-ceiling-appearance.md),
+[appearance/output decisions](docs/decisions/ceiling-product-output.md) and
+[record-size accounting](docs/decisions/memory-accounting.md). The original
+2026-09-11 schedule is retained as superseded history in
+[objectives and decisions](docs/objectives-and-decisions.md#historical-milestone-schedule--approved-2026-09-11-superseded).
 
 The detailed decision record and milestone acceptance evidence live in
 [the project documentation](docs/README.md).

@@ -5,8 +5,8 @@ Last updated: 2026-10-18.
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
 
-M1 is complete on 2026-09-13. M2 — scalable and inspectable stellar rendering —
-is the next planning target.
+M1 is complete on 2026-09-13. M2 — ceiling appearance and data controls —
+is the active planning target (estimate 2026-12-13; scope to discuss).
 
 The first bounded M2 refactor separates source-independent
 `core::astronomy::Star` and its measurement wrappers from
@@ -15,6 +15,26 @@ The first bounded M2 refactor separates source-independent
 The version-2 binary contract and M1 scene behavior are preserved. The recorded
 post-refactor suite passed all 119 tests, including a frozen-byte compatibility check against
 the pre-refactor writer.
+
+## Current planning baseline
+
+Owner-constrained planning estimates, revised 2026-10-18: M2 2026-12-13;
+M3 validated observer/time 2027-02-28; M4 measured million-source CPU and
+bounded-memory preparation baseline 2027-04-25; M5 profile-guided CPU work,
+output boundary and evidence 2027-06-27; clean release gate 2027-08-31.
+Availability decreases January–February 2027; July–August is buffer/hardening.
+Reduce optional scope before correctness/evidence. M6–M9 are conditional backlog:
+at most one optional extension September–December 2027, no mandatory 2028 dates.
+These capacity assumptions approve documentation only; full scope remains to discuss.
+See the [canonical roadmap](../README.md#milestones) and
+[M2 plan](milestones/m2-ceiling-appearance.md).
+
+CPU-first portable delivery targets a 16 GB Linux laptop without an NVIDIA GPU.
+The RTX 3060 is on a separate Windows desktop; Linux there is a future possibility.
+CUDA is conditional on setup/access and a justified measured workload.
+[Size accounting](decisions/memory-accounting.md) measured Star/CatalogueStar/
+ScreenPoint at 72/88/12 bytes, alignments 8/8/4; this is not peak RSS or a benchmark.
+Completed 134m acquisition does not demonstrate full-catalogue runtime capability.
 
 ## Required understanding checkpoint
 

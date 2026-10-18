@@ -15,10 +15,11 @@ is secondary. Screenshot export is only an idea, not required scope.
 Catalogue selection remains magnitude based, brightest first. A count option is
 an owner proposal, not approved implementation or a mandate for spatial
 selection. Camera exploration is secondary. Full M2 scope and ordering remain
-to be agreed, including its camera scope. Existing milestones and target dates
-are retained pending agreement; astronomical time remains M3 in the current
+to be agreed, including its camera scope. The revised 2026-10-18 dates are
+planning estimates; astronomical time remains M3 in the current
 [roadmap](../../README.md#milestones).
 
+LED hardware is illustrative only, not a required product target.
 Physical consumers could include LED panels or installations. Logical output
 records must be separable from device mapping, projection/geometry and transport.
 Desired consumer-facing examples include pixel/device-element colour and
@@ -47,6 +48,38 @@ Open decisions: representation and layer boundary, colour model and packing.
 RGBE is a candidate, not a selected format. No photometry conversion, cache or
 binary-schema change is approved or implemented by this clarification.
 
+## Appearance, exposure and data limits
+
+“Animated” means realistic-looking colour, modest glow and subtle effects.
+Meteors/Perseids/clouds are possible later, not mandatory near-term feature count.
+Long exposure should eventually be automatically/mathematically integrated over
+time, physically motivated and validated for a bounded model. A brightness slider
+is not exposure integration. Tracked versus fixed camera, PSF/lens/aperture,
+sensor response/noise/saturation, atmosphere/background and filter response are
+separate model choices. A bounded visible-light prototype may be the single
+optional September–December 2027 extension; full photographic realism is not a
+release promise. See [M2 planning](../milestones/m2-ceiling-appearance.md).
+
+Current Gaia G + BP-RP and derived display RGB cannot uniquely recover spectra,
+infrared flux or nebular/cloud emission. Meaningful IR needs additional spectral
+or multiband data plus wavelength, sensor and filter models. Pseudo-colour/style
+filters must be labelled artistic. RGBE does not preserve spectroscopy;
+multiple-source/filter or photometric models may need information unavailable
+in RGBE. No filter model is selected.
+
+The owner is concerned about duplicating physical photometry and derived pixels.
+Different representations need not coexist at every stage. Compact prepared
+records may omit unused fields from hot memory while reproducible source data,
+including future spectra, remain offline on disk. Do not irreversibly discard
+sources. Removing magnitude/BP-RP from canonical Star or the binary schema is an
+unapproved RED decision. No future packed representation follows from
+[current size accounting](memory-accounting.md).
+
+Multiple consumers/renderers need explicit output boundaries; no do-everything
+schema is selected. Cloud/display effects may adapt, degrade or be omitted
+according to consumer capability, resolution and geometry. Policy remains open;
+no arbitrary global dimension threshold is chosen.
+
 ## Agent explanations and recommendations
 
 Camera orientation and astronomical time are conceptually independent inputs.
@@ -74,6 +107,9 @@ this work. See [project state](../project-state.md) and
 [application controls](application-controls.md) for existing behavior and plans.
 
 ## M1 comparison correction
+
+The owner considers this mismatch low priority. No new accuracy claim or matched
+comparison was made during the planning revision.
 
 Ten years alone does not explain gross changes in familiar stellar patterns.
 The latest comparison is with tonight's sky on 2026-10-18; its exact observing

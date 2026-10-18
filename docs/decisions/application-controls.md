@@ -61,22 +61,22 @@ context-dependent rather than one universal rule.
 
 ## Milestone boundary
 
-The existing roadmap places camera movement and zoom in M2. The owner now
-clarifies that camera exploration is secondary; M2 camera scope and full scope/order
-remain open for discussion. No established milestone or target date is removed
-or moved by this clarification. Location, full date/time input and astronomical
+The [revised roadmap](../../README.md#milestones) estimates M2 at 2026-12-13
+and M3 at 2027-02-28; scope remains to discuss. Camera exploration is secondary
+and its M2 extent remains open. Location, full date/time input and astronomical
 time progression remain M3 work. Camera orientation and astronomical time are
-independent; see the [transform explanation](ceiling-product-output.md#agent-explanations-and-recommendations).
+independent; share appropriate coordinate mathematics where justified without
+forcing a universal implementation.
 
-M2 planning includes star colour, glow/PSF and exposure appearance controls;
-the full scope is still to be agreed. Screenshot export is only an idea, not
-required scope. A static brightness multiplier must not be called a long exposure.
+M2 proposes realistic-looking colour/brightness, modest glow and useful bounded
+inspection/projection where agreed. A quantity cap remains proposed. Screenshot
+export is optional. A brightness slider is not exposure integration.
 
-The owner requires real astrophotography and long-exposure simulation in M9;
-this is accepted scope, not merely a suggested brightness preset. Long exposure
-must model radiance integrated over an exposure duration. Full M9 work may support
-tracked and fixed cameras/star trails, sensor response/saturation/noise, optical
-PSF, atmosphere/light pollution, photographic colour/tone mapping, and
-reproducible high-resolution output. It depends on M3 time and may consume M8
-bodies. Detailed models, parameter values, and APIs remain undecided. None of
-this simulation is implemented by the current appearance mapping.
+Long-exposure simulation remains an ambition in conditional M9 backlog, without
+a mandatory date or full-model release promise. A bounded visible-light prototype
+could be the single optional September–December 2027 extension. It should integrate
+over time mathematically and be physically motivated and validated for its
+bounded model. Tracked/fixed cameras, optics, sensor, atmosphere/background and
+filter responses remain separate open choices. Full IR requires additional data
+and wavelength/sensor/filter models; current G/BP-RP or RGB cannot supply it.
+See [appearance and data limits](ceiling-product-output.md#appearance-exposure-and-data-limits).
