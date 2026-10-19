@@ -54,8 +54,9 @@ Quantity bounds work, not the need for later measured scaling evidence.
 
 ## Launch configuration
 
-The owner-approved direction is a required TOML file, created automatically with
-initial defaults only when absent and reused on subsequent launches. Preserve an
+Every launch checks the chosen config path. The owner-approved direction is a
+required TOML file, created automatically with initial defaults only when absent
+and read on subsequent launches. Preserve an
 existing file; invalid configuration must produce clear errors, never silent
 replacement. Only implemented parameters belong in TOML. Explicit CLI values
 always override TOML for that launch; CLI changes are temporary unless explicit
@@ -63,9 +64,9 @@ saving is chosen later.
 
 Automatic user configuration discovery and an explicit config-path override are
 accepted direction. Linux honors `XDG_CONFIG_HOME`, falling back to `~/.config`.
-To avoid collisions with the short name `msc`, the assistant recommends
-`mystarceiling/config.toml` beneath that directory; the owner has not selected
-the directory name. Windows `APPDATA` is a future portability direction.
+To avoid collisions with the short name `msc`, the owner approved
+`mystarceiling/config.toml` beneath that directory. Windows `APPDATA` is a future
+portability direction.
 
 ## GUI direction
 
