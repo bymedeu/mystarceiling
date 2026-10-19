@@ -1,6 +1,6 @@
 # M2 — Ceiling appearance and data controls
 
-Planning note, 2026-10-18, MODE GREEN. **Estimate: 13 December 2026; scope to
+Planning note, 2026-10-19, MODE GREEN. **Estimate: 13 December 2026; scope to
 discuss**, not implementation approval. The primary assistant proposed this
 date from the owner’s capacity constraints, lower availability starting
 January–February 2027 and September release goal; the owner did not choose
@@ -9,7 +9,22 @@ the intermediate milestone dates. See the
 [owner-understanding checkpoint](../project-state.md#required-understanding-checkpoint)
 remains open before substantial implementation.
 
-## Proposed bounded scope
+## Approved sequence
+
+Discuss, then implement/review each part in order:
+
+1. Catalogue/launch workflow, configuration and quantity.
+2. Colour/brightness.
+3. Glow/subtle animation.
+4. Validation/closeout.
+
+Scope approval is not blanket implementation approval. Do not design every later
+detail now. Part 1 follows the approved requirements, assistant recommendations
+and open choices in [application controls](../decisions/application-controls.md#catalogue-controls)
+and [launch configuration](../decisions/application-controls.md#launch-configuration).
+Path-prediction/generation speed modes are future ideas, not M2 requirements.
+
+## Bounded scope
 
 Build on the working first 4096-source M1 path and the recorded 119 passing C++
 tests after the source-independent Star refactor. Aim for realistic-looking
@@ -17,10 +32,10 @@ colour, useful brightness controls, modest glow and subtle effects. “Animated�
 does not mandate meteors, Perseids or clouds now. G and BP-RP are measurements;
 derived display appearance needs documented approximations and validation.
 
-Selection remains catalogue magnitude-first. An optional quantity cap is the
-owner's proposal; exact behavior/order with a limiting magnitude remains open.
-It bounds workload size, without solving scaling or establishing that a million
-sources have been processed efficiently. Nested 4096, 65536, 262144 and 1048576
+Selection remains globally magnitude-first; quantity caps loaded records before
+visibility and display filtering, as specified in application controls. It bounds
+workload size, without solving scaling or establishing that a million sources
+have been processed efficiently. Nested 4096, 65536, 262144 and 1048576
 sizes are measurement cases, not a requirement to show every star. M4 must still
 measure the actual million-source CPU pipeline and bounded preparation.
 
@@ -33,8 +48,21 @@ or accuracy claim was made.
 
 ## Discussion before implementation
 
-Agree the smallest appearance/control slice, acceptance evidence, camera extent,
-and measurement cases after the owner explains the current catalogue pipeline.
+Next is a bounded part-1 plan after the owner explains the current catalogue
+pipeline; implementation needs separate approval. Keep binary schema, photometry,
+astronomy and display unchanged. Camera extent and later acceptance evidence stay
+for their respective discussions.
+
+Read-only inspection: the current CLI parses/combines/sorts source CSVs and writes
+the binary on every launch. The binary reader reserves and loads the entire file;
+loading all then truncating would violate the loaded-record cap. A bounded reader
+must allocate only for the resolved count. The writer preserves supplied order;
+version/schema 2 does not certify brightness ordering. Decide explicitly whether
+runtime trusts preparation's ordering and validates only the selected prefix, or
+scans the whole file with bounded retained storage to validate records/order.
+Prefix-only validation cannot detect invalid or out-of-order tail records; a full
+scan retains whole-file I/O cost. This reader policy remains open.
+
 No RGBE, packed/batch layout, filter model, API, GUI, protocol, canonical Star or
 binary-schema change is selected. See [appearance/output boundaries](../decisions/ceiling-product-output.md),
 [application controls](../decisions/application-controls.md) and

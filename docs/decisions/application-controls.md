@@ -1,6 +1,6 @@
 # Application controls and interface direction
 
-Status: requirements clarified on 2026-09-13 and 2026-10-18; controls are not
+Status: requirements clarified through 2026-10-19; controls are not
 implemented. The [ceiling/output note](ceiling-product-output.md) records current
 owner priorities, proposals and open decisions; it does not approve implementation.
 
@@ -31,20 +31,41 @@ visualization remains visible. A change must not require restarting the app.
 
 ## Catalogue controls
 
-Selection remains magnitude based, brightest first. Catalogue size and limiting
-magnitude are independent concepts. The count option below is a proposal, not
-approved implementation or a spatial-selection requirement:
+Approved requirements, not implementation approval: normal visualization consumes
+prepared runtime data. Acquisition, normalization and binary regeneration are
+separate explicit commands; launching must not rebuild the binary.
 
-- a record-count limit selects the first N records of the common
-  brightness-ordered catalogue and defines reproducible performance workloads;
-- a limiting magnitude selects every loaded record bright enough for a chosen
-  visual/observational policy, so its resulting count varies.
+Quantity caps loaded records before scene construction. A positive numeric CLI
+quantity replaces TOML before resolving the available record count. Accept any
+positive integer within the supported integer range; reject zero, negatives,
+malformed values and overflow. Above availability, warn and use the available
+records. Small positive counts also warn, but still run at the requested count:
+there is no minimum or automatic increase. The warning threshold remains open;
+the assistant recommends 1024. The assistant recommends an initial quantity of
+4096 from M1, not an owner-selected permanent default.
 
-Normal visualization must consume prepared runtime data. Catalogue acquisition,
-normalization, and binary regeneration are separate explicit commands or
-endpoint-like operations; the application must not rebuild the binary at every
-launch. No configuration file is currently required. If one is introduced,
-explicit CLI arguments should override it.
+Selection is global magnitude-first, independent of camera, time and view
+visibility. Quantity selects the first N records of the common brightness-ordered
+prepared catalogue; a limiting magnitude filters loaded records and may yield
+fewer visible stars. Zoom does not automatically deepen limiting magnitude.
+The owner's `all` proposal remains open; if supported, it means all records in
+the prepared catalogue opened, never automatic full Gaia acquisition/loading.
+Quantity bounds work, not the need for later measured scaling evidence.
+
+## Launch configuration
+
+The owner-approved direction is a required TOML file, created automatically with
+initial defaults only when absent and reused on subsequent launches. Preserve an
+existing file; invalid configuration must produce clear errors, never silent
+replacement. Only implemented parameters belong in TOML. Explicit CLI values
+always override TOML for that launch; CLI changes are temporary unless explicit
+saving is chosen later.
+
+Automatic user configuration discovery and an explicit config-path override are
+accepted direction. Linux honors `XDG_CONFIG_HOME`, falling back to `~/.config`.
+To avoid collisions with the short name `msc`, the assistant recommends
+`mystarceiling/config.toml` beneath that directory; the owner has not selected
+the directory name. Windows `APPDATA` is a future portability direction.
 
 ## GUI direction
 
@@ -53,8 +74,9 @@ visualization window with a collapsible settings panel. The panel has no permane
 on-screen button; a keyboard shortcut is an approved secondary access method.
 An additional pointer gesture such as double-click remains undecided.
 
-Settings persistence is not enabled by default and remains optional. Recalculation
-should preserve the existing frame until a replacement is ready when practical.
+Saving interactive settings remains a future choice; launch configuration follows
+the TOML contract above. Recalculation should preserve the existing frame until a
+replacement is ready when practical.
 Visual controls such as magnitude/exposure and camera movement can update live;
 astronomical or catalogue changes can use Apply. Exact behavior remains
 context-dependent rather than one universal rule.
@@ -68,8 +90,8 @@ time progression remain M3 work. Camera orientation and astronomical time are
 independent; share appropriate coordinate mathematics where justified without
 forcing a universal implementation.
 
-M2 proposes realistic-looking colour/brightness, modest glow and useful bounded
-inspection/projection where agreed. A quantity cap remains proposed. Screenshot
+M2 follows the owner-approved [four-part sequence](../milestones/m2-ceiling-appearance.md#approved-sequence).
+Useful bounded inspection/projection remains to agree. Screenshot
 export is optional. A brightness slider is not exposure integration.
 
 Long-exposure simulation remains an ambition in conditional M9 backlog, without

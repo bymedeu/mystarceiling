@@ -1,6 +1,6 @@
 # Current project state
 
-Last updated: 2026-10-18.
+Last updated: 2026-10-19.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
@@ -27,7 +27,9 @@ Reduce optional scope before correctness/evidence. M6–M9 are conditional backl
 at most one optional extension September–December 2027, no mandatory 2028 dates.
 These capacity assumptions approve documentation only; full scope remains to discuss.
 See the [canonical roadmap](../README.md#milestones) and
-[M2 plan](milestones/m2-ceiling-appearance.md).
+[approved M2 sequence](milestones/m2-ceiling-appearance.md#approved-sequence) and
+[part-1 controls/configuration](decisions/application-controls.md). Implementation
+is not authorized; the understanding checkpoint remains open.
 
 CPU-first portable delivery targets a 16 GB Linux laptop without an NVIDIA GPU.
 The RTX 3060 is on a separate Windows desktop; Linux there is a future possibility.
@@ -108,7 +110,7 @@ the final archive.
 - conflict reporting for otherwise usable source records;
 - whether magnitude layers first appear during M1 binary preparation or after
   measuring the existing 4,096-row baseline;
-- full M2 scope/order, including camera scope;
+- remaining M2 detail, including camera scope; approved sequence is in the M2 plan;
 - output geometry/projection, fixture mapping, transport and controller contract;
 - preparation-time colour/radiance conversion and runtime/cache representation.
 
