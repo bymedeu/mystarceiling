@@ -21,7 +21,7 @@ def run(args, **kwargs):
 
 
 def tracked():
-    names = run(['git', 'ls-files', '-z'], capture_output=True).stdout.split(b'\0')
+    names = run(['git', 'ls-files', '-z'], stdout=subprocess.PIPE).stdout.split(b'\0')
     return [Path(os.fsdecode(n)) for n in names if n and
             not GENERATED.intersection(Path(os.fsdecode(n)).parts)]
 
