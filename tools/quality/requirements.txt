@@ -1,0 +1,8 @@
+# Python 3.14.7; install explicitly, never from a hook.
+lizard==1.24.2
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+cmake==4.4.4
+clang-format==23.1.1
+pathspec==1.1.1
+Pygments==2.21.0

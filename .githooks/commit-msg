@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+root=$(git rev-parse --show-toplevel)
+export PATH="$root/.quality-venv/bin:$PATH"
+exec "$root/.quality-venv/bin/python" "$root/tools/quality/hooks.py" commit-msg "$@"

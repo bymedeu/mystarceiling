@@ -52,3 +52,8 @@ data/gaia-dr3/.acquisition/
 # Hipparcos source downloads stay local; small derived catalogues and provenance may be tracked.
 data/hipparcos2/.acquire.lock
 data/hipparcos2/runs/*/hip2.dat.gz
+
+# Explicit local quality-tool setup
+.quality-venv/
+tools/quality/node_modules/
+__pycache__/

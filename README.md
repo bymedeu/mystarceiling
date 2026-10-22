@@ -93,6 +93,9 @@ The project aims to:
 
 ## Design Principles
 
+See [Contributing](CONTRIBUTING.md) for local checks, branch/PR policy and the
+current enforcement limitations.
+
 Scientific inputs and artistic controls remain distinct. Reconstructed skies
 should be validated against authoritative astronomical references, while
 synthetic and modified skies should remain reproducible and clearly identified.

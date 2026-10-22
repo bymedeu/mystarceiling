@@ -1,0 +1,74 @@
+name: quality
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+permissions:
+  contents: read
+jobs:
+  gates:
+    name: ${{ matrix.gate }}
+    runs-on: ubuntu-24.04
+    container: gcc:16.2.0-trixie
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {gate: quality-format, command: format}
+          - {gate: quality-tidy, command: tidy}
+          - {gate: quality-complexity, command: complexity}
+          - {gate: quality-cppcheck, command: cppcheck}
+          - {gate: build-test, command: build-test}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Native build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends libgtest-dev libspdlog-dev zlib1g-dev libgl-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libwayland-dev libxkbcommon-dev wayland-protocols
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.14.7'
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '26.10.0'
+      - name: Explicit local tool setup
+        run: |
+          python -m venv .quality-venv
+          .quality-venv/bin/pip install -r tools/quality/requirements-ci.txt
+          npm ci --prefix tools/quality --ignore-scripts
+      - name: Build pinned official cppcheck
+        if: matrix.command == 'cppcheck'
+        run: |
+          git clone https://github.com/cppcheck-opensource/cppcheck.git /tmp/cppcheck
+          git -C /tmp/cppcheck checkout --detach a436ca35ed1887bee789765122b65ed2d7a7e045
+          make -C /tmp/cppcheck -j2 CXXFLAGS=-O2
+          echo /tmp/cppcheck >> "$GITHUB_PATH"
+      - name: Shared gate
+        env:
+          GATE: ${{ matrix.command }}
+          CI: 'true'
+        run: |
+          export PATH="$PWD/.quality-venv/bin:$PATH"
+          python tools/quality/check.py "$GATE"
+  commit-policy:
+    name: commit-policy
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '26.10.0'
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.14.7'
+      - run: npm ci --prefix tools/quality --ignore-scripts
+      - run: python tools/quality/ci_policy.py
+      - run: python -m unittest discover -s tools/quality -p 'test_*.py'
