@@ -39,7 +39,10 @@ reporting each failure. Each name is also an individual command. Inventory comes
 from Git: C/C++ headers, implementations and tests; Python participates in Lizard.
 Only generated/vendor/build paths are excluded. Lizard enforces **physical function
 length <=40** (including comments/blanks), **CCN <=10**; NLOC is a different metric.
-Tidy currently enforces include-cleaner, not every Core Guideline. Cppcheck 2.22.0
+Tidy builds only the generated GLAD library prerequisite before analyzing all
+first-party units. Its database leaves GCC warnings-as-errors off; the build gate
+requires them on. Tidy follows the unchanged include-cleaner policy, not every
+Core Guideline. Cppcheck 2.22.0
 requests C++26; its parser is not a full compiler or reflection validator. Unknown
 syntax remains a failure. GCC compilation remains essential. New cppcheck
 findings require owner review; analyzer output is not proof of a defect.
@@ -63,8 +66,11 @@ Toolchain references:
 [official GCC image](https://hub.docker.com/_/gcc/),
 [LLVM packages](https://apt.llvm.org/),
 [cppcheck dialects](https://cppcheck.sourceforge.io/manual.html).
-Commit policy reads real head commits and event JSON, including PR title edits;
-it does not lint GitHub's synthetic merge commit.
+PR quality/build jobs validate GitHub's proposed merge tree. Commit policy reads
+real head/base history and event JSON, including PR title edits; it does not lint
+the synthetic merge commit. Push jobs use distinct `*-push` names (history:
+`commit-history-push`). Stale runs are cancelled per PR/ref; title edits rerun
+all required PR jobs.
 
 Remote policy is a **reviewed proposal, unapplied**. Once gates pass, require PRs
 and `quality-format`, `quality-tidy`, `quality-complexity`, `quality-cppcheck`,

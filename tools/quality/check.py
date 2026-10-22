@@ -54,9 +54,10 @@ def compiler_args(build):
     return args
 
 
-def configure(build):
+def configure(build, warnings_as_errors=True):
     args = [tool('cmake', '4.4.4'), '-S', ROOT, '-B', build,
-            '-DMSC_WARNINGS_AS_ERRORS=ON', '-DMSC_ENABLE_TESTS=ON',
+            f"-DMSC_WARNINGS_AS_ERRORS={'ON' if warnings_as_errors else 'OFF'}",
+            '-DMSC_ENABLE_TESTS=ON',
             f'-DPython_EXECUTABLE={sys.executable}', *compiler_args(build)]
     if os.environ.get('CI') != 'true':
         deps = Path(os.environ.get('MSC_DEPENDENCY_ROOT', ROOT / 'build/_deps'))
@@ -87,7 +88,10 @@ def complexity(files):
 
 def tidy(files, build):
     binary = tool('clang-tidy', ('23.1.1', '23.1.3'))
-    configure(build)
+    # GCC's -Werror belongs to build-test; tidy follows the tracked check policy.
+    configure(build, warnings_as_errors=False)
+    # GLAD's pinned REPRODUCIBLE generator uses bundled specs, including offline.
+    run(['cmake', '--build', build, '--target', 'msc_glad', '--parallel', '2'])
     database = json.loads((build / 'compile_commands.json').read_text())
     units = {str((ROOT / f).resolve()) for f in files if f.suffix not in
              {'.h', '.hh', '.hpp', '.hxx'}}
@@ -95,7 +99,8 @@ def tidy(files, build):
     if units - covered:
         raise RuntimeError(f'Uncovered translation units: {units - covered}')
     failures = []
-    for unit in sorted(units):
+    for index, unit in enumerate(sorted(units), 1):
+        print(f'clang-tidy [{index}/{len(units)}]: {unit}', flush=True)
         result = subprocess.run([binary, unit, '-p', str(build),
                                  '--warnings-as-errors=*'], cwd=ROOT)
         if result.returncode:

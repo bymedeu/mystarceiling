@@ -57,6 +57,60 @@ class ToolingTests(unittest.TestCase):
                     check.configure(self.root)
                 execute.assert_not_called()
 
+    def test_werror_remains_required_for_build_configuration(self):
+        with patch.dict(os.environ, {'CI': 'true'}):
+            with patch.object(check, 'tool', return_value='cmake'):
+                with patch.object(check, 'compiler_args', return_value=[]):
+                    with patch.object(check, 'run') as configure:
+                        check.configure(self.root)
+                        check.configure(self.root, warnings_as_errors=False)
+        self.assertIn('-DMSC_WARNINGS_AS_ERRORS=ON', configure.call_args_list[0].args[0])
+        self.assertIn('-DMSC_WARNINGS_AS_ERRORS=OFF', configure.call_args_list[1].args[0])
+
+    def test_tidy_generates_glad_before_fresh_analysis(self):
+        build = self.root / 'fresh-build'
+        header = build / 'src/render/gladsources/msc_glad/include/glad/gl.h'
+        unit = self.root / 'src/render/opengl_renderer.cc'
+
+        def configure_fixture(_, warnings_as_errors):
+            self.assertFalse(warnings_as_errors)
+            build.mkdir()
+            database = [{'directory': str(self.root), 'file': str(unit)}]
+            (build / 'compile_commands.json').write_text(json.dumps(database))
+
+        def generate(args):
+            self.assertEqual(args, ['cmake', '--build', build, '--target',
+                                    'msc_glad', '--parallel', '2'])
+            self.assertFalse(header.exists())
+            header.parent.mkdir(parents=True)
+            header.write_text('// generated fixture\n')
+
+        def analyze(args, **kwargs):
+            self.assertTrue(header.is_file())
+            self.assertEqual(args[1], str(unit))
+            return subprocess.CompletedProcess(args, 0)
+
+        with patch.object(check, 'configure', side_effect=configure_fixture):
+            with patch.object(check, 'tool', return_value='clang-tidy'):
+                with patch.object(check, 'run', side_effect=generate):
+                    with patch.object(check.subprocess, 'run', side_effect=analyze) as tidy:
+                        check.tidy([Path('src/render/opengl_renderer.cc')], build)
+                        tidy.assert_called_once()
+
+    def test_workflow_uses_merge_quality_and_real_head_policy(self):
+        workflow = (Path(__file__).resolve().parents[2] /
+                    '.github/workflows/quality.yml').read_text()
+        quality, policy = workflow.split('\n  commit-policy:\n')
+        self.assertNotIn('          ref:', quality)
+        self.assertIn('ref: ${{ github.event.pull_request.head.sha || github.sha }}', policy)
+        self.assertIn("format('{0}-push', matrix.gate)", quality)
+        self.assertIn("'commit-policy' || 'commit-history-push'", policy)
+        self.assertIn('edited', quality)
+        self.assertIn('github.event.pull_request.number || github.ref', quality)
+        self.assertIn('cancel-in-progress: true', quality)
+        self.assertNotIn('\n    if:', quality)
+        self.assertNotIn('\n    if:', policy)
+
     def test_missing_analyzer_fails(self):
         with patch.dict(os.environ, {'PATH': ''}):
             with self.assertRaisesRegex(RuntimeError, 'MISSING.*cppcheck'):
