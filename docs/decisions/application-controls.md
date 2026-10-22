@@ -1,6 +1,6 @@
 # Application controls and interface direction
 
-Status: requirements clarified through 2026-10-19; controls are not
+Status: requirements clarified through 2026-10-22; controls are not
 implemented. The [ceiling/output note](ceiling-product-output.md) records current
 owner priorities, proposals and open decisions; it does not approve implementation.
 
@@ -35,32 +35,34 @@ Approved requirements, not implementation approval: normal visualization consume
 prepared runtime data. Acquisition, normalization and binary regeneration are
 separate explicit commands; launching must not rebuild the binary.
 
-Quantity caps loaded records before scene construction. A positive numeric CLI
-quantity replaces TOML before resolving the available record count. Accept any
-positive integer within the supported integer range; reject zero, negatives,
-malformed values and overflow. Above availability, warn and use the available
-records. Small positive counts also warn, but still run at the requested count:
-there is no minimum or automatic increase. The warning threshold remains open;
-the assistant recommends 1024. The assistant recommends an initial quantity of
-4096 from M1, not an owner-selected permanent default.
+Quantity caps loaded records before scene construction. The owner's 2026-10-22
+contract requires an integer with `64 <= quantity <= available_count`, where
+`available_count` is the opened prepared catalogue record count; equality is allowed.
+Reject values below 64 or above availability,
+including zero, negatives, malformed values and overflow. Excess is an error,
+superseding warn-and-clamp. A prepared catalogue below 64 records cannot satisfy
+this viewing contract. CLI quantity overrides TOML before validating the effective
+quantity against the opened catalogue count; never adjust quantity automatically.
+The assistant recommends an initial quantity of 4096 from M1, not an owner-selected
+permanent default.
 
 Selection is global magnitude-first, independent of camera, time and view
 visibility. Quantity selects the first N records of the common brightness-ordered
 prepared catalogue; a limiting magnitude filters loaded records and may yield
 fewer visible stars. Zoom does not automatically deepen limiting magnitude.
-The owner's `all` proposal remains open; if supported, it means all records in
-the prepared catalogue opened, never automatic full Gaia acquisition/loading.
+Any future explicit `all` syntax remains undecided; missing quantity is not
+implicit `all`.
 Quantity bounds work, not the need for later measured scaling evidence.
 
 ## Launch configuration
 
-Every launch checks the chosen config path. The owner-approved direction is a
-required TOML file, created automatically with initial defaults only when absent
-and read on subsequent launches. Preserve an
-existing file; invalid configuration must produce clear errors, never silent
-replacement. Only implemented parameters belong in TOML. Explicit CLI values
-always override TOML for that launch; CLI changes are temporary unless explicit
-saving is chosen later.
+Every launch checks the chosen config path. The owner requires a complete TOML
+file containing all currently implemented settings. Preserve an existing file;
+invalid configuration or missing required fields must fail clearly, without
+silent fallback. If absent, generate the file with initial defaults. Explicit CLI
+values override TOML for that launch, including the first run, but apply only in
+memory and are not written into the newly generated file. CLI changes remain
+temporary unless explicit saving is chosen later.
 
 Automatic user configuration discovery and an explicit config-path override are
 accepted direction. Linux honors `XDG_CONFIG_HOME`, falling back to `~/.config`.
