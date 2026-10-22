@@ -60,8 +60,11 @@ if different from `build/_deps`. Hooks are bypassable; they are not remote prote
 CI uses the same gates, GCC **16.2.0** and LLVM format **23.1.1**. The tidy wheel
 available on PyPI is **23.1.3**, explicitly pinned separately; local 23.1.1 remains
 supported. Python/Node/tool packages and actions are pinned; distro native packages
-remain distribution-managed. Jinja2 is pinned for GLAD. Existing CMake output
-placement is retained. Hosted execution is unverified until an authorized push.
+remain distribution-managed. Debian gate containers build checksum-pinned
+CPython 3.14.7 from official source because setup-python has no Debian 13 build;
+the Ubuntu commit-policy job uses setup-python. Jinja2 is pinned for GLAD.
+Existing CMake output placement is retained. Hosted analyzer/build results
+remain unverified until the container setup succeeds.
 Toolchain references:
 [official GCC image](https://hub.docker.com/_/gcc/),
 [LLVM packages](https://apt.llvm.org/),
