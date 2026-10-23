@@ -53,6 +53,14 @@ preserves unstaged work; review formatter changes and re-stage deliberately.
 Hooks run no project build or sanitizer suite. Native hooks remain chained.
 Check activation with `git config --show-origin --get core.hooksPath`.
 
+For MSC's include context, copy the shared default YAML to a local profile outside
+this repository and select it with `git config --local quality.config /path/to/msc.yaml`.
+Set cppcheck's entry to the direct command above and its `files` to
+`\.(c|cc|cpp|cxx)$`; headers are analyzed through their source/test consumers.
+Use `ruff check --isolated --select E4,E7,E9,F` for syntax, imports and undefined
+names, and `ruff format --isolated`. Keep the default Lizard and clang-format
+entries. No MSC adapter or Python policy file is required.
+
 The portable `.clang*` links use an ignored local cache. Prepare it explicitly:
 
 ```sh
