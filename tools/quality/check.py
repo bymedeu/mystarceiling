@@ -7,9 +7,11 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOLS = Path(os.environ.get('MSC_QUALITY_TOOLS', ROOT / 'tools/quality'))
+HEADERS = {'.h', '.hh', '.hpp', '.hxx'}
 CPP = {'.c', '.cc', '.cpp', '.cxx', '.h', '.hh', '.hpp', '.hxx'}
 GENERATED = {'vendor', 'third_party', '_deps', 'build', 'generated', 'node_modules',
              '.quality-venv'}
@@ -109,10 +111,27 @@ def tidy(files, build):
         raise RuntimeError(f'clang-tidy failed in {len(failures)} units')
 
 
+def cppcheck_inputs(files, directory):
+    inputs = []
+    for index, file in enumerate(files):
+        if file.suffix in HEADERS:
+            # Analyze each real header in its normal include context. Standalone
+            # headers cannot establish whether their public members have users.
+            wrapper = directory / f'header-{index}.cc'
+            wrapper.write_text(f'#include "{(ROOT / file).resolve().as_posix()}"\n')
+            inputs.append(wrapper)
+        else:
+            inputs.append(file)
+    return inputs
+
+
 def cppcheck(files):
     binary = tool('cppcheck', '2.22.0')
-    run([binary, '--std=c++26', '--language=c++', '--enable=warning,style,performance,portability',
-         '--error-exitcode=1', '-Iinclude', '-Isrc', *files])
+    with tempfile.TemporaryDirectory(prefix='msc-cppcheck-headers-') as temporary:
+        inputs = cppcheck_inputs(files, Path(temporary))
+        run([binary, '--std=c++26', '--language=c++',
+             '--enable=warning,style,performance,portability',
+             '--error-exitcode=1', '-Iinclude', '-Isrc', *inputs])
 
 
 def build_test(build):

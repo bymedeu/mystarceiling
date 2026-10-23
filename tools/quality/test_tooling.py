@@ -124,6 +124,57 @@ class ToolingTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'MISSING.*cppcheck'):
                 check.cppcheck([])
 
+    def test_cppcheck_analyzes_every_header_and_real_unit(self):
+        headers = [Path(name) for name in ('include/one.hh', 'include/two.h',
+                                           'src/nested/three.hpp', 'src/four.hxx')]
+        units = [Path('src/actual.cc'), Path('tests/actual.cpp')]
+        for file in headers + units:
+            path = self.root / file
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(f'inline int {file.stem}() {{ return 1; }}\n')
+        self.git('add', '.')
+        self.assertEqual(set(check.tracked()), set(headers + units))
+        requested = check.tracked()
+        binary = check.tool('cppcheck', '2.22.0')
+        execute = check.run
+        wrappers = []
+
+        def inspect_and_analyze(command):
+            self.assertEqual(command[:7], [binary, '--std=c++26', '--language=c++',
+                             '--enable=warning,style,performance,portability',
+                             '--error-exitcode=1', '-Iinclude', '-Isrc'])
+            wrappers.extend(file for file in command[7:] if file not in units)
+            includes = {file.read_text() for file in wrappers}
+            self.assertEqual(includes, {f'#include "{self.root / header}"\n' for header in headers})
+            self.assertEqual(set(command[7:]) - set(wrappers), set(units))
+            return execute(command, capture_output=True, text=True)
+
+        with patch.object(check, 'tool', return_value=binary):
+            with patch.object(check, 'run', side_effect=inspect_and_analyze) as analyze:
+                check.cppcheck(requested)
+                analyze.assert_called_once()
+        self.assertEqual(len(wrappers), len(headers))
+        self.assertTrue(all(not file.exists() for file in wrappers))
+
+    def test_real_cppcheck_rejects_defect_in_included_header(self):
+        header = self.root / 'defect.hh'
+        header.write_text('inline int divide(int numerator) { return numerator / 0; }\n')
+        binary = check.tool('cppcheck', '2.22.0')
+        execute = check.run
+
+        def analyze(command):
+            return execute(command, capture_output=True, text=True)
+
+        with patch.object(check, 'tool', return_value=binary):
+            with patch.object(check, 'run', side_effect=analyze):
+                with self.assertRaises(subprocess.CalledProcessError) as failure:
+                    check.cppcheck([header])
+        self.assertIn('zerodiv', failure.exception.stderr)
+        self.assertIn(str(header), failure.exception.stderr)
+        self.assertEqual(failure.exception.returncode, 1)
+        wrapper = Path(failure.exception.cmd[-1])
+        self.assertFalse(wrapper.exists())
+
     def test_conventional_library_rejects_malformed_message(self):
         check.message('chore: validate tooling\n')
         with self.assertRaises(subprocess.CalledProcessError):

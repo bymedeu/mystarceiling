@@ -44,13 +44,19 @@ first-party units. Its database leaves GCC warnings-as-errors off; the build gat
 requires them on. Tidy follows the unchanged include-cleaner policy, not every
 Core Guideline. Cppcheck 2.22.0
 requests C++26; its parser is not a full compiler or reflection validator. Unknown
-syntax remains a failure. GCC compilation remains essential. New cppcheck
-findings require owner review; analyzer output is not proof of a defect.
+syntax remains a failure. Each tracked first-party header is analyzed through a
+temporary C++ file that includes its actual path, alongside all real source/test
+units. This supplies include context without dropping headers or suppressing
+diagnostics; a real-analyzer regression verifies included defects still fail.
+GCC compilation remains essential. New cppcheck findings require owner review;
+analyzer output is not proof of a defect.
 
-Hooks are tracked but **not activated**: the baseline has 24 formatting files,
-18 over-limit functions, 23 cppcheck findings and 10 tidy errors. Do not activate
-until all gates are ready and reviewed. Later, `python tools/quality/hooks.py install` installs the
-tracked hook path only when no custom hooks/configuration exist. It refuses to
+Hooks are tracked but **not activated**. The approved quality cleanup passes the
+warning-free build (119 C++ tests), 30 offline acquisition tests, 17 tooling tests,
+Lizard, cppcheck, pinned formatting and local tidy. The catalogue understanding
+checkpoint remains open. Hook activation still requires owner review. Later,
+`python tools/quality/hooks.py install` installs the tracked hook path only when
+no custom hooks/configuration exist. It refuses to
 overwrite them. The push hook blocks every destination `refs/heads/main`, including
 `HEAD:main` and deletion; checks every outgoing nondeleted tip in a temporary
 snapshot; and never downloads dependencies. New branches need a local
@@ -78,6 +84,5 @@ Remote `main` policy requires PRs with zero required approving reviews and the
 strict/up-to-date `quality` check from GitHub Actions, including for admins,
 with no bypass, force pushes or deletion. Normal merges remain supported with
 `PR_TITLE` as the default merge commit title. Conventional titles are required;
-self-approval and squash-only merges are not required. Existing baseline findings
-remain blocking failures while they await separately approved fixes. No history
-rewriting.
+self-approval and squash-only merges are not required. Any new gate failure
+remains blocking. No history rewriting.
