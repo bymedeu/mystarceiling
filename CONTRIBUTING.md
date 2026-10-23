@@ -34,8 +34,9 @@ python tools/quality/check.py commits --base origin/main --head HEAD
 printf '%s\n' 'chore: example title' | python tools/quality/check.py message
 ```
 
-`all` runs format, tidy, complexity, cppcheck, and the warning-free build/tests,
-reporting each failure. Each name is also an individual command. Inventory comes
+`all` runs format, tidy, complexity, cppcheck, the warning-free build/tests and
+sanitizer build/tests, reporting each failure. Each name is also an individual
+command. Inventory comes
 from Git: C/C++ headers, implementations and tests; Python participates in Lizard.
 Only generated/vendor/build paths are excluded. Lizard enforces **physical function
 length <=40** (including comments/blanks), **CCN <=10**; NLOC is a different metric.
@@ -51,6 +52,22 @@ diagnostics; a real-analyzer regression verifies included defects still fail.
 GCC compilation remains essential. New cppcheck findings require owner review;
 analyzer output is not proof of a defect.
 
+`python tools/quality/check.py sanitizer-test` builds every first-party C++ target
+with ASan+UBSan, debug symbols and frame pointers, then runs the C++ suite through
+CTest. Findings are fatal; leak detection stays enabled. Both CTest gates reject
+an empty suite. `build-test` also runs the offline Python acquisition/tooling tests.
+The default CMake build is unsanitized; opt in with `-DMSC_ENABLE_SANITIZERS=ON`
+(GCC or Clang required; the project's C++26/reflection requirements still apply).
+Vendor targets receive neither sanitizer nor project warning-as-error flags.
+The independent ordinary gate retains `-Werror`; sanitizer builds omit it because
+[GCC documents sanitizer-related warning false positives](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html).
+Use separate caches: `--build` defaults to `build/quality`, while
+`--sanitizer-build` defaults to `build/quality-sanitizers`; equal paths are rejected.
+Each command explicitly sets sanitizers on or off. Sanitized test executables and
+compile commands stay build-local, preserving normal `bin/` and editor output.
+`all`, and therefore the still-inactive pre-push hook, includes the sanitizer gate
+and its extra build time. No hook activation is implied.
+
 Hooks are tracked but **not activated**. The approved quality cleanup passes the
 warning-free build (119 C++ tests), 30 offline acquisition tests, 17 tooling tests,
 Lizard, cppcheck, pinned formatting and local tidy. The catalogue understanding
@@ -65,7 +82,8 @@ if different from `build/_deps`. Hooks are bypassable; they are not remote prote
 
 CI runs only for PRs targeting `main`, with one sequential required check named
 `quality`: real-head Conventional Commits and PR title policy, warning-free
-build/tests, Lizard, cppcheck, then final `clang-format --dry-run --Werror`.
+build/tests, separate ASan+UBSan C++ build/tests, Lizard, cppcheck, then final
+`clang-format --dry-run --Werror`.
 Each failure fails the job and skips later steps. Build/analyzers check GitHub's
 proposed merge tree; policy reads actual head/base history from the event, never
 the synthetic merge commit. PR title edits rerun the job; stale PR runs cancel.

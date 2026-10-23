@@ -26,8 +26,10 @@ add_executable(mystarceiling_tests
 )
 target_link_libraries(mystarceiling_tests
     PRIVATE mystarceiling_m1 mystarceiling_core mystarceiling_catalogue GTest::gtest_main ZLIB::ZLIB)
-set_target_properties(mystarceiling_tests PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+if(NOT MSC_ENABLE_SANITIZERS)
+    set_target_properties(mystarceiling_tests PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+endif()
 
 include(GoogleTest)
 gtest_discover_tests(mystarceiling_tests)

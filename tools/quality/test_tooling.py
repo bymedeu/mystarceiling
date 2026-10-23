@@ -66,6 +66,109 @@ class ToolingTests(unittest.TestCase):
                         check.configure(self.root, warnings_as_errors=False)
         self.assertIn('-DMSC_WARNINGS_AS_ERRORS=ON', configure.call_args_list[0].args[0])
         self.assertIn('-DMSC_WARNINGS_AS_ERRORS=OFF', configure.call_args_list[1].args[0])
+        self.assertIn('-DMSC_ENABLE_SANITIZERS=OFF', configure.call_args_list[0].args[0])
+
+    def test_sanitizer_configuration_explicitly_enables_instrumentation(self):
+        with patch.dict(os.environ, {'CI': 'true'}):
+            with patch.object(check, 'tool', return_value='cmake'):
+                with patch.object(check, 'compiler_args', return_value=[]):
+                    with patch.object(check, 'run') as configure:
+                        check.configure(self.root, warnings_as_errors=False, sanitizers=True)
+        self.assertIn('-DMSC_ENABLE_SANITIZERS=ON', configure.call_args.args[0])
+        self.assertIn('-DMSC_WARNINGS_AS_ERRORS=OFF', configure.call_args.args[0])
+
+    def configure_project(self, sanitizers):
+        source = Path(__file__).resolve().parents[2]
+        deps = Path(os.environ.get('MSC_DEPENDENCY_ROOT', source / 'build/_deps'))
+        if not deps.is_dir():
+            deps = source / 'build/quality/_deps'
+        with patch.dict(os.environ, CI='false', MSC_DEPENDENCY_ROOT=str(deps)):
+            with patch.object(check, 'ROOT', source):
+                check.configure(self.root, warnings_as_errors=False, sanitizers=sanitizers)
+        return json.loads((self.root / 'compile_commands.json').read_text())
+
+    def test_real_cmake_limits_sanitizers_to_all_first_party_units(self):
+        source = Path(__file__).resolve().parents[2]
+        database = self.configure_project(sanitizers=True)
+        first_party = [entry for entry in database
+                       if Path(entry['file']).is_relative_to(source / 'src') or
+                       Path(entry['file']).is_relative_to(source / 'tests')]
+        vendors = [entry for entry in database if entry not in first_party]
+        self.assertTrue(first_party)
+        self.assertTrue(vendors)
+        targets = set()
+        for entry in first_party:
+            command = entry['command']
+            targets.add(command.split('CMakeFiles/')[1].split('.dir')[0])
+            for flag in ('-fsanitize=address,undefined', '-fno-sanitize-recover=all',
+                         '-fno-omit-frame-pointer', '-g'):
+                self.assertIn(flag, command.split())
+        self.assertEqual(targets, {'mystarceiling_core', 'mystarceiling_catalogue',
+                                  'mystarceiling_m1', 'mystarceiling_cli',
+                                  'mystarceiling_renderer_gl', 'mystarceiling_tests'})
+        for entry in vendors:
+            self.assertNotIn('-fsanitize', entry['command'])
+            self.assertNotIn('-Werror', entry['command'])
+        for directory, target in (('src/cli', 'mystarceiling_cli'),
+                                  ('tests', 'mystarceiling_tests')):
+            link = self.root / directory / 'CMakeFiles' / f'{target}.dir/link.txt'
+            self.assertIn('-fsanitize=address,undefined', link.read_text())
+        test_link = link.read_text()
+        self.assertNotIn(str(source / 'bin'), test_link)
+
+    def test_ordinary_configure_clears_previous_sanitizer_option(self):
+        self.configure_project(sanitizers=True)
+        database = self.configure_project(sanitizers=False)
+        for entry in database:
+            self.assertNotIn('-fsanitize', entry['command'])
+        self.assertIn('MSC_ENABLE_SANITIZERS:BOOL=OFF',
+                      (self.root / 'CMakeCache.txt').read_text())
+
+    def test_sanitizer_runner_fails_on_build_or_test_failure(self):
+        for failure_at in (0, 1):
+            calls = []
+
+            def execute(command, **kwargs):
+                calls.append(command)
+                self.assertIn('detect_leaks=1', kwargs['env']['ASAN_OPTIONS'])
+                self.assertIn('halt_on_error=1', kwargs['env']['ASAN_OPTIONS'])
+                self.assertIn('halt_on_error=1', kwargs['env']['UBSAN_OPTIONS'])
+                if len(calls) == failure_at + 1:
+                    raise subprocess.CalledProcessError(1, command)
+
+            with patch.object(check, 'configure'):
+                with patch.object(check, 'run', side_effect=execute):
+                    with self.assertRaises(subprocess.CalledProcessError):
+                        check.sanitizer_test(self.root)
+            self.assertEqual(len(calls), failure_at + 1)
+            if failure_at == 1:
+                self.assertEqual(calls[-1][0], 'ctest')
+                self.assertIn('--no-tests=error', calls[-1])
+
+    def test_ordinary_runner_requires_tests_and_keeps_python_suites(self):
+        with patch.object(check, 'configure'):
+            with patch.object(check, 'run') as execute:
+                check.build_test(self.root)
+        commands = [call.args[0] for call in execute.call_args_list]
+        self.assertIn('--no-tests=error', commands[1])
+        self.assertEqual([command[5] for command in commands[2:]],
+                         ['tools', 'tools/quality'])
+
+    def test_ctest_rejects_empty_suite(self):
+        result = check.run(['ctest', '--test-dir', self.root, '--no-tests=error'],
+                           check=False, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('No tests were found', result.stderr)
+
+    def test_build_directory_collision_rejected_before_running_gates(self):
+        arguments = ['check.py', 'all', '--build', str(self.root),
+                     '--sanitizer-build', str(self.root / 'nested/..')]
+        with patch.object(sys, 'argv', arguments):
+            with patch.object(check, 'tracked') as inventory:
+                with self.assertRaises(SystemExit) as failure:
+                    check.main()
+                self.assertEqual(failure.exception.code, 2)
+                inventory.assert_not_called()
 
     def test_tidy_generates_glad_before_fresh_analysis(self):
         build = self.root / 'fresh-build'
@@ -113,7 +216,8 @@ class ToolingTests(unittest.TestCase):
         self.assertNotIn('requirements-ci.txt', workflow)
         self.assertIn('edited', workflow)
         self.assertIn('cancel-in-progress: true', workflow)
-        commands = ['ci_policy.py', 'check.py build-test', 'check.py complexity',
+        commands = ['ci_policy.py', 'check.py build-test', 'check.py sanitizer-test',
+                    'check.py complexity',
                     'check.py cppcheck', 'check.py format']
         positions = [workflow.index(command) for command in commands]
         self.assertEqual(positions, sorted(positions))
