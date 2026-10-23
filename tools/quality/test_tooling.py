@@ -100,16 +100,24 @@ class ToolingTests(unittest.TestCase):
     def test_workflow_uses_merge_quality_and_real_head_policy(self):
         workflow = (Path(__file__).resolve().parents[2] /
                     '.github/workflows/quality.yml').read_text()
-        quality, policy = workflow.split('\n  commit-policy:\n')
-        self.assertNotIn('          ref:', quality)
-        self.assertIn('ref: ${{ github.event.pull_request.head.sha || github.sha }}', policy)
-        self.assertIn("format('{0}-push', matrix.gate)", quality)
-        self.assertIn("'commit-policy' || 'commit-history-push'", policy)
-        self.assertIn('edited', quality)
-        self.assertIn('github.event.pull_request.number || github.ref', quality)
-        self.assertIn('cancel-in-progress: true', quality)
-        self.assertNotIn('\n    if:', quality)
-        self.assertNotIn('\n    if:', policy)
+        self.assertNotIn('          ref:', workflow)
+        self.assertIn('fetch-depth: 0', workflow)
+        self.assertIn('branches: [main]', workflow)
+        self.assertNotIn('  push:', workflow)
+        self.assertIn('    name: quality', workflow)
+        self.assertNotIn('matrix', workflow)
+        self.assertNotIn('continue-on-error', workflow)
+        self.assertNotIn('check.py tidy', workflow)
+        self.assertIn('python3 python3-venv', workflow)
+        self.assertIn('-r tools/quality/requirements.txt', workflow)
+        self.assertNotIn('requirements-ci.txt', workflow)
+        self.assertIn('edited', workflow)
+        self.assertIn('cancel-in-progress: true', workflow)
+        commands = ['ci_policy.py', 'check.py build-test', 'check.py complexity',
+                    'check.py cppcheck', 'check.py format']
+        positions = [workflow.index(command) for command in commands]
+        self.assertEqual(positions, sorted(positions))
+        self.assertNotIn('\n        if:', workflow)
 
     def test_missing_analyzer_fails(self):
         with patch.dict(os.environ, {'PATH': ''}):

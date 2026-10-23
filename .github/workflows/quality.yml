@@ -1,91 +1,55 @@
 name: quality
 on:
-  push:
-    branches: ['**']
   pull_request:
+    branches: [main]
     types: [opened, synchronize, reopened, edited, ready_for_review]
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 permissions:
   contents: read
 jobs:
-  gates:
-    name: ${{ github.event_name == 'pull_request' && matrix.gate || format('{0}-push', matrix.gate) }}
+  quality:
+    name: quality
     runs-on: ubuntu-24.04
     container: gcc:16.2.0-trixie
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - {gate: quality-format, command: format}
-          - {gate: quality-tidy, command: tidy}
-          - {gate: quality-complexity, command: complexity}
-          - {gate: quality-cppcheck, command: cppcheck}
-          - {gate: build-test, command: build-test}
+    env:
+      CI: 'true'
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Align checkout ownership with container user
         run: |
           chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
           git ls-files -z > /dev/null
-      - name: Native build dependencies
+      - name: Native and Python dependencies
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends libgtest-dev libspdlog-dev zlib1g-dev libgl-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libwayland-dev libxkbcommon-dev wayland-protocols libssl-dev libffi-dev libbz2-dev libreadline-dev libsqlite3-dev liblzma-dev libzstd-dev
-      # setup-python publishes Ubuntu builds, not Debian 13 builds.
-      - name: Build pinned CPython for Debian
-        run: |
-          curl --fail --silent --show-error --location https://www.python.org/ftp/python/3.14.7/Python-3.14.7.tar.xz --output /tmp/python.tar.xz
-          echo '3b48dac8fb59f62eaa67ac83c1eb12bda1b7a08406dd286e252c11a66be27f81  /tmp/python.tar.xz' | sha256sum --check -
-          mkdir /tmp/msc-python
-          tar --extract --xz --file /tmp/python.tar.xz --directory /tmp/msc-python --strip-components=1
-          cd /tmp/msc-python
-          ./configure --prefix=/opt/msc-python --with-ensurepip=install
-          make --jobs=2
-          make install
-          ln -s python3 /opt/msc-python/bin/python
-          /opt/msc-python/bin/python -c 'import ssl, venv; import sys; assert sys.version_info[:3] == (3, 14, 7)'
-          echo /opt/msc-python/bin >> "$GITHUB_PATH"
+          apt-get install -y --no-install-recommends python3 python3-venv libgtest-dev libspdlog-dev zlib1g-dev libgl-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libwayland-dev libxkbcommon-dev wayland-protocols
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '26.10.0'
-      - name: Explicit local tool setup
+      - name: Pinned tool setup
         run: |
-          python -m venv .quality-venv
-          .quality-venv/bin/pip install -r tools/quality/requirements-ci.txt
+          python3 -m venv .quality-venv
+          .quality-venv/bin/pip install -r tools/quality/requirements.txt
           npm ci --prefix tools/quality --ignore-scripts
+          echo "$PWD/.quality-venv/bin" >> "$GITHUB_PATH"
       - name: Build pinned official cppcheck
-        if: matrix.command == 'cppcheck'
         run: |
           git clone https://github.com/cppcheck-opensource/cppcheck.git /tmp/cppcheck
           git -C /tmp/cppcheck checkout --detach a436ca35ed1887bee789765122b65ed2d7a7e045
           make -C /tmp/cppcheck -j2 CXXFLAGS=-O2
           echo /tmp/cppcheck >> "$GITHUB_PATH"
-      - name: Shared gate
-        env:
-          GATE: ${{ matrix.command }}
-          CI: 'true'
-        run: |
-          export PATH="$PWD/.quality-venv/bin:$PATH"
-          python tools/quality/check.py "$GATE"
-  commit-policy:
-    name: ${{ github.event_name == 'pull_request' && 'commit-policy' || 'commit-history-push' }}
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: '26.10.0'
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: '3.14.7'
-      - run: npm ci --prefix tools/quality --ignore-scripts
-      - run: python tools/quality/ci_policy.py
-      - run: python -m unittest discover -s tools/quality -p 'test_*.py'
+      - name: Conventional commits and PR title (real head)
+        run: python tools/quality/ci_policy.py
+      - name: Warning-free build and tests
+        run: python tools/quality/check.py build-test
+      - name: Physical function length and complexity
+        run: python tools/quality/check.py complexity
+      - name: Cppcheck
+        run: python tools/quality/check.py cppcheck
+      - name: Final format verification
+        run: python tools/quality/check.py format

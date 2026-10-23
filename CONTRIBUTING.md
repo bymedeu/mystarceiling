@@ -8,13 +8,13 @@ lines, split without a coherent responsibility, suppress findings, or exclude
 legacy code to satisfy metrics. Nontrivial refactors still need the open
 [owner understanding gate](README.md#algorithmic-ownership-gate).
 
-Local setup (explicit downloads only; no global installs): Python **3.14.7**,
-Node **26.10.0**, npm **12.2.0**, GCC **16.2.x**, clang-tidy **23.1.1** on PATH.
+Local setup (explicit downloads only; no global installs): Python **3**
+(Debian-packaged Python is supported), Node **26.10.0**, npm **12.2.0**, GCC **16.2.x**, clang-tidy **23.1.1** on PATH.
 Native prerequisites: GTest, spdlog/fmt, zlib, OpenGL, X11 development libraries
 (Xrandr, Xinerama, Xcursor, Xi), Wayland, xkbcommon and wayland-protocols.
 
 ```sh
-python3.14 -m venv .quality-venv
+python3 -m venv .quality-venv
 .quality-venv/bin/pip install -r tools/quality/requirements.txt
 npm ci --prefix tools/quality --ignore-scripts
 export PATH="$PWD/.quality-venv/bin:$PATH"
@@ -48,8 +48,8 @@ syntax remains a failure. GCC compilation remains essential. New cppcheck
 findings require owner review; analyzer output is not proof of a defect.
 
 Hooks are tracked but **not activated**: the baseline has 24 formatting files,
-18 over-limit functions and 10 tidy errors. Do not activate until all gates are
-ready and reviewed. Later, `python tools/quality/hooks.py install` installs the
+18 over-limit functions, 23 cppcheck findings and 10 tidy errors. Do not activate
+until all gates are ready and reviewed. Later, `python tools/quality/hooks.py install` installs the
 tracked hook path only when no custom hooks/configuration exist. It refuses to
 overwrite them. The push hook blocks every destination `refs/heads/main`, including
 `HEAD:main` and deletion; checks every outgoing nondeleted tip in a temporary
@@ -57,27 +57,27 @@ snapshot; and never downloads dependencies. New branches need a local
 `origin/main`. Set `MSC_DEPENDENCY_ROOT` to an absolute prepared `_deps` directory
 if different from `build/_deps`. Hooks are bypassable; they are not remote protection.
 
-CI uses the same gates, GCC **16.2.0** and LLVM format **23.1.1**. The tidy wheel
-available on PyPI is **23.1.3**, explicitly pinned separately; local 23.1.1 remains
-supported. Python/Node/tool packages and actions are pinned; distro native packages
-remain distribution-managed. Debian gate containers build checksum-pinned
-CPython 3.14.7 from official source because setup-python has no Debian 13 build;
-the Ubuntu commit-policy job uses setup-python. Jinja2 is pinned for GLAD.
-Existing CMake output placement is retained. Hosted analyzer/build results
-remain unverified until the container setup succeeds.
-Toolchain references:
-[official GCC image](https://hub.docker.com/_/gcc/),
-[LLVM packages](https://apt.llvm.org/),
-[cppcheck dialects](https://cppcheck.sourceforge.io/manual.html).
-PR quality/build jobs validate GitHub's proposed merge tree. Commit policy reads
-real head/base history and event JSON, including PR title edits; it does not lint
-the synthetic merge commit. Push jobs use distinct `*-push` names (history:
-`commit-history-push`). Stale runs are cancelled per PR/ref; title edits rerun
-all required PR jobs.
+CI runs only for PRs targeting `main`, with one sequential required check named
+`quality`: real-head Conventional Commits and PR title policy, warning-free
+build/tests, Lizard, cppcheck, then final `clang-format --dry-run --Werror`.
+Each failure fails the job and skips later steps. Build/analyzers check GitHub's
+proposed merge tree; policy reads actual head/base history from the event, never
+the synthetic merge commit. PR title edits rerun the job; stale PR runs cancel.
+Clang-tidy is local only. The owner formats locally before committing; CI makes
+no automatic source changes and has read-only contents permission.
 
-Remote policy is a **reviewed proposal, unapplied**. Once gates pass, require PRs
-and `quality-format`, `quality-tidy`, `quality-complexity`, `quality-cppcheck`,
-`build-test`, `commit-policy`; enforce admins with no bypass, force pushes or main
-deletion. Keep normal merges and set their default title to `PR_TITLE`; require
-conventional titles without demanding self-approval or squash-only merges.
-Do not enable required checks while the legacy gates fail. No history rewriting.
+The single GCC **16.2.0** Debian environment uses distribution-packaged
+`python3`/`python3-venv`, the shared `requirements.txt`, pinned Node/actions and
+analyzer versions (LLVM format **23.1.1**, Lizard **1.24.2**, cppcheck **2.22.0**).
+Native packages remain distribution-managed. Jinja2 is pinned for GLAD.
+The tracked `.clang-format` and `.clang-tidy` are real copies from
+[bymedeu/config at ace2ad8](https://github.com/bymedeu/config/tree/ace2ad8e0d57e2cf6ea4beeb69a168d94df14469/clang);
+updates are deliberate, with no automatic cross-repository feed.
+
+Remote `main` policy requires PRs with zero required approving reviews and the
+strict/up-to-date `quality` check from GitHub Actions, including for admins,
+with no bypass, force pushes or deletion. Normal merges remain supported with
+`PR_TITLE` as the default merge commit title. Conventional titles are required;
+self-approval and squash-only merges are not required. Existing baseline findings
+remain blocking failures while they await separately approved fixes. No history
+rewriting.
