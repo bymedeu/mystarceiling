@@ -1,6 +1,6 @@
 # Application controls and interface direction
 
-Status: requirements clarified through 2026-10-22; controls are not
+Status: requirements clarified through 2026-10-23; controls are not
 implemented. The [ceiling/output note](ceiling-product-output.md) records current
 owner priorities, proposals and open decisions; it does not approve implementation.
 
@@ -34,6 +34,17 @@ visualization remains visible. A change must not require restarting the app.
 Approved requirements, not implementation approval: normal visualization consumes
 prepared runtime data. Acquisition, normalization and binary regeneration are
 separate explicit commands; launching must not rebuild the binary.
+
+Catalogue builds write a temporary file in the target's **same directory** and
+replace the target only after successful completion. Existing targets require
+`--force`. A requested build capacity is **exact**: insufficient usable input is
+an error, superseding the earlier upper-bound-with-warning proposal. Report the
+requested and available counts. When a valid alternative is known, show an
+otherwise-identical corrected command; never suggest a quantity below 64 or claim
+an exact maximum before consuming enough input to establish it. Give advice for
+the actual failure only, without universal guesses or echoing secrets to stdout.
+Only the command that consumes a source checks its existence. These are owner
+requirements for future implementation; the understanding checkpoint stays open.
 
 Quantity caps loaded records before scene construction. The owner's 2026-10-22
 contract requires an integer with `64 <= quantity <= available_count`, where
