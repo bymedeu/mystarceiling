@@ -2,8 +2,8 @@
 
 #include <cmath>
 #include <expected>
-#include <numbers>
 #include <mystarceiling/core/maths/angle.hh>
+#include <numbers>
 
 namespace msc::core::coordinates
 {

@@ -9,57 +9,67 @@ using msc::core::coordinates::Declination;
 using msc::core::coordinates::DeclinationError;
 using msc::core::maths::Angle;
 
-namespace {
-constexpr auto declination = Declination::try_from(Angle::from_degrees(-23.5));
-static_assert(declination.has_value());
+namespace
+{
+    constexpr auto declination =
+        Declination::try_from(Angle::from_degrees(-23.5));
+    static_assert(declination.has_value());
 
-constexpr auto invalid_declination =
-    Declination::try_from(Angle::from_degrees(91.0));
-static_assert(!invalid_declination.has_value());
-static_assert(invalid_declination.error() == DeclinationError::OutOfRange);
+    constexpr auto invalid_declination =
+        Declination::try_from(Angle::from_degrees(91.0));
+    static_assert(!invalid_declination.has_value());
+    static_assert(invalid_declination.error() == DeclinationError::OutOfRange);
 
-struct DeclinationCase {
-  Angle value;
-};
+    struct DeclinationCase
+    {
+        Angle value;
+    };
 
-class ValidDeclinationTest : public ::testing::TestWithParam<DeclinationCase> {
-};
+    class ValidDeclinationTest
+        : public ::testing::TestWithParam<DeclinationCase>
+    {};
 
-class InvalidDeclinationOutOfRangeTest
-    : public ::testing::TestWithParam<DeclinationCase> {};
+    class InvalidDeclinationOutOfRangeTest
+        : public ::testing::TestWithParam<DeclinationCase>
+    {};
 
-class InvalidDeclinationNonFiniteValuesTest
-    : public ::testing::TestWithParam<DeclinationCase> {};
+    class InvalidDeclinationNonFiniteValuesTest
+        : public ::testing::TestWithParam<DeclinationCase>
+    {};
 
-void PrintTo(const DeclinationCase &tcase, std::ostream *os) {
-  // how to print precise value of radiant to xth digit?
-  *os << "value: " << tcase.value.to_degrees()
-      << " deg (= " << tcase.value.to_radian() << ")";
-}
+    void PrintTo(const DeclinationCase& tcase, std::ostream* os)
+    {
+        // how to print precise value of radiant to xth digit?
+        *os << "value: " << tcase.value.to_degrees()
+            << " deg (= " << tcase.value.to_radian() << ")";
+    }
 } // namespace
 
-TEST_P(ValidDeclinationTest, TestsValidDeclination) {
-  const auto &tcase = GetParam();
-  const auto dec = Declination::try_from(tcase.value);
-  ASSERT_TRUE(dec.has_value());
-  EXPECT_EQ(dec->get_angle().to_radian(), tcase.value.to_radian());
+TEST_P(ValidDeclinationTest, TestsValidDeclination)
+{
+    const auto& tcase = GetParam();
+    const auto dec = Declination::try_from(tcase.value);
+    ASSERT_TRUE(dec.has_value());
+    EXPECT_EQ(dec->get_angle().to_radian(), tcase.value.to_radian());
 }
 
 TEST_P(InvalidDeclinationNonFiniteValuesTest,
-       TestsInvalidDeclinationNonFiniteValues) {
-  const auto &tcase = GetParam();
-  const auto dec = Declination::try_from(tcase.value);
+       TestsInvalidDeclinationNonFiniteValues)
+{
+    const auto& tcase = GetParam();
+    const auto dec = Declination::try_from(tcase.value);
 
-  ASSERT_FALSE(dec.has_value());
-  EXPECT_EQ(dec.error(), DeclinationError::NonFinite);
+    ASSERT_FALSE(dec.has_value());
+    EXPECT_EQ(dec.error(), DeclinationError::NonFinite);
 }
 
-TEST_P(InvalidDeclinationOutOfRangeTest, TestsInvalidDeclinationOutOfRange) {
-  const auto &tcase = GetParam();
-  const auto dec = Declination::try_from(tcase.value);
+TEST_P(InvalidDeclinationOutOfRangeTest, TestsInvalidDeclinationOutOfRange)
+{
+    const auto& tcase = GetParam();
+    const auto dec = Declination::try_from(tcase.value);
 
-  ASSERT_FALSE(dec.has_value());
-  EXPECT_EQ(dec.error(), DeclinationError::OutOfRange);
+    ASSERT_FALSE(dec.has_value());
+    EXPECT_EQ(dec.error(), DeclinationError::OutOfRange);
 }
 
 INSTANTIATE_TEST_SUITE_P(
