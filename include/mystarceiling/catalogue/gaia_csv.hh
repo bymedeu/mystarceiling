@@ -49,7 +49,7 @@ namespace msc::catalogue
 
     struct GaiaFileError
     {
-        GaiaFileErrorCode code;
+        GaiaFileErrorCode code{};
         std::string detail;
     };
 

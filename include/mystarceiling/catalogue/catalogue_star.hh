@@ -19,7 +19,7 @@ namespace msc::catalogue
     public:
         constexpr CatalogueStar(std::uint64_t source_id,
                                 CatalogueSource source_catalogue,
-                                Star star) noexcept :
+                                const Star& star) noexcept :
             source_id_{source_id}, source_catalogue_{source_catalogue},
             star_{star}
         {}

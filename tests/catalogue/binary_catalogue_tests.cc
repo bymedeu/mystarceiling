@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <ios>
 #include <limits>
 #include <mystarceiling/catalogue/binary_catalogue.hh>
 #include <mystarceiling/catalogue/catalogue_star.hh>
@@ -34,34 +35,8 @@ using msc::core::coordinates::RightAscension;
 using msc::core::maths::Angle;
 using msc::core::time::ReferenceEpoch;
 
-TEST(BinaryCatalogueTest, PreservesAllSelectedValues)
+namespace
 {
-    const auto epoch = ReferenceEpoch::try_from_julian_year(2016.0);
-    const auto ra = RightAscension::try_from(Angle::from_degrees(10.5));
-    const auto dec = Declination::try_from(Angle::from_degrees(-20.25));
-    const auto pmra = ProperMotion::try_from_milliarcseconds_per_year(3.5);
-    const auto pmdec = ProperMotion::try_from_milliarcseconds_per_year(-4.5);
-    const auto parallax = Parallax::try_from_milliarcseconds(-0.25);
-    const auto magnitude = ApparentMagnitude::try_from_gaia_g(5.75);
-    const auto colour = ColourIndex::try_from_gaia_bp_minus_rp(1.25);
-    ASSERT_TRUE(epoch && ra && dec && pmra && pmdec && parallax && magnitude &&
-                colour);
-    const std::vector stars{
-        CatalogueStar{std::numeric_limits<std::uint64_t>::max(),
-                      msc::catalogue::CatalogueSource::GaiaDr3,
-                      Star{*epoch, IcrsDirection{*ra, *dec},
-                           ProperMotionComponents{
-                               .right_ascension_cos_declination = *pmra,
-                               .declination = *pmdec},
-                           *parallax, *magnitude, *colour}},
-        CatalogueStar{32349, msc::catalogue::CatalogueSource::Hipparcos2,
-                      Star{*epoch, IcrsDirection{*ra, *dec},
-                           ProperMotionComponents{*pmra, *pmdec}, *parallax,
-                           *magnitude, std::nullopt}}};
-    const auto filename = std::filesystem::temp_directory_path() /
-        "mystarceiling-catalogue-test.bin";
-
-    ASSERT_TRUE(write_binary_catalogue(filename, stars).has_value());
     // Frozen bytes from the pre-M2 version-2 writer (both provenance values,
     // full-width ID, present/absent colour, and signed measurements).
     constexpr std::array<unsigned char, 180> expected_bytes{
@@ -81,6 +56,72 @@ TEST(BinaryCatalogueTest, PreservesAllSelectedValues)
         0x00, 0x00, 0x00, 0x00, 0xd0, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x17, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00,
     };
+    void make_selected_stars(std::vector<CatalogueStar>& stars)
+    {
+        const auto epoch = ReferenceEpoch::try_from_julian_year(2016.0);
+        const auto ra = RightAscension::try_from(Angle::from_degrees(10.5));
+        const auto dec = Declination::try_from(Angle::from_degrees(-20.25));
+        const auto pmra = ProperMotion::try_from_milliarcseconds_per_year(3.5);
+        const auto pmdec =
+            ProperMotion::try_from_milliarcseconds_per_year(-4.5);
+        const auto parallax = Parallax::try_from_milliarcseconds(-0.25);
+        const auto magnitude = ApparentMagnitude::try_from_gaia_g(5.75);
+        const auto colour = ColourIndex::try_from_gaia_bp_minus_rp(1.25);
+        ASSERT_TRUE(epoch && ra && dec && pmra && pmdec && parallax &&
+                    magnitude && colour);
+        stars = {
+            CatalogueStar{std::numeric_limits<std::uint64_t>::max(),
+                          msc::catalogue::CatalogueSource::GaiaDr3,
+                          Star{*epoch, IcrsDirection{*ra, *dec},
+                               ProperMotionComponents{
+                                   .right_ascension_cos_declination = *pmra,
+                                   .declination = *pmdec},
+                               *parallax, *magnitude, *colour}},
+            CatalogueStar{32349, msc::catalogue::CatalogueSource::Hipparcos2,
+                          Star{*epoch, IcrsDirection{*ra, *dec},
+                               ProperMotionComponents{*pmra, *pmdec}, *parallax,
+                               *magnitude, std::nullopt}}};
+    }
+
+    void expect_selected_values(const std::vector<CatalogueStar>& loaded)
+    {
+        EXPECT_EQ(loaded[1].source_id(), 32349);
+        EXPECT_EQ(loaded[1].source_catalogue(),
+                  msc::catalogue::CatalogueSource::Hipparcos2);
+        EXPECT_FALSE(loaded[1].star().colour());
+        const auto& star = loaded.front().star();
+        EXPECT_EQ(loaded.front().source_catalogue(),
+                  msc::catalogue::CatalogueSource::GaiaDr3);
+        ASSERT_TRUE(star.colour());
+        EXPECT_EQ(loaded.front().source_id(),
+                  std::numeric_limits<std::uint64_t>::max());
+        EXPECT_DOUBLE_EQ(star.reference_epoch().julian_year(), 2016.0);
+        EXPECT_DOUBLE_EQ(
+            star.direction().get_right_ascension().get_angle().to_degrees(),
+            10.5);
+        EXPECT_DOUBLE_EQ(
+            star.direction().get_declination().get_angle().to_degrees(),
+            -20.25);
+        EXPECT_DOUBLE_EQ(
+            star.proper_motion()
+                .right_ascension_cos_declination.milliarcseconds_per_year(),
+            3.5);
+        EXPECT_DOUBLE_EQ(
+            star.proper_motion().declination.milliarcseconds_per_year(), -4.5);
+        EXPECT_DOUBLE_EQ(star.parallax().milliarcseconds(), -0.25);
+        EXPECT_DOUBLE_EQ(star.magnitude().gaia_g(), 5.75);
+        EXPECT_DOUBLE_EQ(star.colour()->gaia_bp_minus_rp(), 1.25);
+    }
+} // namespace
+
+TEST(BinaryCatalogueTest, PreservesAllSelectedValues)
+{
+    std::vector<CatalogueStar> stars;
+    ASSERT_NO_FATAL_FAILURE(make_selected_stars(stars));
+    const auto filename = std::filesystem::temp_directory_path() /
+        "mystarceiling-catalogue-test.bin";
+
+    ASSERT_TRUE(write_binary_catalogue(filename, stars).has_value());
     {
         std::ifstream bytes{filename, std::ios::binary};
         for (const auto expected : expected_bytes)
@@ -92,46 +133,7 @@ TEST(BinaryCatalogueTest, PreservesAllSelectedValues)
 
     ASSERT_TRUE(loaded.has_value()) << loaded.error().detail;
     ASSERT_EQ(loaded->size(), 2);
-    EXPECT_EQ((*loaded)[1].source_id(), 32349);
-    EXPECT_EQ((*loaded)[1].source_catalogue(),
-              msc::catalogue::CatalogueSource::Hipparcos2);
-    EXPECT_FALSE((*loaded)[1].star().colour());
-    EXPECT_EQ(loaded->front().source_catalogue(),
-              msc::catalogue::CatalogueSource::GaiaDr3);
-    ASSERT_TRUE(loaded->front().star().colour());
-    EXPECT_EQ(loaded->front().source_id(),
-              std::numeric_limits<std::uint64_t>::max());
-    EXPECT_DOUBLE_EQ(loaded->front().star().reference_epoch().julian_year(),
-                     2016.0);
-    EXPECT_DOUBLE_EQ(loaded->front()
-                         .star()
-                         .direction()
-                         .get_right_ascension()
-                         .get_angle()
-                         .to_degrees(),
-                     10.5);
-    EXPECT_DOUBLE_EQ(loaded->front()
-                         .star()
-                         .direction()
-                         .get_declination()
-                         .get_angle()
-                         .to_degrees(),
-                     -20.25);
-    EXPECT_DOUBLE_EQ(
-        loaded->front()
-            .star()
-            .proper_motion()
-            .right_ascension_cos_declination.milliarcseconds_per_year(),
-        3.5);
-    EXPECT_DOUBLE_EQ(loaded->front()
-                         .star()
-                         .proper_motion()
-                         .declination.milliarcseconds_per_year(),
-                     -4.5);
-    EXPECT_DOUBLE_EQ(loaded->front().star().parallax().milliarcseconds(),
-                     -0.25);
-    EXPECT_DOUBLE_EQ(loaded->front().star().magnitude().gaia_g(), 5.75);
-    EXPECT_DOUBLE_EQ(loaded->front().star().colour()->gaia_bp_minus_rp(), 1.25);
+    ASSERT_NO_FATAL_FAILURE(expect_selected_values(*loaded));
 }
 
 TEST(BinaryCatalogueTest, RejectsPreviousVersionRatherThanGuessingProvenance)

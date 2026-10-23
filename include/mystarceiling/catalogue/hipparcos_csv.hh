@@ -50,7 +50,7 @@ namespace msc::catalogue
 
     struct HipparcosFileError
     {
-        HipparcosFileErrorCode code;
+        HipparcosFileErrorCode code{};
         std::string detail;
     };
 
