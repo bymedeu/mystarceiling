@@ -47,6 +47,8 @@ jobs:
         run: python tools/quality/ci_policy.py
       - name: Warning-free build and tests
         run: python tools/quality/check.py build-test
+      - name: AddressSanitizer and UBSan build and C++ tests
+        run: python tools/quality/check.py sanitizer-test
       - name: Physical function length and complexity
         run: python tools/quality/check.py complexity
       - name: Cppcheck

@@ -56,9 +56,10 @@ def compiler_args(build):
     return args
 
 
-def configure(build, warnings_as_errors=True):
+def configure(build, warnings_as_errors=True, sanitizers=False):
     args = [tool('cmake', '4.4.4'), '-S', ROOT, '-B', build,
             f"-DMSC_WARNINGS_AS_ERRORS={'ON' if warnings_as_errors else 'OFF'}",
+            f"-DMSC_ENABLE_SANITIZERS={'ON' if sanitizers else 'OFF'}",
             '-DMSC_ENABLE_TESTS=ON',
             f'-DPython_EXECUTABLE={sys.executable}', *compiler_args(build)]
     if os.environ.get('CI') != 'true':
@@ -137,9 +138,19 @@ def cppcheck(files):
 def build_test(build):
     configure(build)
     run(['cmake', '--build', build, '--parallel', '2'])
-    run(['ctest', '--test-dir', build, '--output-on-failure'])
+    run(['ctest', '--test-dir', build, '--output-on-failure', '--no-tests=error'])
     run([sys.executable, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_*.py'])
     run([sys.executable, '-m', 'unittest', 'discover', '-s', 'tools/quality', '-p', 'test_*.py'])
+
+
+def sanitizer_test(build):
+    # Keep GCC's sanitizer-related warning false positives out of the Werror gate.
+    configure(build, warnings_as_errors=False, sanitizers=True)
+    env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1:halt_on_error=1',
+               UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
+    run(['cmake', '--build', build, '--parallel', '2'], env=env)
+    run(['ctest', '--test-dir', build, '--output-on-failure', '--no-tests=error'],
+        env=env)
 
 
 def message(text):
@@ -163,11 +174,15 @@ def commit_range(base, head):
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('gate', choices=['format', 'tidy', 'complexity', 'cppcheck',
-                                        'build-test', 'all', 'message', 'commits'])
+                                        'build-test', 'sanitizer-test', 'all', 'message', 'commits'])
     parser.add_argument('--build', type=Path, default=ROOT / 'build/quality')
+    parser.add_argument('--sanitizer-build', type=Path, default=ROOT / 'build/quality-sanitizers')
     parser.add_argument('--base')
     parser.add_argument('--head', default='HEAD')
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.build.resolve() == args.sanitizer_build.resolve():
+        parser.error('Ordinary and sanitizer build directories must differ')
+    return args
 
 
 def main():
@@ -179,6 +194,7 @@ def main():
              'complexity': lambda: complexity([f for f in files if f.suffix in CPP | {'.py'}]),
              'cppcheck': lambda: cppcheck(cpp),
              'build-test': lambda: build_test(args.build.resolve()),
+             'sanitizer-test': lambda: sanitizer_test(args.sanitizer_build.resolve()),
              'message': lambda: message(sys.stdin.read()),
              'commits': lambda: commit_range(args.base, args.head)}
     failed = []
