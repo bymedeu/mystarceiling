@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Portable live local styles and explicit once-per-CI-run retrieval."""
 
+import copy
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tarfile
 from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -17,12 +19,19 @@ def shared():
     return Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'clang'
 
 
-def materialize(root, source=None):
+def snapshot_member(member, destination):
+    if member.issym() and member.name in {*NAMES, '.clangd'}:
+        member = copy.copy(member)
+        member.linkname = '.quality-style/' + member.name
+    return tarfile.data_filter(member, destination)
+
+
+def materialize(root, source=None, names=NAMES):
     destination = root / '.quality-style'
     if destination.is_symlink():
         raise RuntimeError('Refusing to materialize over a local style link')
     destination.mkdir(exist_ok=True)
-    for name in NAMES:
+    for name in names:
         shutil.copyfile((source or shared()) / name, destination / name)
 
 

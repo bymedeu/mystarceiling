@@ -62,6 +62,7 @@ class SharedIntegrationTests(unittest.TestCase):
         controller = root / 'tools/quality/check.py'
         controller.parent.mkdir(parents=True)
         controller.write_text('raise SystemExit("OLD UNSUPPORTED CONTROLLER")\n')
+        (root / '.clangd').symlink_to('../../../central/.clangd')
         (root / 'test.hpp').write_text('inline int one() { return 1; }\n')
         git('add', '.')
         git('commit', '-qm', 'test: old tooling')
@@ -137,6 +138,22 @@ class SharedIntegrationTests(unittest.TestCase):
             network.assert_not_called()
             download.assert_not_called()
             self.assertEqual(sentinel.read_text(), 'unpublished style')
+
+    def test_archive_filter_only_rehomes_known_style_links(self):
+        import tarfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            known = tarfile.TarInfo('.clangd')
+            known.type = tarfile.SYMTYPE
+            known.linkname = '../../../central/.clangd'
+            normalized = styles.snapshot_member(known, directory)
+            self.assertEqual(normalized.linkname, '.quality-style/.clangd')
+            self.assertEqual(known.linkname, '../../../central/.clangd')
+            unsafe = tarfile.TarInfo('test.hpp')
+            unsafe.type = tarfile.SYMTYPE
+            unsafe.linkname = '../../../private.hpp'
+            with self.assertRaises(tarfile.LinkOutsideDestinationError):
+                styles.snapshot_member(unsafe, directory)
 
     def test_local_links_keep_one_style_and_preserve_conflicts(self):
         with tempfile.TemporaryDirectory() as directory:

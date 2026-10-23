@@ -109,11 +109,11 @@ The single GCC **16.2.0** Debian environment uses distribution-packaged
 `python3`/`python3-venv`, the shared `requirements.txt`, pinned Node/actions and
 analyzer versions (LLVM format **23.1.1**, Lizard **1.24.2**, cppcheck **2.22.0**).
 Native packages remain distribution-managed. Jinja2 is pinned for GLAD.
-The tracked `.clang-format` and `.clang-tidy` are portable relative links through
+The tracked `.clang-format`, `.clang-tidy` and existing `.clangd` are portable links through
 ignored `.quality-style/`. Local setup links that directory to
 `${XDG_CONFIG_HOME:-$HOME/.config}/clang`, so editors and local checks see the live
 central files. Existing conflicting local material is preserved. No independent
-MSC style copy is maintained. Push snapshots materialize both central styles
+MSC style copy is maintained. Push snapshots materialize the central styles (including archived `.clangd` links)
 offline, without following machine-specific links from archived trees.
 
 CI explicitly resolves the config repository's default-branch `HEAD` **once** per

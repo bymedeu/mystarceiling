@@ -36,9 +36,10 @@ def snapshot(sha, destination):
     tree = destination / 'tree'
     tree.mkdir()
     with tarfile.open(archive) as source:
-        source.extractall(tree, filter='data')
-    if (tree / '.clang-format').is_symlink():
-        styles.materialize(tree)
+        source.extractall(tree, filter=styles.snapshot_member)
+    links = [name for name in (*styles.NAMES, '.clangd') if (tree / name).is_symlink()]
+    if links:
+        styles.materialize(tree, names=set(styles.NAMES) | set(links))
     env = clean_git_env()
     subprocess.run(['git', 'init', '-q', tree], check=True, env=env)
     subprocess.run(['git', '-C', tree, 'add', '--force', '.'], check=True, env=env)
