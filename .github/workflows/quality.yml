@@ -8,6 +8,7 @@ concurrency:
   cancel-in-progress: true
 permissions:
   contents: read
+  pull-requests: read
 jobs:
   quality:
     name: quality
@@ -28,30 +29,55 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends python3 python3-venv libgtest-dev libspdlog-dev zlib1g-dev libgl-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libwayland-dev libxkbcommon-dev wayland-protocols
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+      - name: Conventional commits
+        uses: wagoid/commitlint-github-action@f133a0d95090ef2609192b4a21f54e20af819ea9 # v6
         with:
-          node-version: '26.10.0'
+          failOnWarnings: true
+      - name: Conventional PR title
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Pinned tool setup
         run: |
-          python3 -m venv .quality-venv
-          .quality-venv/bin/pip install -r tools/quality/requirements.txt
-          npm ci --prefix tools/quality --ignore-scripts
-          echo "$PWD/.quality-venv/bin" >> "$GITHUB_PATH"
+          python3 -m venv /tmp/msc-tools
+          /tmp/msc-tools/bin/pip install cmake==4.4.4 clang-format==23.1.1 lizard==1.24.2 Jinja2==3.1.6 MarkupSafe==3.0.3 pathspec==1.1.1 Pygments==2.21.0
+          echo /tmp/msc-tools/bin >> "$GITHUB_PATH"
       - name: Build pinned official cppcheck
         run: |
           git clone https://github.com/cppcheck-opensource/cppcheck.git /tmp/cppcheck
           git -C /tmp/cppcheck checkout --detach a436ca35ed1887bee789765122b65ed2d7a7e045
           make -C /tmp/cppcheck -j2 CXXFLAGS=-O2
           echo /tmp/cppcheck >> "$GITHUB_PATH"
-      - name: Conventional commits and PR title (real head)
-        run: python tools/quality/ci_policy.py
+      - name: Live central Clang configuration
+        run: |
+          git clone --depth=1 https://github.com/bymedeu/config.git /tmp/msc-config
+          git -C /tmp/msc-config rev-parse HEAD
+          rm -f .quality-style
+          mkdir .quality-style
+          cp /tmp/msc-config/clang/.clang-format /tmp/msc-config/clang/.clang-tidy /tmp/msc-config/clang/.clangd .quality-style/
       - name: Warning-free build and tests
-        run: python tools/quality/check.py build-test
+        run: |
+          cmake -S . -B build/ci -DMSC_WARNINGS_AS_ERRORS=ON -DMSC_ENABLE_SANITIZERS=OFF -DMSC_ENABLE_TESTS=ON -DPython_EXECUTABLE=/tmp/msc-tools/bin/python
+          cmake --build build/ci --parallel 2
+          ctest --test-dir build/ci --output-on-failure --no-tests=error
+          python -m unittest discover -s tools -p 'test_*.py'
       - name: AddressSanitizer and UBSan build and C++ tests
-        run: python tools/quality/check.py sanitizer-test
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: |
+          cmake -S . -B build/ci-sanitizers -DMSC_ENABLE_SANITIZERS=ON -DMSC_WARNINGS_AS_ERRORS=OFF -DMSC_ENABLE_TESTS=ON -DPython_EXECUTABLE=/tmp/msc-tools/bin/python
+          cmake --build build/ci-sanitizers --parallel 2
+          ctest --test-dir build/ci-sanitizers --output-on-failure --no-tests=error
       - name: Physical function length and complexity
-        run: python tools/quality/check.py complexity
-      - name: Cppcheck
-        run: python tools/quality/check.py cppcheck
+        shell: bash
+        run: |
+          git ls-files -z -- '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' '*.hxx' '*.py' | xargs -0 -r lizard -L40 -C10
+      - name: Cppcheck (source and test units, with project includes)
+        shell: bash
+        run: |
+          git ls-files -z -- '*.c' '*.cc' '*.cpp' '*.cxx' | xargs -0 -r cppcheck --std=c++26 --language=c++ --enable=warning,style,performance,portability --error-exitcode=1 -Iinclude -Isrc
       - name: Final format verification
-        run: python tools/quality/check.py format
+        shell: bash
+        run: |
+          git ls-files -z -- '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' '*.hxx' | xargs -0 -r clang-format --dry-run --Werror
