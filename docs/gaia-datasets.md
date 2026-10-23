@@ -105,20 +105,22 @@ of the last ordered key: `phot_g_mean_mag` and `source_id`. A `gaia-dr3.csv.gz.p
 file is incomplete; successful verification renames it to `gaia-dr3.csv.gz` and
 creates `manifest.json`.
 
-## Acquisition command record
+## Acquisition record policy
 
-When acquiring the catalogue, record the exact executed commands in a Markdown
-file, including complete ADQL queries or the exact contents of referenced query
-files, endpoint, selected columns, filters, ordering, limits, and output paths.
-Include any batch/merge/compression commands and their outcomes. Distinguish
-commands actually executed from proposed update commands. Record source release,
-retrieval date, counts, and checksums so future updates can be reproduced.
-See [execution log](../data/gaia-dr3/acquisition-log.md) for exact executed
-commands and [download utility](../tools/acquire_gaia.py) for resumable acquisition.
-The final catalogue is not complete until manifest.json exists alongside
-gaia-dr3.csv.gz; a .partial file is unfinished. Benchmark CSV hashes are recorded
-in the completion manifest. The bounded M1 loader is implemented; this acquisition
-does not extend it.
+Human Markdown is a concise reproducibility record: retain source/release, exact
+selection/query template and continuation rule, script version and invocation,
+limits, final count/size/date/checksum and verification scope. Aggregate repeated
+failures by cause and recovery outcome; do not record every retry, poll, curl
+command or response body. Optional detailed request debugging belongs in ignored
+runtime traces, without secrets, rather than default public documentation.
+See the [canonical acquisition record](../data/gaia-dr3/acquisition-log.md) and
+[download utility](../tools/acquire_gaia.py). The existing utility still appends
+verbose Markdown; changing that logger is separate future implementation scope.
+Acquisition is complete and not running, so no active accumulation remains.
+
+A catalogue is complete only after final verification produces manifest.json
+alongside gaia-dr3.csv.gz; a .partial file is unfinished. Benchmark-prefix hashes
+remain in the local manifest. Acquisition does not extend the bounded M1 loader.
 
 ## Volume and storage evidence
 
@@ -210,7 +212,8 @@ both record the target row count and final key
 `(16.78596305847168, 5311740746825005568)`; checkpoint `done=true` and
 `stop_reason="target row count"`. The partial archive and duplicate index are
 absent. The archive was not independently rehashed, decompressed or recounted.
-The manifest and acquisition log were preserved and excluded from commits.
+The manifest remains unchanged and untracked. The acquisition record was later
+condensed with owner approval; no acquisition data or checkpoint was changed.
 Live service status could not be read through the sandbox user bus; no service
 was modified. Earlier recovery checkpoints are historical, not current status.
 

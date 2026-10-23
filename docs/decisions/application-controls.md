@@ -1,6 +1,6 @@
 # Application controls and interface direction
 
-Status: requirements clarified on 2026-09-13 and 2026-10-18; controls are not
+Status: requirements clarified through 2026-10-22; controls are not
 implemented. The [ceiling/output note](ceiling-product-output.md) records current
 owner priorities, proposals and open decisions; it does not approve implementation.
 
@@ -31,20 +31,44 @@ visualization remains visible. A change must not require restarting the app.
 
 ## Catalogue controls
 
-Selection remains magnitude based, brightest first. Catalogue size and limiting
-magnitude are independent concepts. The count option below is a proposal, not
-approved implementation or a spatial-selection requirement:
+Approved requirements, not implementation approval: normal visualization consumes
+prepared runtime data. Acquisition, normalization and binary regeneration are
+separate explicit commands; launching must not rebuild the binary.
 
-- a record-count limit selects the first N records of the common
-  brightness-ordered catalogue and defines reproducible performance workloads;
-- a limiting magnitude selects every loaded record bright enough for a chosen
-  visual/observational policy, so its resulting count varies.
+Quantity caps loaded records before scene construction. The owner's 2026-10-22
+contract requires an integer with `64 <= quantity <= available_count`, where
+`available_count` is the opened prepared catalogue record count; equality is allowed.
+Reject values below 64 or above availability,
+including zero, negatives, malformed values and overflow. Excess is an error,
+superseding warn-and-clamp. A prepared catalogue below 64 records cannot satisfy
+this viewing contract. CLI quantity overrides TOML before validating the effective
+quantity against the opened catalogue count; never adjust quantity automatically.
+The assistant recommends an initial quantity of 4096 from M1, not an owner-selected
+permanent default.
 
-Normal visualization must consume prepared runtime data. Catalogue acquisition,
-normalization, and binary regeneration are separate explicit commands or
-endpoint-like operations; the application must not rebuild the binary at every
-launch. No configuration file is currently required. If one is introduced,
-explicit CLI arguments should override it.
+Selection is global magnitude-first, independent of camera, time and view
+visibility. Quantity selects the first N records of the common brightness-ordered
+prepared catalogue; a limiting magnitude filters loaded records and may yield
+fewer visible stars. Zoom does not automatically deepen limiting magnitude.
+Any future explicit `all` syntax remains undecided; missing quantity is not
+implicit `all`.
+Quantity bounds work, not the need for later measured scaling evidence.
+
+## Launch configuration
+
+Every launch checks the chosen config path. The owner requires a complete TOML
+file containing all currently implemented settings. Preserve an existing file;
+invalid configuration or missing required fields must fail clearly, without
+silent fallback. If absent, generate the file with initial defaults. Explicit CLI
+values override TOML for that launch, including the first run, but apply only in
+memory and are not written into the newly generated file. CLI changes remain
+temporary unless explicit saving is chosen later.
+
+Automatic user configuration discovery and an explicit config-path override are
+accepted direction. Linux honors `XDG_CONFIG_HOME`, falling back to `~/.config`.
+To avoid collisions with the short name `msc`, the owner approved
+`mystarceiling/config.toml` beneath that directory. Windows `APPDATA` is a future
+portability direction.
 
 ## GUI direction
 
@@ -53,30 +77,31 @@ visualization window with a collapsible settings panel. The panel has no permane
 on-screen button; a keyboard shortcut is an approved secondary access method.
 An additional pointer gesture such as double-click remains undecided.
 
-Settings persistence is not enabled by default and remains optional. Recalculation
-should preserve the existing frame until a replacement is ready when practical.
+Saving interactive settings remains a future choice; launch configuration follows
+the TOML contract above. Recalculation should preserve the existing frame until a
+replacement is ready when practical.
 Visual controls such as magnitude/exposure and camera movement can update live;
 astronomical or catalogue changes can use Apply. Exact behavior remains
 context-dependent rather than one universal rule.
 
 ## Milestone boundary
 
-The existing roadmap places camera movement and zoom in M2. The owner now
-clarifies that camera exploration is secondary; M2 camera scope and full scope/order
-remain open for discussion. No established milestone or target date is removed
-or moved by this clarification. Location, full date/time input and astronomical
+The [revised roadmap](../../README.md#milestones) estimates M2 at 2026-12-13
+and M3 at 2027-02-28; scope remains to discuss. Camera exploration is secondary
+and its M2 extent remains open. Location, full date/time input and astronomical
 time progression remain M3 work. Camera orientation and astronomical time are
-independent; see the [transform explanation](ceiling-product-output.md#agent-explanations-and-recommendations).
+independent; share appropriate coordinate mathematics where justified without
+forcing a universal implementation.
 
-M2 planning includes star colour, glow/PSF and exposure appearance controls;
-the full scope is still to be agreed. Screenshot export is only an idea, not
-required scope. A static brightness multiplier must not be called a long exposure.
+M2 follows the owner-approved [four-part sequence](../milestones/m2-ceiling-appearance.md#approved-sequence).
+Useful bounded inspection/projection remains to agree. Screenshot
+export is optional. A brightness slider is not exposure integration.
 
-The owner requires real astrophotography and long-exposure simulation in M9;
-this is accepted scope, not merely a suggested brightness preset. Long exposure
-must model radiance integrated over an exposure duration. Full M9 work may support
-tracked and fixed cameras/star trails, sensor response/saturation/noise, optical
-PSF, atmosphere/light pollution, photographic colour/tone mapping, and
-reproducible high-resolution output. It depends on M3 time and may consume M8
-bodies. Detailed models, parameter values, and APIs remain undecided. None of
-this simulation is implemented by the current appearance mapping.
+Long-exposure simulation remains an ambition in conditional M9 backlog, without
+a mandatory date or full-model release promise. A bounded visible-light prototype
+could be the single optional September–December 2027 extension. It should integrate
+over time mathematically and be physically motivated and validated for its
+bounded model. Tracked/fixed cameras, optics, sensor, atmosphere/background and
+filter responses remain separate open choices. Full IR requires additional data
+and wavelength/sensor/filter models; current G/BP-RP or RGB cannot supply it.
+See [appearance and data limits](ceiling-product-output.md#appearance-exposure-and-data-limits).

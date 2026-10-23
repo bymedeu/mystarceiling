@@ -2,18 +2,20 @@
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/maths/vector3.hh>
 
-namespace msc::core::coordinates {
-using maths::Vector3;
+namespace msc::core::coordinates
+{
+    using maths::Vector3;
 
-Vector3 IcrsDirection::to_unit_vector() const {
-  const double alpha = ra_.get_angle().to_radian();
-  const double delta = dec_.get_angle().to_radian();
-  const double cos_declination = std::cos(delta);
+    Vector3 IcrsDirection::to_unit_vector() const
+    {
+        const double alpha = ra_.get_angle().to_radian();
+        const double delta = dec_.get_angle().to_radian();
+        const double cos_declination = std::cos(delta);
 
-  const double x = cos_declination * std::cos(alpha);
-  const double y = cos_declination * std::sin(alpha);
-  const double z = std::sin(delta);
+        const double x = cos_declination * std::cos(alpha);
+        const double y = cos_declination * std::sin(alpha);
+        const double z = std::sin(delta);
 
-  return Vector3(x, y, z);
-}
+        return Vector3(x, y, z);
+    }
 } // namespace msc::core::coordinates

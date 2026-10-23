@@ -22,3 +22,16 @@ if(MSC_ENABLE_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+# Apply project warnings only to first-party targets, never fetched dependencies.
+option(MSC_WARNINGS_AS_ERRORS "Treat first-party warnings as errors" OFF)
+if(MSC_WARNINGS_AS_ERRORS)
+    foreach(msc_target IN ITEMS mystarceiling_core mystarceiling_catalogue
+            mystarceiling_m1 mystarceiling_cli mystarceiling_renderer_gl
+            mystarceiling_tests)
+        if(TARGET ${msc_target})
+            target_compile_options(${msc_target} PRIVATE
+                "$<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wall;-Wextra;-Werror>")
+        endif()
+    endforeach()
+endif()

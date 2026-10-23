@@ -1,5 +1,4 @@
 #include <mystarceiling/catalogue/select_brightest.hh>
-#include <mystarceiling/core/astronomy/star.hh>
 
 #include <algorithm>
 #include <cstddef>

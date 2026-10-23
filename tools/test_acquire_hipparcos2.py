@@ -1,5 +1,10 @@
 """Focused acquisition tests: band selection, catalogue identity, and snapshot bounds."""
 
+import contextlib
+import io
+import sys
+from unittest.mock import patch
+
 import csv
 import gzip
 import importlib.util
@@ -31,6 +36,52 @@ class AcquisitionTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def fake_fetch(self, run, log, record, name, url, query=None):
+        target = run / name
+        if name == "hip2.dat.gz":
+            with gzip.open(target, "wt") as stream:
+                stream.write(hip_line(1, "1.0000"))
+        elif name.endswith(".xml"):
+            fields = ["match_count"] if name == "match-count.xml" else module.MATCH + module.GAIA
+            columns = "".join(f'<FIELD name="{field}"/>' for field in fields)
+            rows = "<TR><TD>0</TD></TR>" if name == "match-count.xml" else ""
+            target.write_text('<VOTABLE><RESOURCE><INFO name="QUERY_STATUS" value="OK"/>'
+                              f'<TABLE>{columns}<DATA><TABLEDATA>{rows}</TABLEDATA>'
+                              '</DATA></TABLE></RESOURCE></VOTABLE>')
+        else:
+            target.write_text("Synthetic ReadMe")
+        return target
+
+    def test_main_publishes_supplement_and_snapshot_manifest_offline(self):
+        gaia_root = self.root / "gaia"
+        gaia_root.mkdir()
+        archive = gaia_root / "gaia-dr3.csv.gz"
+        with gzip.open(archive, "wt") as stream:
+            stream.write(",".join(module.GAIA) + "\n")
+        (gaia_root / "manifest.json").write_text(json.dumps(
+            {"rows": 0, "compressed_bytes": archive.stat().st_size}))
+        output = self.root / "hipparcos"
+        args = ["acquire_hipparcos2.py", "--root", str(output),
+                "--gaia-root", str(gaia_root), "--g-limit", "2"]
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(patch.object(sys, "argv", args))
+            stack.enter_context(patch.object(module, "EXPECTED_HIP_ROWS", 1))
+            stack.enter_context(patch.object(module, "fetch", self.fake_fetch))
+            stack.enter_context(patch.object(module.subprocess, "run", side_effect=AssertionError("network")))
+            stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
+            module.main()
+        run = output / json.loads((output / "latest.json").read_text())["run"]
+        manifest = json.loads((run / "manifest.json").read_text())
+        self.assertEqual(manifest["counts"]["selected_rows"], 1)
+        self.assertEqual(manifest["gaia_snapshot"]["kind"], "completed_archive")
+        self.assertEqual(manifest["resolution_counts"], {"no_published_best_neighbour": 1})
+        with gzip.open(run / "hipparcos2-supplement.csv.gz", "rt") as stream:
+            rows = list(csv.DictReader(stream))
+        self.assertEqual(rows[0]["hip_id"], "1")
+        self.assertEqual(rows[0]["resolution_reason"], "no_published_best_neighbour")
+        self.assertEqual(manifest["files"]["hipparcos2-supplement.csv.gz"]["sha256"],
+                         module.digest(run / "hipparcos2-supplement.csv.gz"))
 
     def test_derived_g_selection_and_missing_colour(self):
         path = self.root / "hip.gz"

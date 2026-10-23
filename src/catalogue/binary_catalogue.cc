@@ -7,6 +7,7 @@
 #include <expected>
 #include <filesystem>
 #include <fstream>
+#include <ios>
 #include <istream>
 #include <limits>
 #include <mystarceiling/catalogue/catalogue_star.hh>
@@ -102,25 +103,19 @@ namespace msc::catalogue
         {
             return BinaryCatalogueError{code, std::move(detail)};
         }
-    } // namespace
+        void write_header(std::ostream& output, std::size_t count)
+        {
+            output.write(magic.data(),
+                         static_cast<std::streamsize>(magic.size()));
+            write_unsigned(output, format_version);
+            write_unsigned(output, header_size);
+            write_unsigned(output, schema_id);
+            write_unsigned(output, record_size);
+            write_unsigned(output, u32{0});
+            write_unsigned(output, static_cast<u64>(count));
+        }
 
-    std::expected<void, BinaryCatalogueError>
-    write_binary_catalogue(const std::filesystem::path& filename,
-                           std::span<const CatalogueStar> stars)
-    {
-        std::ofstream output{filename, std::ios::binary | std::ios::trunc};
-        if (!output)
-            return std::unexpected{
-                error(BinaryCatalogueErrorCode::OpenFailed, filename.string())};
-        output.write(magic.data(), static_cast<std::streamsize>(magic.size()));
-        write_unsigned(output, format_version);
-        write_unsigned(output, header_size);
-        write_unsigned(output, schema_id);
-        write_unsigned(output, record_size);
-        write_unsigned(output, u32{0});
-        write_unsigned(output, static_cast<u64>(stars.size()));
-
-        for (const auto& entry : stars)
+        void write_record(std::ostream& output, const CatalogueStar& entry)
         {
             const auto& star = entry.star();
             write_unsigned(output, entry.source_id());
@@ -150,72 +145,100 @@ namespace msc::catalogue
             write_unsigned(
                 output, static_cast<std::uint8_t>(star.colour().has_value()));
         }
-        if (!output)
-            return std::unexpected{error(BinaryCatalogueErrorCode::WriteFailed,
-                                         filename.string())};
-        return {};
-    }
 
-    std::expected<std::vector<CatalogueStar>, BinaryCatalogueError>
-    read_binary_catalogue(const std::filesystem::path& filename)
-    {
-        std::ifstream input{filename, std::ios::binary};
-        if (!input)
-            return std::unexpected{
-                error(BinaryCatalogueErrorCode::OpenFailed, filename.string())};
+        std::expected<void, BinaryCatalogueError>
+        read_magic_bytes(std::istream& input,
+                         const std::filesystem::path& filename)
+        {
+            std::array<char, magic.size()> read_magic{};
+            input.read(read_magic.data(),
+                       static_cast<std::streamsize>(read_magic.size()));
+            if (read_magic != magic)
+                return std::unexpected{error(
+                    BinaryCatalogueErrorCode::InvalidMagic, filename.string())};
+            return {};
+        }
 
-        std::array<char, magic.size()> read_magic{};
-        input.read(read_magic.data(),
-                   static_cast<std::streamsize>(read_magic.size()));
-        if (read_magic != magic)
-            return std::unexpected{error(BinaryCatalogueErrorCode::InvalidMagic,
-                                         filename.string())};
-        u16 version{};
-        u16 actual_header_size{};
-        u32 actual_schema{};
-        u32 actual_record_size{};
-        u32 reserved{};
-        u64 count{};
-        if (!read_unsigned(input, version) ||
-            !read_unsigned(input, actual_header_size) ||
-            !read_unsigned(input, actual_schema) ||
-            !read_unsigned(input, actual_record_size) ||
-            !read_unsigned(input, reserved) || !read_unsigned(input, count))
-            return std::unexpected{error(BinaryCatalogueErrorCode::ReadFailed,
-                                         "Truncated catalogue header")};
-        if (version != format_version || actual_header_size != header_size)
-            return std::unexpected{
-                error(BinaryCatalogueErrorCode::UnsupportedVersion,
-                      "Unsupported catalogue header or version")};
-        if (actual_schema != schema_id)
-            return std::unexpected{
-                error(BinaryCatalogueErrorCode::UnsupportedSchema,
-                      "Unsupported stellar schema")};
-        if (actual_record_size != record_size)
-            return std::unexpected{
-                error(BinaryCatalogueErrorCode::InvalidRecordSize,
-                      "Unexpected stellar record size")};
-        std::error_code size_error;
-        const auto actual_file_size =
-            std::filesystem::file_size(filename, size_error);
-        if (size_error ||
-            count >
-                (std::numeric_limits<u64>::max() - header_size) / record_size ||
-            actual_file_size != header_size + count * record_size)
-            return std::unexpected{
-                error(BinaryCatalogueErrorCode::InvalidFileSize,
-                      "File length does not match row count")};
-        if (count > std::vector<CatalogueStar>{}.max_size())
-            return std::unexpected{
-                error(BinaryCatalogueErrorCode::InvalidFileSize,
-                      "Row count exceeds vector capacity")};
+        std::expected<void, BinaryCatalogueError>
+        validate_header(u16 version, u16 actual_header_size, u32 actual_schema,
+                        u32 actual_record_size)
+        {
+            if (version != format_version || actual_header_size != header_size)
+                return std::unexpected{
+                    error(BinaryCatalogueErrorCode::UnsupportedVersion,
+                          "Unsupported catalogue header or version")};
+            if (actual_schema != schema_id)
+                return std::unexpected{
+                    error(BinaryCatalogueErrorCode::UnsupportedSchema,
+                          "Unsupported stellar schema")};
+            if (actual_record_size != record_size)
+                return std::unexpected{
+                    error(BinaryCatalogueErrorCode::InvalidRecordSize,
+                          "Unexpected stellar record size")};
+            return {};
+        }
 
-        std::vector<CatalogueStar> stars;
-        stars.reserve(static_cast<std::size_t>(count));
-        for (u64 index = 0; index < count; ++index)
+        std::expected<u64, BinaryCatalogueError>
+        read_header(std::istream& input)
+        {
+            u16 version{};
+            u16 actual_header_size{};
+            u32 actual_schema{};
+            u32 actual_record_size{};
+            u32 reserved{};
+            u64 count{};
+            if (!read_unsigned(input, version) ||
+                !read_unsigned(input, actual_header_size) ||
+                !read_unsigned(input, actual_schema) ||
+                !read_unsigned(input, actual_record_size) ||
+                !read_unsigned(input, reserved) || !read_unsigned(input, count))
+                return std::unexpected{
+                    error(BinaryCatalogueErrorCode::ReadFailed,
+                          "Truncated catalogue header")};
+            const auto validation = validate_header(
+                version, actual_header_size, actual_schema, actual_record_size);
+            if (!validation)
+                return std::unexpected{validation.error()};
+            return count;
+        }
+
+        std::expected<void, BinaryCatalogueError>
+        validate_file_size(const std::filesystem::path& filename, u64 count)
+        {
+            std::error_code size_error;
+            const auto actual_file_size =
+                std::filesystem::file_size(filename, size_error);
+            if (size_error ||
+                count > (std::numeric_limits<u64>::max() - header_size) /
+                        record_size ||
+                actual_file_size != header_size + count * record_size)
+                return std::unexpected{
+                    error(BinaryCatalogueErrorCode::InvalidFileSize,
+                          "File length does not match row count")};
+            if (count > std::vector<CatalogueStar>{}.max_size())
+                return std::unexpected{
+                    error(BinaryCatalogueErrorCode::InvalidFileSize,
+                          "Row count exceeds vector capacity")};
+
+            return {};
+        }
+
+        struct Record
         {
             u64 source_id{};
             std::array<double, 8> values{};
+            std::uint8_t provenance{};
+            std::uint8_t has_colour{};
+        };
+
+        std::expected<Record, BinaryCatalogueError>
+        read_record(std::istream& input)
+        {
+            Record record;
+            auto& source_id = record.source_id;
+            auto& values = record.values;
+            auto& provenance = record.provenance;
+            auto& has_colour = record.has_colour;
             if (!read_unsigned(input, source_id))
                 return std::unexpected{
                     error(BinaryCatalogueErrorCode::ReadFailed,
@@ -223,7 +246,6 @@ namespace msc::catalogue
             bool complete = true;
             for (auto& value : values)
                 complete = complete && read_double(input, value);
-            std::uint8_t provenance{}, has_colour{};
             complete = complete && read_unsigned(input, provenance) &&
                 read_unsigned(input, has_colour);
             if (!complete)
@@ -231,6 +253,14 @@ namespace msc::catalogue
                     error(BinaryCatalogueErrorCode::ReadFailed,
                           "Truncated stellar record")};
 
+            return record;
+        }
+
+        std::expected<Star, BinaryCatalogueError>
+        decode_star(const Record& record)
+        {
+            const auto& values = record.values;
+            const auto has_colour = record.has_colour;
             const auto epoch = ReferenceEpoch::try_from_julian_year(values[0]);
             const auto ra =
                 RightAscension::try_from(Angle::from_degrees(values[1]));
@@ -245,22 +275,89 @@ namespace msc::catalogue
                 ApparentMagnitude::try_from_gaia_g(values[6]);
             const auto colour =
                 ColourIndex::try_from_gaia_bp_minus_rp(values[7]);
-            if (source_id == 0 || !epoch || !ra || !dec || !pmra || !pmdec ||
-                !parallax || !magnitude || !colour || has_colour > 1 ||
+            if (!epoch || !ra || !dec || !pmra || !pmdec || !parallax ||
+                !magnitude || !colour)
+                return std::unexpected{
+                    error(BinaryCatalogueErrorCode::InvalidRecord,
+                          "Invalid stellar record")};
+            return Star{
+                *epoch,
+                IcrsDirection{*ra, *dec},
+                ProperMotionComponents{.right_ascension_cos_declination = *pmra,
+                                       .declination = *pmdec},
+                *parallax,
+                *magnitude,
+                has_colour ? std::optional{*colour} : std::nullopt};
+        }
+
+        std::expected<CatalogueStar, BinaryCatalogueError>
+        decode_record(const Record& record)
+        {
+            const auto& [source_id, values, provenance, has_colour] = record;
+            const auto star = decode_star(record);
+            if (!star)
+                return std::unexpected{star.error()};
+            if (source_id == 0 || has_colour > 1 ||
                 provenance >
                     static_cast<std::uint8_t>(CatalogueSource::Hipparcos2) ||
                 (!has_colour && values[7] != 0.0))
                 return std::unexpected{
                     error(BinaryCatalogueErrorCode::InvalidRecord,
                           "Invalid stellar record")};
-            stars.emplace_back(
-                source_id, static_cast<CatalogueSource>(provenance),
-                Star{*epoch, IcrsDirection{*ra, *dec},
-                     ProperMotionComponents{.right_ascension_cos_declination =
-                                                *pmra,
-                                            .declination = *pmdec},
-                     *parallax, *magnitude,
-                     has_colour ? std::optional{*colour} : std::nullopt});
+            return CatalogueStar{
+                source_id, static_cast<CatalogueSource>(provenance), *star};
+        }
+
+    } // namespace
+
+    std::expected<void, BinaryCatalogueError>
+    write_binary_catalogue(const std::filesystem::path& filename,
+                           std::span<const CatalogueStar> stars)
+    {
+        std::ofstream output{filename, std::ios::binary | std::ios::trunc};
+        if (!output)
+            return std::unexpected{
+                error(BinaryCatalogueErrorCode::OpenFailed, filename.string())};
+        write_header(output, stars.size());
+        for (const auto& entry : stars)
+            write_record(output, entry);
+
+        if (!output)
+            return std::unexpected{error(BinaryCatalogueErrorCode::WriteFailed,
+                                         filename.string())};
+        return {};
+    }
+
+    std::expected<std::vector<CatalogueStar>, BinaryCatalogueError>
+    read_binary_catalogue(const std::filesystem::path& filename)
+    {
+        std::ifstream input{filename, std::ios::binary};
+        if (!input)
+            return std::unexpected{
+                error(BinaryCatalogueErrorCode::OpenFailed, filename.string())};
+
+        const auto magic_result = read_magic_bytes(input, filename);
+        if (!magic_result)
+            return std::unexpected{magic_result.error()};
+        const auto header = read_header(input);
+        if (!header)
+            return std::unexpected{header.error()};
+        const auto count = *header;
+        const auto size_result = validate_file_size(filename, count);
+        if (!size_result)
+            return std::unexpected{size_result.error()};
+
+        std::vector<CatalogueStar> stars;
+        stars.reserve(static_cast<std::size_t>(count));
+        for (u64 index = 0; index < count; ++index)
+        {
+            const auto record = read_record(input);
+            if (!record)
+                return std::unexpected{record.error()};
+            const auto star = decode_record(*record);
+            if (!star)
+                return std::unexpected{star.error()};
+            stars.push_back(*star);
         }
         return stars;
     }

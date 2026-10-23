@@ -24,7 +24,7 @@ namespace msc::catalogue
 
     struct BinaryCatalogueError
     {
-        BinaryCatalogueErrorCode code;
+        BinaryCatalogueErrorCode code{};
         std::string detail;
     };
 

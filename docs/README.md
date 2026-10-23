@@ -10,6 +10,10 @@ It is plain Markdown for now; Doxygen and MkDocs integration are deferred.
 - [Star ceiling and output boundaries](decisions/ceiling-product-output.md):
   current owner priorities, colour/cache proposal, camera/time distinction,
   device flexibility and unselected implementation choices.
+- [M2 planning](milestones/m2-ceiling-appearance.md): bounded appearance/data controls,
+  estimate and open scope; no implementation approval.
+- [Record-size accounting](decisions/memory-accounting.md): measured sizeof/alignment,
+  memory illustrations and current overlapping lifetimes; not peak RSS.
 - [Catalogue integration](decisions/catalogue-integration.md): approved
   Gaia/Hipparcos boundary, Hp/G choices, and Stellarium-derived lessons.
 - [Gaia datasets](gaia-datasets.md): current acquisition scope, field review,

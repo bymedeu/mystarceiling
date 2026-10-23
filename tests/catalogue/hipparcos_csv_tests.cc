@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <cstddef>
 #include <filesystem>
+#include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/catalogue/hipparcos_csv.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <stdexcept>

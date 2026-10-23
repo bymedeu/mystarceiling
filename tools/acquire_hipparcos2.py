@@ -11,6 +11,7 @@ from collections import Counter
 import csv
 import datetime as dt
 import fcntl
+from functools import partial
 import gzip
 import hashlib
 import io
@@ -63,24 +64,11 @@ def read_hipparcos(path, g_limit):
     with gzip.open(path, "rt", encoding="ascii", newline="") as stream:
         for line_number, line in enumerate(stream, 1):
             line = line.rstrip("\r\n")
-            if len(line) != 276:
-                raise ValueError(f"Hipparcos line {line_number}: expected 276 bytes")
-            hip = int(line[0:6])
-            if hip <= 0 or hip in seen:
-                raise ValueError(f"Invalid or duplicate HIP identifier: {hip}")
-            seen.add(hip)
-            counts["source_rows"] += 1
-            # RA/Dec are radians in the source, at Julian epoch 1991.25.
-            values = [line[a:b].strip() for a, b in (
-                (15, 28), (29, 42), (51, 59), (60, 68),
-                (43, 50), (129, 136), (152, 158), (165, 171))]
-            if not all(finite(v) for v in values):
-                counts["incomplete_native_rows"] += 1
+            parsed = native_values(line, line_number, seen, counts)
+            if parsed is None:
                 continue
+            hip, values = parsed
             ra, dec, pmra, pmdec, parallax, hp, bv, vi = values
-            if not (0 <= float(ra) < 2 * math.pi and
-                    -math.pi / 2 <= float(dec) <= math.pi / 2):
-                raise ValueError(f"Invalid Hipparcos coordinates for HIP {hip}")
             counts["complete_native_rows"] += 1
             estimate = estimate_gaia_g(float(hp), float(bv), float(vi))
             if estimate is None:
@@ -102,23 +90,12 @@ def read_hipparcos(path, g_limit):
 
 def read_votable(path, expected_fields):
     root = ET.parse(path).getroot()
-    statuses = [node.get("value") for node in root.iter()
-                if node.tag.split("}")[-1] == "INFO"
-                and node.get("name") == "QUERY_STATUS"]
-    if not statuses or any(value != "OK" for value in statuses):
-        raise ValueError(f"TAP query failed or truncated: {statuses}")
-    tables = [node for node in root.iter() if node.tag.split("}")[-1] == "TABLE"]
-    if len(tables) != 1:
-        raise ValueError("Expected exactly one TAP result table")
-    table = tables[0]
+    table = result_table(root)
     fields = [node.get("name") for node in table
               if node.tag.split("}")[-1] == "FIELD"]
     if fields != expected_fields:
         raise ValueError(f"Unexpected TAP fields: {fields}")
-    data = [node for node in table.iter()
-            if node.tag.split("}")[-1] == "TABLEDATA"]
-    if len(data) != 1:
-        raise ValueError("Expected VOTable TABLEDATA encoding")
+    data = table_data(table)
     rows = []
     for node in data[0]:
         cells = [(cell.text or "").strip() for cell in node]
@@ -193,29 +170,7 @@ def local_membership(gaia_root, source_ids):
     """
     complete = gaia_root / "gaia-dr3.csv.gz"
     if complete.exists():
-        manifest_path = gaia_root / "manifest.json"
-        manifest = json.loads(manifest_path.read_text())
-        if complete.stat().st_size != manifest["compressed_bytes"]:
-            raise ValueError("Completed Gaia size disagrees with its manifest")
-        found = set()
-        count = 0
-        with gzip.open(complete, "rt", encoding="ascii", newline="") as stream:
-            reader = csv.reader(stream)
-            if next(reader) != GAIA:
-                raise ValueError("Unexpected Gaia header")
-            for row in reader:
-                count += 1
-                if len(row) != len(GAIA):
-                    raise ValueError("Malformed completed Gaia row")
-                sid = int(row[0])
-                if sid in source_ids:
-                    found.add(sid)
-        if count != manifest["rows"]:
-            raise ValueError("Completed Gaia count disagrees with its manifest")
-        return found, {"kind": "completed_archive", "path": str(complete),
-                       "rows": count, "manifest": manifest,
-                       "manifest_sha256": digest(manifest_path)}
-
+        return completed_membership(complete, source_ids)
     state_path = gaia_root / ".acquisition/state.json"
     state_bytes = state_path.read_bytes()
     state = json.loads(state_bytes)
@@ -223,20 +178,7 @@ def local_membership(gaia_root, source_ids):
     if archive.stat().st_size < state["bytes"]:
         raise ValueError("Gaia archive is shorter than its checkpoint")
     index = gaia_root / ".acquisition/ids.sqlite3"
-    db = sqlite3.connect(index.resolve().as_uri() + "?mode=ro", uri=True, timeout=10)
-    try:
-        db.execute("PRAGMA query_only=ON")
-        db.execute("BEGIN")
-        last = db.execute("SELECT MAX(row_number) FROM ids").fetchone()[0]
-        if (last or 0) < state["rows"]:
-            raise ValueError("Gaia ID index is behind its checkpoint; retry")
-        found = set()
-        for sid in source_ids:
-            result = db.execute("SELECT row_number FROM ids WHERE id = ?", (sid,)).fetchone()
-            if result and 0 < result[0] <= state["rows"]:
-                found.add(sid)
-    finally:
-        db.close()
+    found = index_membership(index, source_ids, state)
     return found, {"kind": "incomplete_checkpoint", "path": str(archive),
                    "checkpoint": state,
                    "checkpoint_sha256": hashlib.sha256(state_bytes).hexdigest(),
@@ -257,7 +199,120 @@ def write_csv(path, fields, rows):
             raise ValueError(f"CSV round-trip verification failed: {path}")
 
 
-def main():
+def native_values(line, line_number, seen, counts):
+    if len(line) != 276:
+        raise ValueError(f"Hipparcos line {line_number}: expected 276 bytes")
+    hip = int(line[0:6])
+    if hip <= 0 or hip in seen:
+        raise ValueError(f"Invalid or duplicate HIP identifier: {hip}")
+    seen.add(hip)
+    counts["source_rows"] += 1
+    # RA/Dec are radians in the source, at Julian epoch 1991.25.
+    values = [line[a:b].strip() for a, b in (
+        (15, 28), (29, 42), (51, 59), (60, 68),
+        (43, 50), (129, 136), (152, 158), (165, 171))]
+    if not all(finite(v) for v in values):
+        counts["incomplete_native_rows"] += 1
+        return None
+    ra, dec, pmra, pmdec, parallax, hp, bv, vi = values
+    if not (0 <= float(ra) < 2 * math.pi and
+            -math.pi / 2 <= float(dec) <= math.pi / 2):
+        raise ValueError(f"Invalid Hipparcos coordinates for HIP {hip}")
+    return hip, values
+
+
+def result_table(root):
+    validate_query_status(root)
+    tables = [node for node in root.iter() if node.tag.split("}")[-1] == "TABLE"]
+    if len(tables) != 1:
+        raise ValueError("Expected exactly one TAP result table")
+    return tables[0]
+
+
+def table_data(table):
+    data = [node for node in table.iter()
+            if node.tag.split("}")[-1] == "TABLEDATA"]
+    if len(data) != 1:
+        raise ValueError("Expected VOTable TABLEDATA encoding")
+    return data
+
+
+def validate_query_status(root):
+    statuses = [node.get("value") for node in root.iter()
+                if node.tag.split("}")[-1] == "INFO"
+                and node.get("name") == "QUERY_STATUS"]
+    if not statuses or any(value != "OK" for value in statuses):
+        raise ValueError(f"TAP query failed or truncated: {statuses}")
+
+
+def completed_membership(complete, source_ids):
+    manifest_path = complete.parent / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    if complete.stat().st_size != manifest["compressed_bytes"]:
+        raise ValueError("Completed Gaia size disagrees with its manifest")
+    found = set()
+    count = 0
+    with gzip.open(complete, "rt", encoding="ascii", newline="") as stream:
+        reader = csv.reader(stream)
+        if next(reader) != GAIA:
+            raise ValueError("Unexpected Gaia header")
+        for row in reader:
+            count += 1
+            if len(row) != len(GAIA):
+                raise ValueError("Malformed completed Gaia row")
+            sid = int(row[0])
+            if sid in source_ids:
+                found.add(sid)
+    if count != manifest["rows"]:
+        raise ValueError("Completed Gaia count disagrees with its manifest")
+    return found, {"kind": "completed_archive", "path": str(complete),
+                   "rows": count, "manifest": manifest,
+                   "manifest_sha256": digest(manifest_path)}
+
+
+def index_membership(index, source_ids, state):
+    db = sqlite3.connect(index.resolve().as_uri() + "?mode=ro", uri=True, timeout=10)
+    try:
+        db.execute("PRAGMA query_only=ON")
+        db.execute("BEGIN")
+        last = db.execute("SELECT MAX(row_number) FROM ids").fetchone()[0]
+        if (last or 0) < state["rows"]:
+            raise ValueError("Gaia ID index is behind its checkpoint; retry")
+        found = set()
+        for sid in source_ids:
+            result = db.execute("SELECT row_number FROM ids WHERE id = ?", (sid,)).fetchone()
+            if result and 0 < result[0] <= state["rows"]:
+                found.add(sid)
+    finally:
+        db.close()
+    return found
+
+
+def record(log, text):
+    with log.open("a") as stream:
+        stream.write(text + "\n")
+
+
+def fetch(run, log, record, name, url, query=None):
+    target = run / name
+    command = ["curl", "--fail", "--silent", "--show-error", "--location",
+               "--max-time", "120", "--output", str(target)]
+    if query is not None:
+        (run / (name + ".adql")).write_text(query + "\n")
+        command += ["--get", "--data-urlencode", "REQUEST=doQuery",
+                    "--data-urlencode", "LANG=ADQL", "--data-urlencode", "FORMAT=votable",
+                    "--data-urlencode", "MAXREC=1000000", "--data-urlencode", "QUERY=" + query]
+    command.append(url)
+    record("\n## " + dt.datetime.now(dt.timezone.utc).isoformat() +
+           "\n\n```sh\n" + shlex.join(command) + "\n```")
+    result = subprocess.run(command, capture_output=True, text=True)
+    record(f"Exit code: {result.returncode}\n\n```text\n{result.stderr}\n```")
+    if result.returncode:
+        raise RuntimeError(f"Download failed; see {log}. Previous completed runs are intact.")
+    return target
+
+
+def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--gaia-root", type=Path, required=True)
@@ -270,45 +325,10 @@ def main():
     root, gaia_root = args.root.resolve(), args.gaia_root.resolve()
     if root == gaia_root or root.is_relative_to(gaia_root) or gaia_root.is_relative_to(root):
         parser.error("Hipparcos and Gaia roots must be separate directories")
-    root.mkdir(parents=True, exist_ok=True)
-    lock = (root / ".acquire.lock").open("a")
-    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    started = dt.datetime.now(dt.timezone.utc)
-    run = root / "runs" / started.strftime("%Y%m%dT%H%M%S.%fZ")
-    run.mkdir(parents=True)
-    log = run / "acquisition-log.md"
-    log.write_text("# Hipparcos-2 acquisition\n\n```sh\n" +
-                   shlex.join([sys.executable, *sys.argv]) + "\n```\n")
+    return args, root, gaia_root
 
-    def record(text):
-        with log.open("a") as stream:
-            stream.write(text + "\n")
 
-    def fetch(name, url, query=None):
-        target = run / name
-        command = ["curl", "--fail", "--silent", "--show-error", "--location",
-                   "--max-time", "120", "--output", str(target)]
-        if query is not None:
-            (run / (name + ".adql")).write_text(query + "\n")
-            command += ["--get", "--data-urlencode", "REQUEST=doQuery",
-                        "--data-urlencode", "LANG=ADQL", "--data-urlencode", "FORMAT=votable",
-                        "--data-urlencode", "MAXREC=1000000", "--data-urlencode", "QUERY=" + query]
-        command.append(url)
-        record("\n## " + dt.datetime.now(dt.timezone.utc).isoformat() +
-               "\n\n```sh\n" + shlex.join(command) + "\n```")
-        result = subprocess.run(command, capture_output=True, text=True)
-        record(f"Exit code: {result.returncode}\n\n```text\n{result.stderr}\n```")
-        if result.returncode:
-            raise RuntimeError(f"Download failed; see {log}. Previous completed runs are intact.")
-        return target
-
-    print(f"Acquiring Hipparcos-2 derived G < {args.g_limit}; output: {run}", flush=True)
-    fetch("ReadMe", CDS + "ReadMe")
-    hip = fetch("hip2.dat.gz", CDS + "hip2.dat.gz")
-    selected, counts = read_hipparcos(hip, args.g_limit)
-    if counts["source_rows"] != EXPECTED_HIP_ROWS:
-        raise ValueError("Hipparcos-2 source count changed; inspect before accepting")
-    write_csv(run / "hipparcos2.csv.gz", PREPARED, selected)
+def fetch_matches(args, selected, fetch):
     hip_ids = {int(row["hip_id"]) for row in selected}
     matches = []
     if hip_ids:
@@ -321,7 +341,10 @@ def main():
         if len(matches) != int(count_rows[0]["match_count"]):
             raise ValueError("Cross-match row count mismatch")
         validate_matches(matches, hip_ids)
-    found, snapshot = local_membership(gaia_root, {int(row["source_id"]) for row in matches})
+    return hip_ids, matches
+
+
+def crossmatch_rows(selected, matches, hip_ids, found):
     by_hip = {hip: [] for hip in hip_ids}
     for row in matches:
         by_hip[int(row["original_ext_source_id"])].append(row)
@@ -342,53 +365,105 @@ def main():
                                    [link[field] for field in GAIA] +
                                    [link[field] for field in MATCH[1:]])))
             status_counts[status] += 1
-    write_csv(run / "gaia-crossmatch.csv.gz", fields, output)
-    supplement, resolution_counts = resolve_supplement(selected, matches, found)
-    write_csv(run / "hipparcos2-supplement.csv.gz",
-              PREPARED + ["resolution_reason"], supplement)
+    return fields, output, status_counts
+
+
+def make_manifest(args, run, log, started, counts, status_counts, resolution_counts, snapshot):
     manifest = {
         "format_version": 1, "release": "Hipparcos-2 (van Leeuwen 2007), CDS I/311",
         "utc_started": started.isoformat(),
         "utc_completed": dt.datetime.now(dt.timezone.utc).isoformat(),
         "script_sha256": digest(Path(__file__)), "source_url": CDS,
-        "selection": {
-            "expression": "estimated_g < g_limit", "g_limit": args.g_limit,
-            "target_band": "Gaia EDR3 G", "required_native_columns": NATIVE,
-            "formula_primary": "G-Hp=-0.02392-0.4069*(B-V)+0.04569*(B-V)^2-0.0452*(B-V)^3",
-            "primary_range": "-0.25 < B-V <= 1.4",
-            "formula_fallback": "G-Hp=0.01546-0.4308*(V-I)-0.01872*(V-I)^2",
-            "fallback_range": "-0.25 < V-I < 5.0",
-            "primary_reported_scatter_mag": 0.02417,
-            "fallback_reported_scatter_mag": 0.08191,
-            "source": "Gaia EDR3 documentation, photometric relationships"
-        },
+        "selection": selection_metadata(args.g_limit),
         "counts": counts, "crossmatch_status_row_counts": dict(status_counts),
         "resolution_counts": resolution_counts,
         "crossmatch_endpoint": args.tap_endpoint,
         "crossmatch_table": "gaiadr3.hipparcos2_best_neighbour",
         "gaia_snapshot": snapshot,
-        "units": {"ra": "degrees ICRS", "dec": "degrees ICRS",
-                  "ref_epoch": "Julian year 1991.25", "pmra": "mas/yr, RA motion with cos(dec)",
-                  "pmdec": "mas/yr", "parallax": "mas", "hp_mag": "Hipparcos Hp mag",
-                  "b_v": "B minus V mag", "v_i": "V minus I mag",
-                  "estimated_g": "derived Gaia EDR3 G mag", "angular_distance": "arcsec"},
+        "units": units_metadata(),
         "order": ["estimated_g ASC", "hip_id ASC"],
-        "limitations": ["Estimated G is derived photometry, not a Gaia measurement.",
-                        "Published fit scatter is population-level, not per-star uncertainty.",
-                        "No position propagation was performed.",
-                        "No published best neighbour does not establish absence from Gaia.",
-                        "Resolution uses the recorded local Gaia snapshot and must be regenerated when it changes.",
-                        "Native source flags, errors and other fields remain in hip2.dat.gz.",
-                        "Multiple links are retained; no ambiguous identity is silently resolved."],
+        "limitations": limitations(),
         "files": {path.name: {"bytes": path.stat().st_size, "sha256": digest(path)}
                   for path in sorted(run.iterdir()) if path.is_file() and path != log},
     }
+    return manifest
+
+
+def selection_metadata(g_limit):
+    return {
+        "expression": "estimated_g < g_limit", "g_limit": g_limit,
+        "target_band": "Gaia EDR3 G", "required_native_columns": NATIVE,
+        "formula_primary": "G-Hp=-0.02392-0.4069*(B-V)+0.04569*(B-V)^2-0.0452*(B-V)^3",
+        "primary_range": "-0.25 < B-V <= 1.4",
+        "formula_fallback": "G-Hp=0.01546-0.4308*(V-I)-0.01872*(V-I)^2",
+        "fallback_range": "-0.25 < V-I < 5.0",
+        "primary_reported_scatter_mag": 0.02417,
+        "fallback_reported_scatter_mag": 0.08191,
+        "source": "Gaia EDR3 documentation, photometric relationships"
+    }
+
+
+def units_metadata():
+    return {"ra": "degrees ICRS", "dec": "degrees ICRS",
+              "ref_epoch": "Julian year 1991.25", "pmra": "mas/yr, RA motion with cos(dec)",
+              "pmdec": "mas/yr", "parallax": "mas", "hp_mag": "Hipparcos Hp mag",
+              "b_v": "B minus V mag", "v_i": "V minus I mag",
+              "estimated_g": "derived Gaia EDR3 G mag", "angular_distance": "arcsec"}
+
+
+def limitations():
+    return ["Estimated G is derived photometry, not a Gaia measurement.",
+                    "Published fit scatter is population-level, not per-star uncertainty.",
+                    "No position propagation was performed.",
+                    "No published best neighbour does not establish absence from Gaia.",
+                    "Resolution uses the recorded local Gaia snapshot and must be regenerated when it changes.",
+                    "Native source flags, errors and other fields remain in hip2.dat.gz.",
+                    "Multiple links are retained; no ambiguous identity is silently resolved."]
+
+
+def publish_run(root, run, manifest, record, counts, status_counts):
     record("\n## Validated outcome\n\n```json\n" + json.dumps(manifest, indent=2) + "\n```")
     (run / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     pointer = root / "latest.json.new"
     pointer.write_text(json.dumps({"run": str(run.relative_to(root))}, indent=2) + "\n")
     pointer.replace(root / "latest.json")
     print(json.dumps({"run": str(run), "counts": counts, "matches": dict(status_counts)}, indent=2))
+
+
+def main():
+    args, root, gaia_root = arguments()
+    root.mkdir(parents=True, exist_ok=True)
+    lock = (root / ".acquire.lock").open("a")
+    with lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        started = dt.datetime.now(dt.timezone.utc)
+        run = root / "runs" / started.strftime("%Y%m%dT%H%M%S.%fZ")
+        run.mkdir(parents=True)
+        log = run / "acquisition-log.md"
+        log.write_text("# Hipparcos-2 acquisition\n\n```sh\n" +
+                       shlex.join([sys.executable, *sys.argv]) + "\n```\n")
+
+        record_log = partial(record, log)
+        download = partial(fetch, run, log, record_log)
+        print(f"Acquiring Hipparcos-2 derived G < {args.g_limit}; output: {run}", flush=True)
+        download("ReadMe", CDS + "ReadMe")
+        hip = download("hip2.dat.gz", CDS + "hip2.dat.gz")
+        selected, counts = read_hipparcos(hip, args.g_limit)
+        if counts["source_rows"] != EXPECTED_HIP_ROWS:
+            raise ValueError("Hipparcos-2 source count changed; inspect before accepting")
+        write_csv(run / "hipparcos2.csv.gz", PREPARED, selected)
+        hip_ids, matches = fetch_matches(args, selected, download)
+        found, snapshot = local_membership(gaia_root, {int(row["source_id"]) for row in matches})
+        fields, output, status_counts = crossmatch_rows(selected, matches, hip_ids, found)
+        write_csv(run / "gaia-crossmatch.csv.gz", fields, output)
+        supplement, resolution_counts = resolve_supplement(selected, matches, found)
+        write_csv(run / "hipparcos2-supplement.csv.gz",
+                  PREPARED + ["resolution_reason"], supplement)
+        manifest = make_manifest(
+            args, run, log, started,
+            counts, status_counts, resolution_counts, snapshot,
+        )
+        publish_run(root, run, manifest, record_log, counts, status_counts)
 
 
 if __name__ == "__main__":

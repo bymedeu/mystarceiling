@@ -1,1 +1,14 @@
-../../../.config/clang/.clang-tidy
+---
+Checks: >
+  -*,
+  misc-include-cleaner
+WarningsAsErrors: 'misc-include-cleaner'
+HeaderFilterRegex: '.*'
+FormatStyle: file
+CheckOptions:
+  misc-include-cleaner.DeduplicateFindings: true
+  misc-include-cleaner.IgnoreHeaders: ''
+  misc-include-cleaner.MissingIncludes: true
+  misc-include-cleaner.UnusedIncludes: true
+SystemHeaders: false
+...

@@ -13,51 +13,61 @@ using msc::core::coordinates::Latitude;
 using msc::core::coordinates::LatitudeError;
 using msc::core::maths::Angle;
 
-namespace {
-struct LatitudeCase {
-  Angle angle;
-};
+namespace
+{
+    struct LatitudeCase
+    {
+        Angle angle;
+    };
 
-void PrintTo(const LatitudeCase &test_case, std::ostream *output) {
-  *output << std::setprecision(std::numeric_limits<double>::max_digits10)
-          << test_case.angle.to_degrees()
-          << " deg (= " << test_case.angle.to_radian() << " rad)";
-}
+    void PrintTo(const LatitudeCase& test_case, std::ostream* output)
+    {
+        *output << std::setprecision(std::numeric_limits<double>::max_digits10)
+                << test_case.angle.to_degrees()
+                << " deg (= " << test_case.angle.to_radian() << " rad)";
+    }
 
-constexpr auto latitude = Latitude::try_from(Angle::from_degrees(48.8566));
-static_assert(latitude.has_value());
+    constexpr auto latitude = Latitude::try_from(Angle::from_degrees(48.8566));
+    static_assert(latitude.has_value());
 
-constexpr auto invalid_latitude = Latitude::try_from(Angle::from_degrees(91.0));
-static_assert(!invalid_latitude.has_value());
-static_assert(invalid_latitude.error() == LatitudeError::OutOfRange);
+    constexpr auto invalid_latitude =
+        Latitude::try_from(Angle::from_degrees(91.0));
+    static_assert(!invalid_latitude.has_value());
+    static_assert(invalid_latitude.error() == LatitudeError::OutOfRange);
 
-class ValidLatitudeTest : public ::testing::TestWithParam<LatitudeCase> {};
+    class ValidLatitudeTest : public ::testing::TestWithParam<LatitudeCase>
+    {};
 
-class OutOfRangeLatitudeTest : public ::testing::TestWithParam<LatitudeCase> {};
+    class OutOfRangeLatitudeTest : public ::testing::TestWithParam<LatitudeCase>
+    {};
 
-class NonFiniteLatitudeTest : public ::testing::TestWithParam<LatitudeCase> {};
+    class NonFiniteLatitudeTest : public ::testing::TestWithParam<LatitudeCase>
+    {};
 } // namespace
 
-TEST_P(ValidLatitudeTest, PreservesValidAngle) {
-  const auto angle = GetParam().angle;
-  const auto latitude = Latitude::try_from(angle);
+TEST_P(ValidLatitudeTest, PreservesValidAngle)
+{
+    const auto angle = GetParam().angle;
+    const auto latitude = Latitude::try_from(angle);
 
-  ASSERT_TRUE(latitude.has_value());
-  EXPECT_DOUBLE_EQ(latitude->get_angle().to_radian(), angle.to_radian());
+    ASSERT_TRUE(latitude.has_value());
+    EXPECT_DOUBLE_EQ(latitude->get_angle().to_radian(), angle.to_radian());
 }
 
-TEST_P(OutOfRangeLatitudeTest, RejectsAngleOutsideClosedRange) {
-  const auto latitude = Latitude::try_from(GetParam().angle);
+TEST_P(OutOfRangeLatitudeTest, RejectsAngleOutsideClosedRange)
+{
+    const auto latitude = Latitude::try_from(GetParam().angle);
 
-  ASSERT_FALSE(latitude.has_value());
-  EXPECT_EQ(latitude.error(), LatitudeError::OutOfRange);
+    ASSERT_FALSE(latitude.has_value());
+    EXPECT_EQ(latitude.error(), LatitudeError::OutOfRange);
 }
 
-TEST_P(NonFiniteLatitudeTest, RejectsNonFiniteAngle) {
-  const auto latitude = Latitude::try_from(GetParam().angle);
+TEST_P(NonFiniteLatitudeTest, RejectsNonFiniteAngle)
+{
+    const auto latitude = Latitude::try_from(GetParam().angle);
 
-  ASSERT_FALSE(latitude.has_value());
-  EXPECT_EQ(latitude.error(), LatitudeError::NonFinite);
+    ASSERT_FALSE(latitude.has_value());
+    EXPECT_EQ(latitude.error(), LatitudeError::NonFinite);
 }
 
 INSTANTIATE_TEST_SUITE_P(

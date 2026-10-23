@@ -7,8 +7,8 @@
 
 #include <cmath>
 #include <expected>
-#include <numbers>
 #include <mystarceiling/core/maths/angle.hh>
+#include <numbers>
 
 namespace msc::core::coordinates
 {
@@ -28,7 +28,7 @@ namespace msc::core::coordinates
         [[nodiscard]] constexpr maths::Angle get_angle() const noexcept;
 
     private:
-        constexpr RightAscension(const maths::Angle& angle) noexcept;
+        explicit constexpr RightAscension(const maths::Angle& angle) noexcept;
 
         maths::Angle angle_;
     };
@@ -51,7 +51,7 @@ namespace msc::core::coordinates
         return angle_;
     }
 
-    constexpr RightAscension::RightAscension(
-        const maths::Angle& angle) noexcept : angle_{angle}
+    constexpr RightAscension::RightAscension(const maths::Angle& angle) noexcept
+        : angle_{angle}
     {}
 } // namespace msc::core::coordinates

@@ -11,6 +11,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import warnings
@@ -65,46 +66,80 @@ class RecoveryTests(unittest.TestCase):
         with contextlib.closing(sqlite3.connect(self.work / "ids.sqlite3")) as db:
             return db.execute("SELECT id,row_number FROM ids ORDER BY row_number").fetchall()
 
+    def fake_result(self, command, output):
+        if self.mode == "expired-download":
+            return subprocess.CompletedProcess(command, 22, "", "HTTP 401")
+        rows = "2,2016,1,1,1,1,1,2,1\n3,2016,1,1,1,1,1,3,1\n"
+        if self.mode == "duplicate":
+            rows = "1,2016,1,1,1,1,1,2,1\n3,2016,1,1,1,1,1,3,1\n"
+        if self.mode == "short":
+            rows = rows.splitlines(True)[0]
+        if self.mode == "overflow":
+            rows += "4,2016,1,1,1,1,1,4,1\n"
+        output.write_text(HEADER + rows)
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    def fake_job_metadata(self, output):
+        owner = "anonymous" if self.mode == "anonymous" else "fixture_user"
+        query = self.query + " changed" if self.mode == "query" else self.query
+        maxrec = 1 if self.mode == "maxrec" else 2
+        output.write_text(
+            f"<job><phase>{self.phase}</phase><ownerId>{owner}</ownerId>"
+            f"<executionDuration>{self.duration}</executionDuration><parameters>"
+            f'<parameter id="query">{escape(query)}</parameter>'
+            f'<parameter id="maxrec">{maxrec}</parameter></parameters>'
+            f'<results><result xmlns:xlink="http://www.w3.org/1999/xlink" '
+            f'xlink:href="{URL}new/results/result"/></results></job>'
+        )
+        if self.phase == "EXECUTING":
+            self.phase = "COMPLETED"
+
+    def fake_run(self, output):
+        code = 0
+        if self.mode == "crash-before-run":
+            raise RuntimeError("interrupted before RUN")
+        self.phase = "COMPLETED"
+        output.write_text("")
+        if self.mode == "lost-run-response":
+            self.phase = "EXECUTING"
+            code = 28
+        return code
+
+    def fake_submission(self, command, output):
+        code = 0
+        self.query = (self.work / "batch-00026.adql").read_text()
+        Path(command[command.index("--dump-header") + 1]).write_text(
+            "HTTP/1.1 303\nSet-Cookie: SYNTHETIC_SESSION_VALUE\nLocation: " + URL + "new\n"
+        )
+        output.write_text("")
+        if self.mode == "submission-timeout":
+            code = 28
+        return code
+
+    def fake_delete(self, command, output):
+        code = 0
+        self.assertNotIn("--location", command)
+        output.write_text("")
+        if self.mode == "delete-failure":
+            code = 22
+        return code
+
     def fake_curl(self, command, **kwargs):
         self.calls.append(command)
         output = Path(command[command.index("--output") + 1])
         endpoint = command[-1]
         code = 0
         if "--dump-header" in command:
-            self.query = (self.work / "batch-00026.adql").read_text()
-            Path(command[command.index("--dump-header") + 1]).write_text(
-                "HTTP/1.1 303\nSet-Cookie: SYNTHETIC_SESSION_VALUE\nLocation: " + URL + "new\n"
-            )
-            output.write_text("")
-            if self.mode == "submission-timeout":
-                code = 28
+            code = self.fake_submission(command, output)
         elif endpoint.endswith("/executionduration"):
             self.duration = 60 if self.mode == "quota" else 600
             output.write_text("")
         elif endpoint.endswith("/phase"):
-            if self.mode == "crash-before-run":
-                raise RuntimeError("interrupted before RUN")
-            self.phase = "COMPLETED"
-            output.write_text("")
-            if self.mode == "lost-run-response":
-                self.phase = "EXECUTING"
-                code = 28
+            code = self.fake_run(output)
         elif "--request" in command:
-            self.assertNotIn("--location", command)
-            output.write_text("")
-            if self.mode == "delete-failure":
-                code = 22
+            code = self.fake_delete(command, output)
         elif endpoint.endswith("/results/result"):
-            if self.mode == "expired-download":
-                return subprocess.CompletedProcess(command, 22, "", "HTTP 401")
-            rows = "2,2016,1,1,1,1,1,2,1\n3,2016,1,1,1,1,1,3,1\n"
-            if self.mode == "duplicate":
-                rows = "1,2016,1,1,1,1,1,2,1\n3,2016,1,1,1,1,1,3,1\n"
-            if self.mode == "short":
-                rows = rows.splitlines(True)[0]
-            if self.mode == "overflow":
-                rows += "4,2016,1,1,1,1,1,4,1\n"
-            output.write_text(HEADER + rows)
+            return self.fake_result(command, output)
         elif endpoint == URL + "old":
             phase = "EXECUTING" if self.mode == "old-running" else "ABORTED"
             output.write_text(
@@ -112,24 +147,12 @@ class RecoveryTests(unittest.TestCase):
                 "<message>Maximum execution time (60 s) reached</message></job>"
             )
         else:
-            owner = "anonymous" if self.mode == "anonymous" else "fixture_user"
-            query = self.query + " changed" if self.mode == "query" else self.query
-            maxrec = 1 if self.mode == "maxrec" else 2
-            output.write_text(
-                f"<job><phase>{self.phase}</phase><ownerId>{owner}</ownerId>"
-                f"<executionDuration>{self.duration}</executionDuration><parameters>"
-                f'<parameter id="query">{escape(query)}</parameter>'
-                f'<parameter id="maxrec">{maxrec}</parameter></parameters>'
-                f'<results><result xmlns:xlink="http://www.w3.org/1999/xlink" '
-                f'xlink:href="{URL}new/results/result"/></results></job>'
-            )
-            if self.phase == "EXECUTING":
-                self.phase = "COMPLETED"
+            self.fake_job_metadata(output)
         return subprocess.CompletedProcess(command, code, "", "fixture transfer failed" if code else "")
 
     def run_acquisition(self, *, replace=True, before_replace=None):
         args = [
-            "acquire_gaia.py", "--root", str(self.root), "--target-rows", "10",
+            "acquire_gaia.py", "--root", str(self.root), "--target-rows", str(self.initial["target_rows"]),
             "--max-bytes", str(self.initial["max_bytes"]), "--cookie-jar", str(self.jar),
             "--max-batches", "1",
         ]
@@ -172,6 +195,72 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual(state["batch"], 27)
         self.assertEqual(self.ids(), [(1, 1), (2, 2), (3, 3)])
         self.assertEqual(len(gzip.decompress(self.archive.read_bytes()).splitlines()), 4)
+
+    def ingest_generated_rows(self, target, last_id):
+        state = self.state()
+        state["job_limit"] = last_id
+        args = SimpleNamespace(target_rows=target, max_bytes=state["max_bytes"])
+        rows = ([str(sid), "2016", "1", "1", "1", "1", "1", "1", "1"]
+                for sid in range(2, last_id + 1))
+        with contextlib.closing(sqlite3.connect(self.work / "ids.sqlite3")) as db:
+            inspected = gaia.ingest_rows(args, state, rows, db, self.archive, self.write_state)
+        return state, inspected
+
+    def test_multiple_members_trim_final_buffer_to_exact_target(self):
+        state, inspected = self.ingest_generated_rows(4098, 4100)
+        self.assertEqual(inspected, 4099)
+        self.assertTrue(state["done"])
+        self.assertEqual(state["cursor"], [1.0, 4098])
+        self.assertEqual(state["rows"], 4098)
+        self.assertEqual(self.ids()[-1], (4098, 4098))
+        lines = gzip.decompress(self.archive.read_bytes()).decode().splitlines()
+        self.assertEqual(len(lines), 4099)
+        self.assertEqual(lines.count(HEADER.strip()), 1)
+        self.assertEqual(lines[-1].split(",")[0], "4098")
+        self.assertEqual(self.state(), state)
+        self.assertEqual(state["bytes"], self.archive.stat().st_size)
+
+    def test_second_member_checkpoint_failure_recovers_first_member(self):
+        real_save = self.write_state
+
+        def save_first_member(state):
+            if state["rows"] > 4097:
+                raise RuntimeError("interrupted second checkpoint")
+            real_save(state)
+
+        with patch.object(self, "write_state", save_first_member):
+            with self.assertRaisesRegex(RuntimeError, "second checkpoint"):
+                self.ingest_generated_rows(4098, 4100)
+        committed = self.state()
+        self.assertEqual(committed["rows"], 4097)
+        self.assertGreater(self.archive.stat().st_size, committed["bytes"])
+        with contextlib.closing(gaia.recover_checkpoint(self.archive, self.work, committed)):
+            self.assertEqual(self.archive.stat().st_size, committed["bytes"])
+            self.assertEqual(self.ids()[-1], (4097, 4097))
+        state, _ = self.ingest_generated_rows(4098, 4100)
+        self.assertEqual(state["rows"], 4098)
+        self.assertEqual(self.ids()[-1], (4098, 4098))
+
+    def test_exact_target_finalization_publishes_verified_manifest(self):
+        self.initial["target_rows"] = 3
+        self.write_state(self.initial)
+        with patch.object(gaia, "BENCHMARKS", (2, 3)):
+            self.run_acquisition()
+        complete = self.root / "gaia-dr3.csv.gz"
+        manifest = json.loads((self.root / "manifest.json").read_text())
+        self.assertFalse(self.archive.exists())
+        self.assertFalse((self.work / "ids.sqlite3").exists())
+        self.assertEqual(manifest["rows"], 3)
+        self.assertEqual(manifest["last_key"], [3.0, 3])
+        self.assertEqual(manifest["stop_reason"], "target row count")
+        self.assertEqual(manifest["compressed_bytes"], complete.stat().st_size)
+        self.assertEqual(manifest["sha256"], gaia.hashlib.sha256(complete.read_bytes()).hexdigest())
+        lines = gzip.decompress(complete.read_bytes()).splitlines(keepends=True)
+        self.assertEqual(len(lines), 4)
+        for rows in (2, 3):
+            expected = gaia.hashlib.sha256(b"".join(lines[:rows + 1])).hexdigest()
+            self.assertEqual(manifest["prefix_csv_sha256"][str(rows)], expected)
+        self.assertTrue(self.state()["done"])
 
     def test_committed_advancement_query_and_secret_header_redaction(self):
         self.run_acquisition()

@@ -16,7 +16,7 @@ namespace msc::core::maths
 
 
     private:
-        constexpr Angle(double rad) noexcept;
+        explicit constexpr Angle(double rad) noexcept;
         double rad_;
     };
 

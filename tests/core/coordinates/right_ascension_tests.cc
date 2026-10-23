@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <limits>
 #include <mystarceiling/core/coordinates/right_ascension.hh>
+#include <mystarceiling/core/maths/angle.hh>
 #include <numbers>
 #include <ostream>
 
@@ -11,62 +12,71 @@ using msc::core::coordinates::RightAscensionError;
 using msc::core::maths::Angle;
 using std::numbers::pi;
 
-namespace {
-constexpr auto right_ascension =
-    RightAscension::try_from(Angle::from_hours(5.5));
-static_assert(right_ascension.has_value());
+namespace
+{
+    constexpr auto right_ascension =
+        RightAscension::try_from(Angle::from_hours(5.5));
+    static_assert(right_ascension.has_value());
 
-constexpr auto invalid_right_ascension =
-    RightAscension::try_from(Angle::from_radian(2.0 * pi));
-static_assert(!invalid_right_ascension.has_value());
-static_assert(invalid_right_ascension.error() ==
-              RightAscensionError::OutOfRange);
+    constexpr auto invalid_right_ascension =
+        RightAscension::try_from(Angle::from_radian(2.0 * pi));
+    static_assert(!invalid_right_ascension.has_value());
+    static_assert(invalid_right_ascension.error() ==
+                  RightAscensionError::OutOfRange);
 
-struct RightAscensionCase {
-  Angle value;
-};
+    struct RightAscensionCase
+    {
+        Angle value;
+    };
 
-class ValidRightAscensionTest
-    : public ::testing::TestWithParam<RightAscensionCase> {};
+    class ValidRightAscensionTest
+        : public ::testing::TestWithParam<RightAscensionCase>
+    {};
 
-class InvalidRightAscensionOutOfRangeTest
-    : public ::testing::TestWithParam<RightAscensionCase> {};
+    class InvalidRightAscensionOutOfRangeTest
+        : public ::testing::TestWithParam<RightAscensionCase>
+    {};
 
-class InvalidRightAscensionNonFiniteValuesTest
-    : public ::testing::TestWithParam<RightAscensionCase> {};
+    class InvalidRightAscensionNonFiniteValuesTest
+        : public ::testing::TestWithParam<RightAscensionCase>
+    {};
 
-void PrintTo(const RightAscensionCase &tcase, std::ostream *os) {
-  const auto val = tcase.value.to_radian();
-  // how to print precise value of radiant to xth digit?
-  *os << "value: " << tcase.value.to_hours() << " rad (= "
-      << std::setprecision(std::numeric_limits<double>::max_digits10) << val
-      << ")";
-}
+    void PrintTo(const RightAscensionCase& tcase, std::ostream* os)
+    {
+        const auto val = tcase.value.to_radian();
+        // how to print precise value of radiant to xth digit?
+        *os << "value: " << tcase.value.to_hours() << " rad (= "
+            << std::setprecision(std::numeric_limits<double>::max_digits10)
+            << val << ")";
+    }
 } // namespace
 
-TEST_P(ValidRightAscensionTest, TestsValidRightAscension) {
-  const auto &tcase = GetParam();
-  const auto ra = RightAscension::try_from(tcase.value);
-  ASSERT_TRUE(ra.has_value());
-  EXPECT_EQ(ra->get_angle().to_radian(), tcase.value.to_radian());
+TEST_P(ValidRightAscensionTest, TestsValidRightAscension)
+{
+    const auto& tcase = GetParam();
+    const auto ra = RightAscension::try_from(tcase.value);
+    ASSERT_TRUE(ra.has_value());
+    EXPECT_EQ(ra->get_angle().to_radian(), tcase.value.to_radian());
 }
 
 TEST_P(InvalidRightAscensionNonFiniteValuesTest,
-       TestsInvalidRightAscensionNonFiniteValues) {
-  const auto &tcase = GetParam();
-  const auto ra = RightAscension::try_from(tcase.value);
+       TestsInvalidRightAscensionNonFiniteValues)
+{
+    const auto& tcase = GetParam();
+    const auto ra = RightAscension::try_from(tcase.value);
 
-  ASSERT_FALSE(ra.has_value());
-  EXPECT_EQ(ra.error(), RightAscensionError::NonFinite);
+    ASSERT_FALSE(ra.has_value());
+    EXPECT_EQ(ra.error(), RightAscensionError::NonFinite);
 }
 
 TEST_P(InvalidRightAscensionOutOfRangeTest,
-       TestsInvalidRightAscensionOutOfRange) {
-  const auto &tcase = GetParam();
-  const auto ra = RightAscension::try_from(tcase.value);
+       TestsInvalidRightAscensionOutOfRange)
+{
+    const auto& tcase = GetParam();
+    const auto ra = RightAscension::try_from(tcase.value);
 
-  ASSERT_FALSE(ra.has_value());
-  EXPECT_EQ(ra.error(), RightAscensionError::OutOfRange);
+    ASSERT_FALSE(ra.has_value());
+    EXPECT_EQ(ra.error(), RightAscensionError::OutOfRange);
 }
 
 INSTANTIATE_TEST_SUITE_P(
