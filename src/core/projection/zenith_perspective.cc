@@ -7,7 +7,7 @@
 namespace msc::core::projection
 {
     std::optional<ProjectedDirection>
-    project_zenith_perspective(maths::Vector3 direction,
+    project_zenith_perspective(const maths::Vector3& direction,
                                double aspect_ratio) noexcept
     {
         if (!std::isfinite(aspect_ratio) || aspect_ratio <= 0.0 ||

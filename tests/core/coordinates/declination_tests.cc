@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include <mystarceiling/core/coordinates/declination.hh>
+#include <mystarceiling/core/maths/angle.hh>
 #include <numbers>
 #include <ostream>
 

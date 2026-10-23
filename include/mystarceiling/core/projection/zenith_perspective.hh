@@ -12,6 +12,6 @@ namespace msc::core::projection
     };
 
     [[nodiscard]] std::optional<ProjectedDirection>
-    project_zenith_perspective(maths::Vector3 enu_direction,
+    project_zenith_perspective(const maths::Vector3& enu_direction,
                                double aspect_ratio) noexcept;
 } // namespace msc::core::projection

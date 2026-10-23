@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <mystarceiling/core/maths/vector3.hh>
 
 #include <mystarceiling/core/projection/zenith_perspective.hh>
 

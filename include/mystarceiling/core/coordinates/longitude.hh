@@ -22,7 +22,7 @@ namespace msc::core::coordinates
         [[nodiscard]] constexpr maths::Angle get_angle() const noexcept;
 
     private:
-        constexpr Longitude(maths::Angle angle) noexcept;
+        explicit constexpr Longitude(maths::Angle angle) noexcept;
 
         maths::Angle angle_;
     };

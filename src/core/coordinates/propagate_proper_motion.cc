@@ -15,6 +15,85 @@ namespace msc::core::coordinates
 {
     using maths::Angle;
 
+    namespace
+    {
+        struct DisplacedDirection
+        {
+            double x;
+            double y;
+            double z;
+        };
+
+        std::expected<DisplacedDirection, ProperMotionPropagationError>
+        displace_direction(IcrsDirection direction, double east,
+                           double north) noexcept
+        {
+            const double right_ascension =
+                direction.get_right_ascension().get_angle().to_radian();
+            const double declination =
+                direction.get_declination().get_angle().to_radian();
+            const double sin_right_ascension = std::sin(right_ascension);
+            const double cos_right_ascension = std::cos(right_ascension);
+            const double sin_declination = std::sin(declination);
+            // cos(pi/2) is not exactly zero in floating point.
+            const double cos_declination =
+                std::abs(declination) == std::numbers::pi / 2
+                ? 0.0
+                : std::cos(declination);
+            double x = cos_declination * cos_right_ascension -
+                east * sin_right_ascension -
+                north * sin_declination * cos_right_ascension;
+            double y = cos_declination * sin_right_ascension +
+                east * cos_right_ascension -
+                north * sin_declination * sin_right_ascension;
+            double z = sin_declination + north * cos_declination;
+            if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z))
+                return std::unexpected{
+                    ProperMotionPropagationError::NonFiniteDisplacement};
+
+            return DisplacedDirection{x, y, z};
+        }
+
+        std::expected<IcrsDirection, ProperMotionPropagationError>
+        direction_from_displacement(
+            const DisplacedDirection& displaced) noexcept
+        {
+            auto [x, y, z] = displaced;
+            const double scale =
+                std::max({std::abs(x), std::abs(y), std::abs(z)});
+            if (scale == 0.0)
+                return std::unexpected{
+                    ProperMotionPropagationError::InvalidDirection};
+            x /= scale;
+            y /= scale;
+            z /= scale;
+            const double length = std::hypot(x, y, z);
+            if (!std::isfinite(length) || length == 0.0)
+                return std::unexpected{
+                    ProperMotionPropagationError::InvalidDirection};
+            x /= length;
+            y /= length;
+            z /= length;
+            const double xy = std::hypot(x, y);
+            double alpha = xy == 0.0 ? 0.0 : std::atan2(y, x);
+            constexpr double turn = 2 * std::numbers::pi;
+            if (alpha < 0.0)
+                alpha += turn;
+            // Adding a tiny negative angle to one turn can round to the
+            // endpoint.
+            if (!(alpha < turn))
+                alpha = 0.0;
+            const auto result_ra =
+                RightAscension::try_from(Angle::from_radian(alpha));
+            const auto result_dec =
+                Declination::try_from(Angle::from_radian(std::atan2(z, xy)));
+            if (!result_ra || !result_dec)
+                return std::unexpected{
+                    ProperMotionPropagationError::InvalidDirection};
+            return IcrsDirection{*result_ra, *result_dec};
+        }
+    } // namespace
+
     std::expected<IcrsDirection, ProperMotionPropagationError>
     propagate_proper_motion(IcrsDirection direction,
                             ProperMotionComponents motion,
@@ -45,58 +124,9 @@ namespace msc::core::coordinates
             return std::unexpected{
                 ProperMotionPropagationError::NonFiniteDisplacement};
 
-        const double right_ascension =
-            direction.get_right_ascension().get_angle().to_radian();
-        const double declination =
-            direction.get_declination().get_angle().to_radian();
-        const double sin_right_ascension = std::sin(right_ascension);
-        const double cos_right_ascension = std::cos(right_ascension);
-        const double sin_declination = std::sin(declination);
-        // cos(pi/2) is not exactly zero in floating point.
-        const double cos_declination =
-            std::abs(declination) == std::numbers::pi / 2
-            ? 0.0
-            : std::cos(declination);
-        double x = cos_declination * cos_right_ascension -
-            east * sin_right_ascension -
-            north * sin_declination * cos_right_ascension;
-        double y = cos_declination * sin_right_ascension +
-            east * cos_right_ascension -
-            north * sin_declination * sin_right_ascension;
-        double z = sin_declination + north * cos_declination;
-        if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z))
-            return std::unexpected{
-                ProperMotionPropagationError::NonFiniteDisplacement};
-
-        const double scale = std::max({std::abs(x), std::abs(y), std::abs(z)});
-        if (scale == 0.0)
-            return std::unexpected{
-                ProperMotionPropagationError::InvalidDirection};
-        x /= scale;
-        y /= scale;
-        z /= scale;
-        const double length = std::hypot(x, y, z);
-        if (!std::isfinite(length) || length == 0.0)
-            return std::unexpected{
-                ProperMotionPropagationError::InvalidDirection};
-        x /= length;
-        y /= length;
-        z /= length;
-        const double xy = std::hypot(x, y);
-        double alpha = xy == 0.0 ? 0.0 : std::atan2(y, x);
-        constexpr double turn = 2 * std::numbers::pi;
-        if (alpha < 0.0)
-            alpha += turn;
-        // Adding a tiny negative angle to one turn can round to the endpoint.
-        if (!(alpha < turn))
-            alpha = 0.0;
-        const auto result_ra =
-            RightAscension::try_from(Angle::from_radian(alpha));
-        const auto result_dec =
-            Declination::try_from(Angle::from_radian(std::atan2(z, xy)));
-        if (!result_ra || !result_dec)
-            return std::unexpected{
-                ProperMotionPropagationError::InvalidDirection};
-        return IcrsDirection{*result_ra, *result_dec};
+        const auto displaced = displace_direction(direction, east, north);
+        if (!displaced)
+            return std::unexpected{displaced.error()};
+        return direction_from_displacement(*displaced);
     }
 } // namespace msc::core::coordinates

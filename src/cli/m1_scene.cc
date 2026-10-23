@@ -4,6 +4,7 @@
 #include <cmath>
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/core/astronomy/star.hh>
+#include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/icrs_to_enu.hh>
 #include <mystarceiling/core/coordinates/latitude.hh>
 #include <mystarceiling/core/coordinates/longitude.hh>
@@ -15,6 +16,7 @@
 #include <mystarceiling/core/time/julian_date.hh>
 #include <mystarceiling/core/time/reference_epoch.hh>
 #include <mystarceiling/render/opengl_renderer.hh>
+#include <optional>
 #include <span>
 
 namespace msc::cli
@@ -42,6 +44,30 @@ namespace msc::cli
             std::clamp(std::pow(10.0, -0.2 * (magnitude + 1.5)), 0.0, 1.0));
     }
 
+    namespace
+    {
+        std::optional<core::coordinates::IcrsDirection>
+        scene_direction(const CatalogueStar& entry, ReferenceEpoch target,
+                        M1Scene& scene)
+        {
+            const auto& star = entry.star();
+            auto direction = star.direction();
+            if (entry.source_catalogue() == CatalogueSource::Hipparcos2)
+            {
+                const auto propagated =
+                    propagate_proper_motion(direction, star.proper_motion(),
+                                            star.reference_epoch(), target);
+                if (!propagated)
+                {
+                    ++scene.propagation_failures;
+                    return std::nullopt;
+                }
+                direction = *propagated;
+            }
+            return direction;
+        }
+    } // namespace
+
     M1Scene make_m1_scene(std::span<const CatalogueStar> stars)
     {
         const ObserverLocation observer{
@@ -56,20 +82,10 @@ namespace msc::cli
         for (const auto& entry : stars)
         {
             const auto& star = entry.star();
-            auto direction = star.direction();
-            if (entry.source_catalogue() == CatalogueSource::Hipparcos2)
-            {
-                const auto propagated =
-                    propagate_proper_motion(direction, star.proper_motion(),
-                                            star.reference_epoch(), target);
-                if (!propagated)
-                {
-                    ++scene.propagation_failures;
-                    continue;
-                }
-                direction = *propagated;
-            }
-            const auto enu = icrs_to_enu(direction, observer, rotation);
+            const auto direction = scene_direction(entry, target, scene);
+            if (!direction)
+                continue;
+            const auto enu = icrs_to_enu(*direction, observer, rotation);
             const auto projected =
                 project_zenith_perspective(enu, 1280.0 / 720.0);
             if (!projected)

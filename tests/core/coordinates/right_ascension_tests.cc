@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <limits>
 #include <mystarceiling/core/coordinates/right_ascension.hh>
+#include <mystarceiling/core/maths/angle.hh>
 #include <numbers>
 #include <ostream>
 
