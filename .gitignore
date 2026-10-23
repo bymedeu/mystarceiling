@@ -55,5 +55,7 @@ data/hipparcos2/runs/*/hip2.dat.gz
 
 # Explicit local quality-tool setup
 .quality-venv/
-tools/quality/node_modules/
 __pycache__/
+
+# Local central Clang configuration cache
+.quality-style

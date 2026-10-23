@@ -1,106 +1,72 @@
 # Contributing
 
-Use a topic branch (the owner prefers `dcodex`), Conventional Commits such as
-`chore: add quality checks`, and a PR with a conventional title. Review code,
-tests, documentation, ownership, contracts, numerical assumptions and intent;
-apply the C++ Core Guidelines in that scope. Keep code readable: do not compress
-lines, split without a coherent responsibility, suppress findings, or exclude
-legacy code to satisfy metrics. Nontrivial refactors still need the open
-[owner understanding gate](README.md#algorithmic-ownership-gate).
+Use a topic branch, Conventional Commits and a PR with a conventional title.
+Review contracts, ownership, numerical assumptions and intent. Do not compress
+code, suppress findings or exclude legacy code to satisfy metrics. The
+[owner understanding checkpoint](README.md#algorithmic-ownership-gate) stays open.
 
-Local setup (explicit downloads only; no global installs): Python **3**
-(Debian-packaged Python is supported), Node **26.10.0**, npm **12.2.0**, GCC **16.2.x**, clang-tidy **23.1.1** on PATH.
-Native prerequisites: GTest, spdlog/fmt, zlib, OpenGL, X11 development libraries
+Use GCC 16.2.x with C++26, CMake 4.4.4, clang-format 23.1.1, Lizard 1.24.2 and
+cppcheck 2.22.0 (official revision `a436ca35ed1887bee789765122b65ed2d7a7e045`).
+Native prerequisites are GTest, spdlog/fmt, zlib, OpenGL, X11 development libraries
 (Xrandr, Xinerama, Xcursor, Xi), Wayland, xkbcommon and wayland-protocols.
+GLAD requires Python 3 with Jinja2 3.1.6 and MarkupSafe 3.0.3. CMake fetches the
+pinned GLFW/GLAD sources on initial configuration; for offline work, reuse those
+sources with `FETCHCONTENT_SOURCE_DIR_GLFW`, `FETCHCONTENT_SOURCE_DIR_GLAD` and
+`FETCHCONTENT_FULLY_DISCONNECTED=ON`.
+
+Run the build and offline acquisition tests directly:
 
 ```sh
-python3 -m venv .quality-venv
-.quality-venv/bin/pip install -r tools/quality/requirements.txt
-npm ci --prefix tools/quality --ignore-scripts
-export PATH="$PWD/.quality-venv/bin:$PATH"
-git clone https://github.com/cppcheck-opensource/cppcheck.git /tmp/msc-cppcheck
-git -C /tmp/msc-cppcheck checkout --detach a436ca35ed1887bee789765122b65ed2d7a7e045
-make -C /tmp/msc-cppcheck -j2 CXXFLAGS=-O2
-export PATH="/tmp/msc-cppcheck:$PATH"
+cmake -S . -B build/ci -DMSC_WARNINGS_AS_ERRORS=ON -DMSC_ENABLE_SANITIZERS=OFF -DMSC_ENABLE_TESTS=ON
+cmake --build build/ci --parallel 2
+ctest --test-dir build/ci --output-on-failure --no-tests=error
+python3 -m unittest discover -s tools -p 'test_*.py'
+cmake -S . -B build/ci-sanitizers -DMSC_ENABLE_SANITIZERS=ON -DMSC_WARNINGS_AS_ERRORS=OFF -DMSC_ENABLE_TESTS=ON
+cmake --build build/ci-sanitizers --parallel 2
+ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 ctest --test-dir build/ci-sanitizers --output-on-failure --no-tests=error
 ```
 
-Prepare the existing pinned GLFW/GLAD sources explicitly before offline checks:
+Use separate ordinary and sanitized build directories. Sanitizers apply to all
+first-party C++ targets; findings are fatal. The ordinary build requires no
+warnings. GCC sanitizer warning false positives are handled by keeping `-Werror`
+in the ordinary build only. Vendor targets receive neither project policy.
+
+Analyze the tracked source/test inventory directly:
 
 ```sh
-cmake -S . -B build -DPython_EXECUTABLE="$PWD/.quality-venv/bin/python"
-python tools/quality/check.py all
-python -m unittest discover -s tools/quality -p 'test_*.py'
-python tools/quality/check.py commits --base origin/main --head HEAD
-printf '%s\n' 'chore: example title' | python tools/quality/check.py message
+git ls-files -z -- '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' '*.hxx' '*.py' | xargs -0 -r lizard -L40 -C10
+git ls-files -z -- '*.c' '*.cc' '*.cpp' '*.cxx' | xargs -0 -r cppcheck --std=c++26 --language=c++ --enable=warning,style,performance,portability --error-exitcode=1 -Iinclude -Isrc
+git ls-files -z -- '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' '*.hxx' | xargs -0 -r clang-format --dry-run --Werror
 ```
 
-`all` runs format, tidy, complexity, cppcheck, the warning-free build/tests and
-sanitizer build/tests, reporting each failure. Each name is also an individual
-command. Inventory comes
-from Git: C/C++ headers, implementations and tests; Python participates in Lizard.
-Only generated/vendor/build paths are excluded. Lizard enforces **physical function
-length <=40** (including comments/blanks), **CCN <=10**; NLOC is a different metric.
-Tidy builds only the generated GLAD library prerequisite before analyzing all
-first-party units. Its database leaves GCC warnings-as-errors off; the build gate
-requires them on. Tidy follows the unchanged include-cleaner policy, not every
-Core Guideline. Cppcheck 2.22.0
-requests C++26; its parser is not a full compiler or reflection validator. Unknown
-syntax remains a failure. Each tracked first-party header is analyzed through a
-temporary C++ file that includes its actual path, alongside all real source/test
-units. This supplies include context without dropping headers or suppressing
-diagnostics; a real-analyzer regression verifies included defects still fail.
-GCC compilation remains essential. New cppcheck findings require owner review;
-analyzer output is not proof of a defect.
+Lizard limits physical function length (including comments/blanks) to 40 and CCN
+to 10, including Python. Cppcheck analyzes source and test translation units with
+project includes; included headers get their real usage context. It does not
+replace GCC compilation. Clang-tidy remains local: use `clang-tidy <source.cpp>
+-p build/ci --warnings-as-errors='*'` for each first-party translation unit.
 
-`python tools/quality/check.py sanitizer-test` builds every first-party C++ target
-with ASan+UBSan, debug symbols and frame pointers, then runs the C++ suite through
-CTest. Findings are fatal; leak detection stays enabled. Both CTest gates reject
-an empty suite. `build-test` also runs the offline Python acquisition/tooling tests.
-The default CMake build is unsanitized; opt in with `-DMSC_ENABLE_SANITIZERS=ON`
-(GCC or Clang required; the project's C++26/reflection requirements still apply).
-Vendor targets receive neither sanitizer nor project warning-as-error flags.
-The independent ordinary gate retains `-Werror`; sanitizer builds omit it because
-[GCC documents sanitizer-related warning false positives](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html).
-Use separate caches: `--build` defaults to `build/quality`, while
-`--sanitizer-build` defaults to `build/quality-sanitizers`; equal paths are rejected.
-Each command explicitly sets sanitizers on or off. Sanitized test executables and
-compile commands stay build-local, preserving normal `bin/` and editor output.
-`all`, and therefore the still-inactive pre-push hook, includes the sanitizer gate
-and its extra build time. No hook activation is implied.
+Use the [shared language hooks](https://github.com/bymedeu/config/tree/main/git)
+and their documented explicit tool installation and global activation. MSC needs
+no project hook adapter. Shared defaults select languages: clang-format and Ruff
+format before commits, cppcheck, Lizard and Ruff check before pushes. Formatting
+preserves unstaged work; review formatter changes and re-stage deliberately.
+Hooks run no project build or sanitizer suite. Native hooks remain chained.
+Check activation with `git config --show-origin --get core.hooksPath`.
 
-Hooks are tracked but **not activated**. The approved quality cleanup passes the
-warning-free build (119 C++ tests), 30 offline acquisition tests, 17 tooling tests,
-Lizard, cppcheck, pinned formatting and local tidy. The catalogue understanding
-checkpoint remains open. Hook activation still requires owner review. Later,
-`python tools/quality/hooks.py install` installs the tracked hook path only when
-no custom hooks/configuration exist. It refuses to
-overwrite them. The push hook blocks every destination `refs/heads/main`, including
-`HEAD:main` and deletion; checks every outgoing nondeleted tip in a temporary
-snapshot; and never downloads dependencies. New branches need a local
-`origin/main`. Set `MSC_DEPENDENCY_ROOT` to an absolute prepared `_deps` directory
-if different from `build/_deps`. Hooks are bypassable; they are not remote protection.
+The portable `.clang*` links use an ignored local cache. Prepare it explicitly:
 
-CI runs only for PRs targeting `main`, with one sequential required check named
-`quality`: real-head Conventional Commits and PR title policy, warning-free
-build/tests, separate ASan+UBSan C++ build/tests, Lizard, cppcheck, then final
-`clang-format --dry-run --Werror`.
-Each failure fails the job and skips later steps. Build/analyzers check GitHub's
-proposed merge tree; policy reads actual head/base history from the event, never
-the synthetic merge commit. PR title edits rerun the job; stale PR runs cancel.
-Clang-tidy is local only. The owner formats locally before committing; CI makes
-no automatic source changes and has read-only contents permission.
+```sh
+ln -s "${XDG_CONFIG_HOME:-$HOME/.config}/clang" .quality-style
+git config --show-origin --get core.hooksPath
+```
 
-The single GCC **16.2.0** Debian environment uses distribution-packaged
-`python3`/`python3-venv`, the shared `requirements.txt`, pinned Node/actions and
-analyzer versions (LLVM format **23.1.1**, Lizard **1.24.2**, cppcheck **2.22.0**).
-Native packages remain distribution-managed. Jinja2 is pinned for GLAD.
-The tracked `.clang-format` and `.clang-tidy` are real copies from
-[bymedeu/config at ace2ad8](https://github.com/bymedeu/config/tree/ace2ad8e0d57e2cf6ea4beeb69a168d94df14469/clang);
-updates are deliberate, with no automatic cross-repository feed.
+If the cache already exists, inspect it before changing it. CI checks out the
+central config default branch once, logs that exact revision and copies its Clang
+files into the cache. The next PR run sees updated central styles.
 
-Remote `main` policy requires PRs with zero required approving reviews and the
-strict/up-to-date `quality` check from GitHub Actions, including for admins,
-with no bypass, force pushes or deletion. Normal merges remain supported with
-`PR_TITLE` as the default merge commit title. Conventional titles are required;
-self-approval and squash-only merges are not required. Any new gate failure
-remains blocking. No history rewriting.
+PRs targeting `main` run one sequential required `quality` job: standard
+Conventional Commit and PR-title actions, warning-free build/CTest and offline
+Python tests, ASan/UBSan build/CTest, Lizard, cppcheck and final clang-format.
+Builds and analyzers check the proposed merge tree; commit policy checks PR
+commits. CI has no source write permission. Remote main protection requires PRs
+and the strict/up-to-date check, including admins; no bypass or history rewriting.
