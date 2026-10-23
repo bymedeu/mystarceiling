@@ -78,9 +78,16 @@ class SharedIntegrationTests(unittest.TestCase):
     def test_real_older_tips_use_current_controller_and_immutable_inventory(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
+            central = root / 'central'
+            central.mkdir()
+            for name in (*styles.NAMES, '.clangd'):
+                (central / name).write_text('# isolated central fixture\n')
             with patch.dict(os.environ, GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM='1'):
                 good, bad = self.older_fixture(root)
-                with patch.object(check, 'ROOT', root):
+                with (
+                    patch.object(check, 'ROOT', root),
+                    patch.object(styles, 'shared', return_value=central),
+                ):
                     hooks.pre_push(io.StringIO(f'HEAD {good} refs/heads/old {"0" * 40}\n'))
                     updates = f'old {good} refs/heads/old {"0" * 40}\n'
                     updates += f'bad {bad} refs/heads/bad {good}\n'
