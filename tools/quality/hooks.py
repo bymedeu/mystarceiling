@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Tracked Git hooks: destination policy, immutable snapshots, safe installation."""
+
 import os
 from pathlib import Path
 import subprocess
@@ -8,6 +9,7 @@ import tarfile
 import tempfile
 
 import check
+import styles
 
 
 def push_updates(stream):
@@ -20,21 +22,23 @@ def push_updates(stream):
     return [fields for fields in updates if set(fields[1]) != {'0'}]
 
 
-
 def clean_git_env():
-    names = check.run(['git', 'rev-parse', '--local-env-vars'],
-                      capture_output=True, text=True).stdout.splitlines()
+    names = check.run(
+        ['git', 'rev-parse', '--local-env-vars'], capture_output=True, text=True
+    ).stdout.splitlines()
     return {key: value for key, value in os.environ.items() if key not in names}
 
 
 def snapshot(sha, destination):
     archive = destination / 'snapshot.tar'
     with archive.open('wb') as output:
-        check.run(['git', 'archive', sha], stdout=output)
+        check.run(['git', 'archive', '--format=tar', f'{sha}^{{tree}}'], stdout=output)
     tree = destination / 'tree'
     tree.mkdir()
     with tarfile.open(archive) as source:
         source.extractall(tree, filter='data')
+    if (tree / '.clang-format').is_symlink():
+        styles.materialize(tree)
     env = clean_git_env()
     subprocess.run(['git', 'init', '-q', tree], check=True, env=env)
     subprocess.run(['git', '-C', tree, 'add', '--force', '.'], check=True, env=env)
@@ -43,37 +47,57 @@ def snapshot(sha, destination):
 
 def pre_push(stream):
     updates = push_updates(stream)
-    env = dict(clean_git_env(), MSC_QUALITY_TOOLS=str(check.TOOLS.resolve()),
-               MSC_DEPENDENCY_ROOT=os.environ.get(
-                   'MSC_DEPENDENCY_ROOT', str(check.ROOT / 'build/_deps')))
+    env = dict(
+        clean_git_env(),
+        MSC_QUALITY_TOOLS=str(check.TOOLS.resolve()),
+        MSC_DEPENDENCY_ROOT=os.environ.get('MSC_DEPENDENCY_ROOT', str(check.ROOT / 'build/_deps')),
+    )
     # CI permits explicit dependency fetching; a push must always stay offline.
     env.pop('CI', None)
     for _, sha, _, remote_sha in updates:
         base = remote_sha
         if set(base) == {'0'}:
-            base = check.run(['git', 'merge-base', sha, 'refs/remotes/origin/main'],
-                             capture_output=True, text=True).stdout.strip()
+            base = check.run(
+                ['git', 'merge-base', sha, 'refs/remotes/origin/main'],
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
         check.commit_range(base, sha)
         with tempfile.TemporaryDirectory(prefix='msc-push-') as directory:
             tree = snapshot(sha, Path(directory))
-            subprocess.run([sys.executable, tree / 'tools/quality/check.py', 'all'],
-                           cwd=tree, env=env, check=True)
+            subprocess.run(
+                [sys.executable, Path(__file__).with_name('check.py'), 'push', '--root', tree],
+                cwd=tree,
+                env=env,
+                check=True,
+            )
 
 
 def install():
-    existing = check.run(['git', 'config', '--get', 'core.hooksPath'],
-                         check=False, capture_output=True, text=True)
+    existing = check.run(
+        ['git', 'config', '--local', '--get', 'core.hooksPath'],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
     if existing.stdout.strip():
-        raise RuntimeError('Existing core.hooksPath: preserve it; request review')
-    path = check.run(['git', 'rev-parse', '--git-path', 'hooks'],
-                     capture_output=True, text=True).stdout.strip()
-    hooks = Path(path)
-    if not hooks.is_absolute():
-        hooks = check.ROOT / hooks
-    custom = [p.name for p in hooks.glob('*') if not p.name.endswith('.sample')]
-    if custom:
-        raise RuntimeError(f'Existing custom hooks: {custom}; request review')
-    check.run(['git', 'config', '--local', 'core.hooksPath', '.githooks'])
+        raise RuntimeError('Existing core.hooksPath preserved; resolve local override first')
+    settings = {
+        'quality.adapter': 'tools/quality/hooks.py',
+        'quality.config': 'tools/quality/pre-commit.yaml',
+    }
+    for key, value in settings.items():
+        previous = check.run(
+            ['git', 'config', '--local', '--get', key],
+            check=False,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        if previous and previous != value:
+            raise RuntimeError(f'Existing {key} preserved')
+    styles.link()
+    for key, value in settings.items():
+        check.run(['git', 'config', '--local', key, value])
 
 
 def main():

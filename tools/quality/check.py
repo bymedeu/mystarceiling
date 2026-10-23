@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """All tracked first-party code; no installation or network operations."""
+
 import argparse
 import json
 import os
@@ -13,8 +14,15 @@ ROOT = Path(__file__).resolve().parents[2]
 TOOLS = Path(os.environ.get('MSC_QUALITY_TOOLS', ROOT / 'tools/quality'))
 HEADERS = {'.h', '.hh', '.hpp', '.hxx'}
 CPP = {'.c', '.cc', '.cpp', '.cxx', '.h', '.hh', '.hpp', '.hxx'}
-GENERATED = {'vendor', 'third_party', '_deps', 'build', 'generated', 'node_modules',
-             '.quality-venv'}
+GENERATED = {
+    'vendor',
+    'third_party',
+    '_deps',
+    'build',
+    'generated',
+    'node_modules',
+    '.quality-venv',
+}
 
 
 def run(args, **kwargs):
@@ -24,8 +32,11 @@ def run(args, **kwargs):
 
 def tracked():
     names = run(['git', 'ls-files', '-z'], stdout=subprocess.PIPE).stdout.split(b'\0')
-    return [Path(os.fsdecode(n)) for n in names if n and
-            not GENERATED.intersection(Path(os.fsdecode(n)).parts)]
+    return [
+        Path(os.fsdecode(n))
+        for n in names
+        if n and not GENERATED.intersection(Path(os.fsdecode(n)).parts)
+    ]
 
 
 def tool(name, version=None):
@@ -47,8 +58,7 @@ def compiler_args(build):
     for language, binary in [('C', 'gcc'), ('CXX', 'g++')]:
         expected = tool(binary, '16.2.')
         key = f'CMAKE_{language}_COMPILER'
-        previous = [line.split('=', 1)[1] for line in entries
-                    if line.startswith(f'{key}:')]
+        previous = [line.split('=', 1)[1] for line in entries if line.startswith(f'{key}:')]
         selected = previous[0] if previous else expected
         if Path(selected).resolve() != Path(expected).resolve():
             raise RuntimeError('Compiler cache mismatch; choose a fresh --build directory')
@@ -57,11 +67,18 @@ def compiler_args(build):
 
 
 def configure(build, warnings_as_errors=True, sanitizers=False):
-    args = [tool('cmake', '4.4.4'), '-S', ROOT, '-B', build,
-            f"-DMSC_WARNINGS_AS_ERRORS={'ON' if warnings_as_errors else 'OFF'}",
-            f"-DMSC_ENABLE_SANITIZERS={'ON' if sanitizers else 'OFF'}",
-            '-DMSC_ENABLE_TESTS=ON',
-            f'-DPython_EXECUTABLE={sys.executable}', *compiler_args(build)]
+    args = [
+        tool('cmake', '4.4.4'),
+        '-S',
+        ROOT,
+        '-B',
+        build,
+        f'-DMSC_WARNINGS_AS_ERRORS={"ON" if warnings_as_errors else "OFF"}',
+        f'-DMSC_ENABLE_SANITIZERS={"ON" if sanitizers else "OFF"}',
+        '-DMSC_ENABLE_TESTS=ON',
+        f'-DPython_EXECUTABLE={sys.executable}',
+        *compiler_args(build),
+    ]
     if os.environ.get('CI') != 'true':
         deps = Path(os.environ.get('MSC_DEPENDENCY_ROOT', ROOT / 'build/_deps'))
         for name in ('glfw', 'glad'):
@@ -96,16 +113,18 @@ def tidy(files, build):
     # GLAD's pinned REPRODUCIBLE generator uses bundled specs, including offline.
     run(['cmake', '--build', build, '--target', 'msc_glad', '--parallel', '2'])
     database = json.loads((build / 'compile_commands.json').read_text())
-    units = {str((ROOT / f).resolve()) for f in files if f.suffix not in
-             {'.h', '.hh', '.hpp', '.hxx'}}
+    units = {
+        str((ROOT / f).resolve()) for f in files if f.suffix not in {'.h', '.hh', '.hpp', '.hxx'}
+    }
     covered = {str(Path(e['directory'], e['file']).resolve()) for e in database}
     if units - covered:
         raise RuntimeError(f'Uncovered translation units: {units - covered}')
     failures = []
     for index, unit in enumerate(sorted(units), 1):
         print(f'clang-tidy [{index}/{len(units)}]: {unit}', flush=True)
-        result = subprocess.run([binary, unit, '-p', str(build),
-                                 '--warnings-as-errors=*'], cwd=ROOT)
+        result = subprocess.run(
+            [binary, unit, '-p', str(build), '--warnings-as-errors=*'], cwd=ROOT
+        )
         if result.returncode:
             failures.append(unit)
     if failures:
@@ -130,9 +149,18 @@ def cppcheck(files):
     binary = tool('cppcheck', '2.22.0')
     with tempfile.TemporaryDirectory(prefix='msc-cppcheck-headers-') as temporary:
         inputs = cppcheck_inputs(files, Path(temporary))
-        run([binary, '--std=c++26', '--language=c++',
-             '--enable=warning,style,performance,portability',
-             '--error-exitcode=1', '-Iinclude', '-Isrc', *inputs])
+        run(
+            [
+                binary,
+                '--std=c++26',
+                '--language=c++',
+                '--enable=warning,style,performance,portability',
+                '--error-exitcode=1',
+                '-Iinclude',
+                '-Isrc',
+                *inputs,
+            ]
+        )
 
 
 def build_test(build):
@@ -140,17 +168,33 @@ def build_test(build):
     run(['cmake', '--build', build, '--parallel', '2'])
     run(['ctest', '--test-dir', build, '--output-on-failure', '--no-tests=error'])
     run([sys.executable, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_*.py'])
-    run([sys.executable, '-m', 'unittest', 'discover', '-s', 'tools/quality', '-p', 'test_*.py'])
+    run(
+        [
+            sys.executable,
+            '-m',
+            'unittest',
+            'discover',
+            '-s',
+            'tools/quality',
+            '-p',
+            'test_*.py',
+        ]
+    )
 
 
 def sanitizer_test(build):
     # Keep GCC's sanitizer-related warning false positives out of the Werror gate.
     configure(build, warnings_as_errors=False, sanitizers=True)
-    env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1:halt_on_error=1',
-               UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
+    env = dict(
+        os.environ,
+        ASAN_OPTIONS='detect_leaks=1:halt_on_error=1',
+        UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1',
+    )
     run(['cmake', '--build', build, '--parallel', '2'], env=env)
-    run(['ctest', '--test-dir', build, '--output-on-failure', '--no-tests=error'],
-        env=env)
+    run(
+        ['ctest', '--test-dir', build, '--output-on-failure', '--no-tests=error'],
+        env=env,
+    )
 
 
 def message(text):
@@ -163,20 +207,38 @@ def message(text):
 def commit_range(base, head):
     if not base:
         raise RuntimeError('--base is required for commit validation')
-    commits = run(['git', 'rev-list', '--reverse', f'{base}..{head}'],
-                  capture_output=True, text=True).stdout.splitlines()
+    commits = run(
+        ['git', 'rev-list', '--reverse', f'{base}..{head}'],
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
     for commit in commits:
-        body = run(['git', 'show', '-s', '--format=%B', commit],
-                   capture_output=True, text=True).stdout
+        body = run(
+            ['git', 'show', '-s', '--format=%B', commit], capture_output=True, text=True
+        ).stdout
         message(body)
 
 
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('gate', choices=['format', 'tidy', 'complexity', 'cppcheck',
-                                        'build-test', 'sanitizer-test', 'all', 'message', 'commits'])
+    parser.add_argument(
+        'gate',
+        choices=[
+            'format',
+            'tidy',
+            'complexity',
+            'cppcheck',
+            'build-test',
+            'sanitizer-test',
+            'all',
+            'push',
+            'message',
+            'commits',
+        ],
+    )
     parser.add_argument('--build', type=Path, default=ROOT / 'build/quality')
     parser.add_argument('--sanitizer-build', type=Path, default=ROOT / 'build/quality-sanitizers')
+    parser.add_argument('--root', type=Path, help='Explicit immutable analysis tree')
     parser.add_argument('--base')
     parser.add_argument('--head', default='HEAD')
     args = parser.parse_args()
@@ -186,21 +248,29 @@ def arguments():
 
 
 def main():
+    global ROOT
     args = arguments()
+    if args.root is not None:
+        ROOT = args.root.resolve()
     files = tracked()
     cpp = [f for f in files if f.suffix in CPP]
-    gates = {'format': lambda: format_code(cpp),
-             'tidy': lambda: tidy(cpp, args.build.resolve()),
-             'complexity': lambda: complexity([f for f in files if f.suffix in CPP | {'.py'}]),
-             'cppcheck': lambda: cppcheck(cpp),
-             'build-test': lambda: build_test(args.build.resolve()),
-             'sanitizer-test': lambda: sanitizer_test(args.sanitizer_build.resolve()),
-             'message': lambda: message(sys.stdin.read()),
-             'commits': lambda: commit_range(args.base, args.head)}
+    gates = {
+        'format': lambda: format_code(cpp),
+        'tidy': lambda: tidy(cpp, args.build.resolve()),
+        'complexity': lambda: complexity([f for f in files if f.suffix in CPP | {'.py'}]),
+        'cppcheck': lambda: cppcheck(cpp),
+        'build-test': lambda: build_test(args.build.resolve()),
+        'sanitizer-test': lambda: sanitizer_test(args.sanitizer_build.resolve()),
+        'message': lambda: message(sys.stdin.read()),
+        'commits': lambda: commit_range(args.base, args.head),
+    }
     failed = []
-    for name in gates if args.gate == 'all' else [args.gate]:
-        if args.gate == 'all' and name in {'message', 'commits'}:
-            continue
+    selections = {
+        'all': [name for name in gates if name not in {'message', 'commits'}],
+        'push': ['complexity', 'cppcheck'],
+    }
+    selected = selections.get(args.gate, [args.gate])
+    for name in selected:
         try:
             gates[name]()
             print(f'{name}: PASS', flush=True)

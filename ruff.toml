@@ -1,0 +1,9 @@
+# Initial Python push policy: syntax, imports and undefined names.
+# Acquisition algorithms remain outside this integration's scope.
+line-length = 100
+
+[lint]
+select = ["E4", "E7", "E9", "F"]
+
+[format]
+quote-style = "single"

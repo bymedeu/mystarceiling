@@ -43,6 +43,8 @@ jobs:
           git -C /tmp/cppcheck checkout --detach a436ca35ed1887bee789765122b65ed2d7a7e045
           make -C /tmp/cppcheck -j2 CXXFLAGS=-O2
           echo /tmp/cppcheck >> "$GITHUB_PATH"
+      - name: Resolve and fetch live central Clang configuration
+        run: python tools/quality/styles.py fetch
       - name: Conventional commits and PR title (real head)
         run: python tools/quality/ci_policy.py
       - name: Warning-free build and tests

@@ -1,4 +1,5 @@
 """Offline regression tests in temporary Git repositories."""
+
 import io
 import json
 import os
@@ -13,6 +14,7 @@ from unittest.mock import patch
 import check
 import ci_policy
 import hooks
+import styles
 
 
 class ToolingTests(unittest.TestCase):
@@ -20,6 +22,9 @@ class ToolingTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        environment = patch.dict(os.environ, GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM='1')
+        environment.start()
+        self.addCleanup(environment.stop)
         subprocess.run(['git', 'init', '-q', self.root], check=True)
         self.scope = patch.object(check, 'ROOT', self.root)
         self.scope.start()
@@ -36,8 +41,9 @@ class ToolingTests(unittest.TestCase):
 
     def test_all_destinations_checked_including_delete(self):
         with self.assertRaisesRegex(RuntimeError, 'destination main'):
-            hooks.push_updates(io.StringIO('HEAD abc refs/heads/feature def\n'
-                                          '(delete) 000 refs/heads/main def\n'))
+            hooks.push_updates(
+                io.StringIO('HEAD abc refs/heads/feature def\n(delete) 000 refs/heads/main def\n')
+            )
         self.assertEqual(hooks.push_updates(['x 000 refs/heads/feature abc']), [])
 
     def test_inventory_includes_headers_tests_and_python(self):
@@ -46,8 +52,10 @@ class ToolingTests(unittest.TestCase):
             path.parent.mkdir(exist_ok=True)
             path.write_text('')
         self.git('add', '.')
-        self.assertEqual(set(check.tracked()),
-                         {Path('include/a.hh'), Path('tests/a.cc'), Path('tools/a.py')})
+        self.assertEqual(
+            set(check.tracked()),
+            {Path('include/a.hh'), Path('tests/a.cc'), Path('tools/a.py')},
+        )
 
     def test_compiler_mismatch_fails_before_cmake_can_reset_offline_flags(self):
         (self.root / 'CMakeCache.txt').write_text('CMAKE_C_COMPILER:FILEPATH=/old/gcc\n')
@@ -90,9 +98,12 @@ class ToolingTests(unittest.TestCase):
     def test_real_cmake_limits_sanitizers_to_all_first_party_units(self):
         source = Path(__file__).resolve().parents[2]
         database = self.configure_project(sanitizers=True)
-        first_party = [entry for entry in database
-                       if Path(entry['file']).is_relative_to(source / 'src') or
-                       Path(entry['file']).is_relative_to(source / 'tests')]
+        first_party = [
+            entry
+            for entry in database
+            if Path(entry['file']).is_relative_to(source / 'src')
+            or Path(entry['file']).is_relative_to(source / 'tests')
+        ]
         vendors = [entry for entry in database if entry not in first_party]
         self.assertTrue(first_party)
         self.assertTrue(vendors)
@@ -100,17 +111,34 @@ class ToolingTests(unittest.TestCase):
         for entry in first_party:
             command = entry['command']
             targets.add(command.split('CMakeFiles/')[1].split('.dir')[0])
-            for flag in ('-fsanitize=address,undefined', '-fno-sanitize-recover=all',
-                         '-fno-omit-frame-pointer', '-g'):
+            for flag in (
+                '-fsanitize=address,undefined',
+                '-fno-sanitize-recover=all',
+                '-fno-omit-frame-pointer',
+                '-g',
+            ):
                 self.assertIn(flag, command.split())
-        self.assertEqual(targets, {'mystarceiling_core', 'mystarceiling_catalogue',
-                                  'mystarceiling_m1', 'mystarceiling_cli',
-                                  'mystarceiling_renderer_gl', 'mystarceiling_tests'})
+        self.assertEqual(
+            targets,
+            {
+                'mystarceiling_core',
+                'mystarceiling_catalogue',
+                'mystarceiling_m1',
+                'mystarceiling_cli',
+                'mystarceiling_renderer_gl',
+                'mystarceiling_tests',
+            },
+        )
+        self.assert_vendor_and_link_sanitizers(vendors, source)
+
+    def assert_vendor_and_link_sanitizers(self, vendors, source):
         for entry in vendors:
             self.assertNotIn('-fsanitize', entry['command'])
             self.assertNotIn('-Werror', entry['command'])
-        for directory, target in (('src/cli', 'mystarceiling_cli'),
-                                  ('tests', 'mystarceiling_tests')):
+        for directory, target in (
+            ('src/cli', 'mystarceiling_cli'),
+            ('tests', 'mystarceiling_tests'),
+        ):
             link = self.root / directory / 'CMakeFiles' / f'{target}.dir/link.txt'
             self.assertIn('-fsanitize=address,undefined', link.read_text())
         test_link = link.read_text()
@@ -121,8 +149,7 @@ class ToolingTests(unittest.TestCase):
         database = self.configure_project(sanitizers=False)
         for entry in database:
             self.assertNotIn('-fsanitize', entry['command'])
-        self.assertIn('MSC_ENABLE_SANITIZERS:BOOL=OFF',
-                      (self.root / 'CMakeCache.txt').read_text())
+        self.assertIn('MSC_ENABLE_SANITIZERS:BOOL=OFF', (self.root / 'CMakeCache.txt').read_text())
 
     def test_sanitizer_runner_fails_on_build_or_test_failure(self):
         for failure_at in (0, 1):
@@ -151,18 +178,27 @@ class ToolingTests(unittest.TestCase):
                 check.build_test(self.root)
         commands = [call.args[0] for call in execute.call_args_list]
         self.assertIn('--no-tests=error', commands[1])
-        self.assertEqual([command[5] for command in commands[2:]],
-                         ['tools', 'tools/quality'])
+        self.assertEqual([command[5] for command in commands[2:]], ['tools', 'tools/quality'])
 
     def test_ctest_rejects_empty_suite(self):
-        result = check.run(['ctest', '--test-dir', self.root, '--no-tests=error'],
-                           check=False, capture_output=True, text=True)
+        result = check.run(
+            ['ctest', '--test-dir', self.root, '--no-tests=error'],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('No tests were found', result.stderr)
 
     def test_build_directory_collision_rejected_before_running_gates(self):
-        arguments = ['check.py', 'all', '--build', str(self.root),
-                     '--sanitizer-build', str(self.root / 'nested/..')]
+        arguments = [
+            'check.py',
+            'all',
+            '--build',
+            str(self.root),
+            '--sanitizer-build',
+            str(self.root / 'nested/..'),
+        ]
         with patch.object(sys, 'argv', arguments):
             with patch.object(check, 'tracked') as inventory:
                 with self.assertRaises(SystemExit) as failure:
@@ -182,8 +218,10 @@ class ToolingTests(unittest.TestCase):
             (build / 'compile_commands.json').write_text(json.dumps(database))
 
         def generate(args):
-            self.assertEqual(args, ['cmake', '--build', build, '--target',
-                                    'msc_glad', '--parallel', '2'])
+            self.assertEqual(
+                args,
+                ['cmake', '--build', build, '--target', 'msc_glad', '--parallel', '2'],
+            )
             self.assertFalse(header.exists())
             header.parent.mkdir(parents=True)
             header.write_text('// generated fixture\n')
@@ -201,8 +239,9 @@ class ToolingTests(unittest.TestCase):
                         tidy.assert_called_once()
 
     def test_workflow_uses_merge_quality_and_real_head_policy(self):
-        workflow = (Path(__file__).resolve().parents[2] /
-                    '.github/workflows/quality.yml').read_text()
+        workflow = (
+            Path(__file__).resolve().parents[2] / '.github/workflows/quality.yml'
+        ).read_text()
         self.assertNotIn('          ref:', workflow)
         self.assertIn('fetch-depth: 0', workflow)
         self.assertIn('branches: [main]', workflow)
@@ -216,9 +255,14 @@ class ToolingTests(unittest.TestCase):
         self.assertNotIn('requirements-ci.txt', workflow)
         self.assertIn('edited', workflow)
         self.assertIn('cancel-in-progress: true', workflow)
-        commands = ['ci_policy.py', 'check.py build-test', 'check.py sanitizer-test',
-                    'check.py complexity',
-                    'check.py cppcheck', 'check.py format']
+        commands = [
+            'ci_policy.py',
+            'check.py build-test',
+            'check.py sanitizer-test',
+            'check.py complexity',
+            'check.py cppcheck',
+            'check.py format',
+        ]
         positions = [workflow.index(command) for command in commands]
         self.assertEqual(positions, sorted(positions))
         self.assertNotIn('\n        if:', workflow)
@@ -228,9 +272,14 @@ class ToolingTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'MISSING.*cppcheck'):
                 check.cppcheck([])
 
+    def cppcheck_fixture_headers(self):
+        return [
+            Path(name)
+            for name in ('include/one.hh', 'include/two.h', 'src/nested/three.hpp', 'src/four.hxx')
+        ]
+
     def test_cppcheck_analyzes_every_header_and_real_unit(self):
-        headers = [Path(name) for name in ('include/one.hh', 'include/two.h',
-                                           'src/nested/three.hpp', 'src/four.hxx')]
+        headers = self.cppcheck_fixture_headers()
         units = [Path('src/actual.cc'), Path('tests/actual.cpp')]
         for file in headers + units:
             path = self.root / file
@@ -244,9 +293,18 @@ class ToolingTests(unittest.TestCase):
         wrappers = []
 
         def inspect_and_analyze(command):
-            self.assertEqual(command[:7], [binary, '--std=c++26', '--language=c++',
-                             '--enable=warning,style,performance,portability',
-                             '--error-exitcode=1', '-Iinclude', '-Isrc'])
+            self.assertEqual(
+                command[:7],
+                [
+                    binary,
+                    '--std=c++26',
+                    '--language=c++',
+                    '--enable=warning,style,performance,portability',
+                    '--error-exitcode=1',
+                    '-Iinclude',
+                    '-Isrc',
+                ],
+            )
             wrappers.extend(file for file in command[7:] if file not in units)
             includes = {file.read_text() for file in wrappers}
             self.assertEqual(includes, {f'#include "{self.root / header}"\n' for header in headers})
@@ -290,28 +348,45 @@ class ToolingTests(unittest.TestCase):
         self.git('config', 'core.hooksPath', 'custom-hooks')
         with self.assertRaisesRegex(RuntimeError, 'Existing core.hooksPath'):
             hooks.install()
-        self.assertEqual(self.git('config', '--get', 'core.hooksPath').stdout.strip(),
-                         'custom-hooks')
+        self.assertEqual(
+            self.git('config', '--get', 'core.hooksPath').stdout.strip(), 'custom-hooks'
+        )
 
-    def test_installer_preserves_custom_hook(self):
+    def test_installer_preserves_custom_hook_and_uses_shared_profile(self):
         custom = self.root / '.git/hooks/pre-push'
         custom.write_text('# owner hook\n')
-        with self.assertRaisesRegex(RuntimeError, 'Existing custom hooks'):
+        with patch.object(styles, 'link'):
             hooks.install()
         self.assertEqual(custom.read_text(), '# owner hook\n')
-        self.assertNotEqual(check.run(['git', 'config', '--get', 'core.hooksPath'],
-                                      check=False, capture_output=True).returncode, 0)
-
-    def test_installer_in_empty_fixture(self):
-        hooks.install()
-        self.assertEqual(self.git('config', '--get', 'core.hooksPath').stdout.strip(),
-                         '.githooks')
+        self.assertEqual(
+            self.git('config', '--get', 'quality.adapter').stdout.strip(),
+            'tools/quality/hooks.py',
+        )
+        self.assertEqual(
+            self.git('config', '--get', 'quality.config').stdout.strip(),
+            'tools/quality/pre-commit.yaml',
+        )
+        self.assertNotEqual(
+            check.run(
+                ['git', 'config', '--get', 'core.hooksPath'],
+                check=False,
+                capture_output=True,
+            ).returncode,
+            0,
+        )
 
     def test_snapshot_uses_outgoing_commit(self):
         (self.root / 'tracked.py').write_text('# committed\n')
         self.git('add', '.')
-        self.git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test',
-                 'commit', '-qm', 'test: snapshot')
+        self.git(
+            '-c',
+            'user.name=Fixture',
+            '-c',
+            'user.email=fixture@example.test',
+            'commit',
+            '-qm',
+            'test: snapshot',
+        )
         sha = self.git('rev-parse', 'HEAD').stdout.strip()
         (self.root / 'tracked.py').write_text('# later commit\n')
         self.git('add', '.')
@@ -326,40 +401,63 @@ class ToolingTests(unittest.TestCase):
         self.assertEqual((tree / 'tracked.py').read_text(), '# committed\n')
         self.assertFalse((tree / 'untracked.py').exists())
 
-
     def test_real_hook_entrypoints(self):
         source = Path(__file__).resolve().parents[2]
         shutil.copytree(source / '.githooks', self.root / '.githooks')
-        shutil.copytree(source / 'tools/quality', self.root / 'tools/quality',
-                        ignore=shutil.ignore_patterns('node_modules', '__pycache__'))
+        shutil.copytree(
+            source / 'tools/quality',
+            self.root / 'tools/quality',
+            ignore=shutil.ignore_patterns('node_modules', '__pycache__'),
+        )
         binaries = self.root / '.quality-venv/bin'
         binaries.mkdir(parents=True)
         (binaries / 'python').symlink_to(sys.executable)
-        hooks.install()
         env = dict(os.environ, MSC_QUALITY_TOOLS=str(check.TOOLS))
-        result = subprocess.run([self.root / '.githooks/pre-push'], cwd=self.root,
-                                input='HEAD abc refs/heads/main def\n', text=True,
-                                capture_output=True, env=env)
+        result = subprocess.run(
+            [self.root / '.githooks/pre-push'],
+            cwd=self.root,
+            input='HEAD abc refs/heads/main def\n',
+            text=True,
+            capture_output=True,
+            env=env,
+        )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('destination main', result.stderr)
         msg = self.root / 'message'
         for text, expected in [('chore: fixture', 0), ('malformed', 1)]:
             msg.write_text(text)
-            result = subprocess.run([self.root / '.githooks/commit-msg', msg],
-                                    cwd=self.root, capture_output=True, env=env)
+            result = subprocess.run(
+                [self.root / '.githooks/commit-msg', msg],
+                cwd=self.root,
+                capture_output=True,
+                env=env,
+            )
             self.assertEqual(result.returncode, expected)
 
     def commit(self, message):
-        self.git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test',
-                 'commit', '--allow-empty', '-qm', message)
+        self.git(
+            '-c',
+            'user.name=Fixture',
+            '-c',
+            'user.email=fixture@example.test',
+            'commit',
+            '--allow-empty',
+            '-qm',
+            message,
+        )
         return self.git('rev-parse', 'HEAD').stdout.strip()
 
     def test_pr_policy_uses_real_head_and_validates_title(self):
         base = self.commit('historical nonconventional baseline')
         head = self.commit('chore: introduced real head')
         self.commit('Merge synthetic invalid title')
-        event = {'pull_request': {'title': 'chore: reviewed title',
-                                 'base': {'sha': base}, 'head': {'sha': head}}}
+        event = {
+            'pull_request': {
+                'title': 'chore: reviewed title',
+                'base': {'sha': base},
+                'head': {'sha': head},
+            }
+        }
         path = self.root / 'event.json'
         path.write_text(json.dumps(event))
         with patch.dict(os.environ, {'GITHUB_EVENT_PATH': str(path)}):

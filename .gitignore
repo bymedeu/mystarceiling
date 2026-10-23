@@ -57,3 +57,6 @@ data/hipparcos2/runs/*/hip2.dat.gz
 .quality-venv/
 tools/quality/node_modules/
 __pycache__/
+
+# Live local/CI materialized central Clang style
+.quality-style

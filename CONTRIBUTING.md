@@ -65,20 +65,35 @@ Use separate caches: `--build` defaults to `build/quality`, while
 `--sanitizer-build` defaults to `build/quality-sanitizers`; equal paths are rejected.
 Each command explicitly sets sanitizers on or off. Sanitized test executables and
 compile commands stay build-local, preserving normal `bin/` and editor output.
-`all`, and therefore the still-inactive pre-push hook, includes the sanitizer gate
-and its extra build time. No hook activation is implied.
+`all` retains the full suite for explicit local use. Hooks run the narrower
+checks below; the ordinary and sanitizer CI gates remain required.
 
-Hooks are tracked but **not activated**. The approved quality cleanup passes the
-warning-free build (119 C++ tests), 30 offline acquisition tests, 17 tooling tests,
-Lizard, cppcheck, pinned formatting and local tidy. The catalogue understanding
-checkpoint remains open. Hook activation still requires owner review. Later,
-`python tools/quality/hooks.py install` installs the tracked hook path only when
-no custom hooks/configuration exist. It refuses to
-overwrite them. The push hook blocks every destination `refs/heads/main`, including
-`HEAD:main` and deletion; checks every outgoing nondeleted tip in a temporary
-snapshot; and never downloads dependencies. New branches need a local
-`origin/main`. Set `MSC_DEPENDENCY_ROOT` to an absolute prepared `_deps` directory
-if different from `build/_deps`. Hooks are bypassable; they are not remote protection.
+Shared hooks are maintained in [bymedeu/config](https://github.com/bymedeu/config/tree/main/git).
+Follow its `git/README.md` for explicit pinned tool setup, global activation,
+rollback and per-repository overrides. Global `core.hooksPath` makes them the
+default for **all repositories**, while local overrides retain native Git behavior.
+Existing native hooks are chained; cloned `.githooks` scripts are not implicitly
+trusted. MSC opts into its policy and tracked declarative profile with:
+
+```sh
+python tools/quality/styles.py local
+python tools/quality/hooks.py install
+git config --show-origin --get core.hooksPath
+```
+
+Pre-commit uses the pre-commit framework to run clang-format on staged C/C++
+(including headers/tests) and Ruff format on Python. It preserves unstaged work;
+a formatting change fails the commit for review and deliberate re-staging.
+Pre-push retains Conventional Commit validation and blocks every destination
+`refs/heads/main`, including `HEAD:main` and deletion. Every nondeleted outgoing
+tip is checked in an immutable snapshot with MSC's full tracked cppcheck/Lizard
+inventory and project flags (`check.py push`), plus Ruff check from the declarative
+profile. The initial Python lint policy in `ruff.toml` covers syntax, imports and
+undefined names; no semantic fixes run. No builds, tidy, sanitizer runs, tool
+installs or network requests occur from hooks. New branches need local
+`origin/main`. Existing `all` and individual commands remain available explicitly.
+Hooks are local checks, not remote protection. The catalogue understanding
+checkpoint remains open.
 
 CI runs only for PRs targeting `main`, with one sequential required check named
 `quality`: real-head Conventional Commits and PR title policy, warning-free
@@ -94,9 +109,18 @@ The single GCC **16.2.0** Debian environment uses distribution-packaged
 `python3`/`python3-venv`, the shared `requirements.txt`, pinned Node/actions and
 analyzer versions (LLVM format **23.1.1**, Lizard **1.24.2**, cppcheck **2.22.0**).
 Native packages remain distribution-managed. Jinja2 is pinned for GLAD.
-The tracked `.clang-format` and `.clang-tidy` are real copies from
-[bymedeu/config at ace2ad8](https://github.com/bymedeu/config/tree/ace2ad8e0d57e2cf6ea4beeb69a168d94df14469/clang);
-updates are deliberate, with no automatic cross-repository feed.
+The tracked `.clang-format` and `.clang-tidy` are portable relative links through
+ignored `.quality-style/`. Local setup links that directory to
+`${XDG_CONFIG_HOME:-$HOME/.config}/clang`, so editors and local checks see the live
+central files. Existing conflicting local material is preserved. No independent
+MSC style copy is maintained. Push snapshots materialize both central styles
+offline, without following machine-specific links from archived trees.
+
+CI explicitly resolves the config repository's default-branch `HEAD` **once** per
+run, logs that revision, and downloads both styles from that exact revision into
+`.quality-style/`. Changes to config do not trigger MSC CI or update PRs. The next
+normal MSC PR run sees the latest style. The pinned clang-format version remains
+23.1.1; unsupported style options fail the format gate. Clang-tidy remains local.
 
 Remote `main` policy requires PRs with zero required approving reviews and the
 strict/up-to-date `quality` check from GitHub Actions, including for admins,
