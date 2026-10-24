@@ -215,11 +215,6 @@ namespace msc::catalogue
                 return std::unexpected{
                     error(BinaryCatalogueErrorCode::InvalidFileSize,
                           "File length does not match row count")};
-            if (count > std::vector<CatalogueStar>{}.max_size())
-                return std::unexpected{
-                    error(BinaryCatalogueErrorCode::InvalidFileSize,
-                          "Row count exceeds vector capacity")};
-
             return {};
         }
 
@@ -308,6 +303,74 @@ namespace msc::catalogue
                 source_id, static_cast<CatalogueSource>(provenance), *star};
         }
 
+        std::expected<std::size_t, BinaryCatalogueError>
+        allocation_count(u64 count, std::optional<std::size_t> quantity)
+        {
+            const auto capacity = std::vector<CatalogueStar>{}.max_size();
+            if (quantity)
+            {
+                if (*quantity < 64 || std::cmp_greater(*quantity, count) ||
+                    *quantity > capacity)
+                    return std::unexpected{error(
+                        BinaryCatalogueErrorCode::InvalidQuantity,
+                        "Requested " + std::to_string(*quantity) +
+                            " records; available " + std::to_string(count) +
+                            "; require at least 64 and at most vector "
+                            "capacity " +
+                            std::to_string(capacity))};
+                return *quantity;
+            }
+            if (std::cmp_greater(count, capacity))
+                return std::unexpected{
+                    error(BinaryCatalogueErrorCode::InvalidFileSize,
+                          "Row count exceeds vector capacity")};
+            return static_cast<std::size_t>(count);
+        }
+
+        std::expected<std::vector<CatalogueStar>, BinaryCatalogueError>
+        read_records(std::istream& input, std::size_t count)
+        {
+            std::vector<CatalogueStar> stars;
+            stars.reserve(count);
+            for (std::size_t index = 0; index < count; ++index)
+            {
+                const auto record = read_record(input);
+                if (!record)
+                    return std::unexpected{record.error()};
+                const auto star = decode_record(*record);
+                if (!star)
+                    return std::unexpected{star.error()};
+                stars.push_back(*star);
+            }
+            return stars;
+        }
+
+        std::expected<std::vector<CatalogueStar>, BinaryCatalogueError>
+        read_catalogue(const std::filesystem::path& filename,
+                       std::optional<std::size_t> quantity)
+        {
+            std::ifstream input{filename, std::ios::binary};
+            if (!input)
+                return std::unexpected{error(
+                    BinaryCatalogueErrorCode::OpenFailed, filename.string())};
+
+            const auto magic_result = read_magic_bytes(input, filename);
+            if (!magic_result)
+                return std::unexpected{magic_result.error()};
+            const auto header = read_header(input);
+            if (!header)
+                return std::unexpected{header.error()};
+            const auto count = *header;
+            const auto size_result = validate_file_size(filename, count);
+            if (!size_result)
+                return std::unexpected{size_result.error()};
+
+            const auto selected = allocation_count(count, quantity);
+            if (!selected)
+                return std::unexpected{selected.error()};
+            return read_records(input, *selected);
+        }
+
     } // namespace
 
     std::expected<void, BinaryCatalogueError>
@@ -331,34 +394,13 @@ namespace msc::catalogue
     std::expected<std::vector<CatalogueStar>, BinaryCatalogueError>
     read_binary_catalogue(const std::filesystem::path& filename)
     {
-        std::ifstream input{filename, std::ios::binary};
-        if (!input)
-            return std::unexpected{
-                error(BinaryCatalogueErrorCode::OpenFailed, filename.string())};
+        return read_catalogue(filename, std::nullopt);
+    }
 
-        const auto magic_result = read_magic_bytes(input, filename);
-        if (!magic_result)
-            return std::unexpected{magic_result.error()};
-        const auto header = read_header(input);
-        if (!header)
-            return std::unexpected{header.error()};
-        const auto count = *header;
-        const auto size_result = validate_file_size(filename, count);
-        if (!size_result)
-            return std::unexpected{size_result.error()};
-
-        std::vector<CatalogueStar> stars;
-        stars.reserve(static_cast<std::size_t>(count));
-        for (u64 index = 0; index < count; ++index)
-        {
-            const auto record = read_record(input);
-            if (!record)
-                return std::unexpected{record.error()};
-            const auto star = decode_record(*record);
-            if (!star)
-                return std::unexpected{star.error()};
-            stars.push_back(*star);
-        }
-        return stars;
+    std::expected<std::vector<CatalogueStar>, BinaryCatalogueError>
+    read_binary_catalogue(const std::filesystem::path& filename,
+                          std::size_t quantity)
+    {
+        return read_catalogue(filename, quantity);
     }
 } // namespace msc::catalogue

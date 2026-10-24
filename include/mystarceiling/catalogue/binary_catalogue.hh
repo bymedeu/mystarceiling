@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <expected>
 #include <filesystem>
 #include <mystarceiling/catalogue/catalogue_star.hh>
@@ -19,7 +20,8 @@ namespace msc::catalogue
         UnsupportedSchema,
         InvalidRecordSize,
         InvalidFileSize,
-        InvalidRecord
+        InvalidRecord,
+        InvalidQuantity
     };
 
     struct BinaryCatalogueError
@@ -35,4 +37,8 @@ namespace msc::catalogue
     [[nodiscard]] std::expected<std::vector<CatalogueStar>,
                                 BinaryCatalogueError>
     read_binary_catalogue(const std::filesystem::path& filename);
+    [[nodiscard]] std::expected<std::vector<CatalogueStar>,
+                                BinaryCatalogueError>
+    read_binary_catalogue(const std::filesystem::path& filename,
+                          std::size_t quantity);
 } // namespace msc::catalogue
