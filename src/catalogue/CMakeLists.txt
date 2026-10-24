@@ -1,5 +1,5 @@
-find_package(ZLIB REQUIRED)
-find_package(spdlog REQUIRED)
+find_package(ZLIB CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 add_library(mystarceiling_catalogue
     gaia_csv.cc

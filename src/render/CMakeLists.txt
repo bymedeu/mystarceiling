@@ -1,3 +1,6 @@
+# ConanCenter has no GLFW 3.5.1 recipe; keep the exact existing release.
+# GLAD's recipe forces debug wrappers in Debug; preserve our generator contract.
+# See CONTRIBUTING.md for the bounded exceptions and offline source reuse.
 include(FetchContent)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)

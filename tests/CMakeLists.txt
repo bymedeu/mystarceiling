@@ -1,6 +1,5 @@
-find_package(GTest REQUIRED)
-find_package(ZLIB REQUIRED)
-#find_package(fmt REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+find_package(ZLIB CONFIG REQUIRED)
 
 add_executable(mystarceiling_tests
             catalogue/binary_catalogue_tests.cc

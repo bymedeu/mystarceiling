@@ -1,0 +1,12 @@
+[settings]
+os=Linux
+arch=x86_64
+compiler=gcc
+compiler.version=16
+compiler.cppstd=gnu26
+compiler.libcxx=libstdc++11
+build_type=Debug
+
+[conf]
+tools.build:compiler_executables={"c": "gcc", "cpp": "g++"}
+tools.build:jobs=2
