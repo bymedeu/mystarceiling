@@ -51,6 +51,26 @@ acquisition checkpoints differ. Carrying two catalogues into astronomy and
 rendering is also rejected because it duplicates sorting, culling, transformation,
 drawing, and benchmark paths.
 
+## Baseline regeneration — 2026-10-24
+
+The existing pipeline was rerun through a temporary C++ driver linked against the
+rebuilt libraries: `load_gaia_csv_gzip(..., 4096)` stopped after 4096 accepted
+records from `data/gaia-dr3/gaia-dr3.csv.gz`; the existing Hipparcos loader read
+`data/hipparcos2/runs/20260912T191816.016104Z/hipparcos2-supplement.csv.gz`.
+Both inputs had zero rejected rows. Existing `select_brightest(..., 4096)` retained
+all 62 supplement records. The existing binary writer and quantity-aware reader
+verified 4096 records, schema/version 2, and 303136 bytes. The binary was installed
+at the configured default `mystarceiling/catalogue.bin` beneath the local data
+root; the existing configuration was preserved.
+
+Binary SHA256: `639988203a2549bc84e923df07234d116b0f37c289cff9cf710a10ecfc776bf3`.
+Window-free default launch preparation produced 125 points, zero propagation
+failures and 720 temporary magnitude exclusions; no graphical review was made.
+The Gaia archive was neither fully scanned nor rehashed. The supplement remains
+tied to the older 76,048,576-row snapshot and was **not** freshly cross-matched
+against the completed 134,217,728-row archive; see the
+[acquisition caveat](../project-state.md#acquisition-status).
+
 ## Implemented Hp-to-G preparation
 
 Hipparcos Hp and Gaia G use different passbands, so equal numerical magnitudes do

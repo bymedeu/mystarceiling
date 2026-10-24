@@ -7,6 +7,9 @@ add_executable(mystarceiling_tests
             catalogue/hipparcos_csv_tests.cc
             catalogue/select_brightest_tests.cc
             cli/m1_scene_tests.cc
+            cli/config_tests.cc
+            cli/launch_tests.cc
+            cli/logging_tests.cc
             core/astronomy/stellar_measurements_tests.cc
             core/coordinates/declination_tests.cc
             core/coordinates/propagate_proper_motion_tests.cc
@@ -24,7 +27,7 @@ add_executable(mystarceiling_tests
             integration/catalogue_to_screen_tests.cc
 )
 target_link_libraries(mystarceiling_tests
-    PRIVATE mystarceiling_m1 mystarceiling_core mystarceiling_catalogue GTest::gtest_main ZLIB::ZLIB)
+    PRIVATE mystarceiling_launch mystarceiling_m1 mystarceiling_core mystarceiling_catalogue GTest::gtest_main ZLIB::ZLIB)
 if(NOT MSC_ENABLE_SANITIZERS)
     set_target_properties(mystarceiling_tests PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)

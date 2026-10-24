@@ -44,29 +44,78 @@ requirements; this licence does not relicense them.
 
 ---
 
-## Run the completed M1 slice
+## Run the prepared-catalogue viewer
 
-After configuring the project, build and test with:
+Configure with the pinned Conan 2/CMake flow in
+[CONTRIBUTING.md](CONTRIBUTING.md), including native prerequisites, sanitizer
+commands and offline cache use. The same toolchain can configure `build` or
+`build/quality`. After configuring `build`, build and test with:
 
 ```sh
 cmake --build build -j4
 ctest --test-dir build --output-on-failure
-build/src/cli/mystarceiling_cli \
-  data/gaia-dr3/gaia-dr3.csv.gz \
-  data/hipparcos2/runs/20260912T191816.016104Z/hipparcos2-supplement.csv.gz \
-  /tmp/msc-m1.bin
+build/src/cli/msc --help
+build/src/cli/msc view --catalogue /path/to/catalogue.bin --quantity 4096
 ```
 
-The Gaia argument uses the completed local archive's ordered prefix. The existing
-Hipparcos preparation is tied to the previous Gaia snapshot; see the
-[acquisition and supplement caveat](docs/project-state.md#acquisition-status).
-The application selects 4096 combined Gaia/Hipparcos stars, calculates the fixed
-Toulouse sky, and applies an owner-approved **temporary G<=4 display filter**.
-It requires a working graphical session. **M1 is complete on 2026-09-13**, with
-117 passing tests and owner visual review of the combined application.
-**M2 is the next planning target.** Automatic visibility and future CLI/GUI
-controls remain unimplemented; see the screenshot and evidence in the
-[M1 record](docs/milestones/m1-fixed-toulouse-sky.md).
+Optional local shortcuts can be created at the repository root after building
+the corresponding executables:
+
+```sh
+ln -s build/quality/src/cli/msc msc
+ln -s bin/mystarceiling_tests msc_tests
+./msc view
+```
+
+These relative links are ignored by Git and are not created automatically on
+fresh clones. The viewer link uses the `build/quality` build.
+
+`msc view` loads only the requested prefix of an existing brightness-ordered
+binary catalogue. It prepares the unchanged fixed Toulouse M1 scene with the
+**temporary G<=4 display filter** and opens a graphical window. Launching does
+not read raw sources or rebuild the binary. Catalogue build/info commands
+are deferred; the former positional source-building launcher has been removed.
+M1 remains complete; M2 part 1 is in progress and the broader
+[owner-understanding checkpoint](docs/project-state.md#required-understanding-checkpoint)
+remains open.
+
+Root options `--config`, `--log-file` and `--log-level` also work after `view`.
+`view` accepts `--catalogue` and `--quantity` (integer, `64 <= N <= catalogue count`).
+Bare `msc`, `--help`, `view --help` and `--version` have no configuration, logging
+or catalogue side effects.
+
+Configuration defaults to `$XDG_CONFIG_HOME/mystarceiling/config.toml`, falling
+back to `$HOME/.config/mystarceiling/config.toml`. The default catalogue is
+`$XDG_DATA_HOME/mystarceiling/catalogue.bin`, falling back to
+`$HOME/.local/share/mystarceiling/catalogue.bin`. Unset, empty or relative XDG
+values use the HOME fallback; that fallback requires an absolute HOME.
+`--config` chooses a different file. A missing file is created with concrete
+initial paths, quantity 4096, log destination `/tmp/mystarceiling.log` and level
+`warning`. Existing files are preserved, and CLI overrides are never saved.
+
+The complete current TOML schema is:
+
+```toml
+[catalogue]
+path = "/absolute/path/to/catalogue.bin"
+[view]
+quantity = 4096
+[logging]
+file = "/tmp/mystarceiling.log"
+level = "warning"
+```
+
+All fields are required; wrong types, unknown keys/tables and invalid logging
+levels fail. `[sources]` and builder capacity are deferred. Relative TOML paths
+use the config directory; relative CLI paths use the working directory. TOML
+strings do not expand environment variables. CLI overrides apply before the
+reader checks the effective quantity against the opened catalogue's count.
+
+Logging affects spdlog messages only; command output and errors stay on the
+terminal. Levels are `trace`, `debug`, `info`, `warning`, `error`, `critical`,
+`off`. A nonempty log file is created or truncated once per normal launch;
+`--log-file ''` uses the standard spdlog stderr sink. Failure to open the log
+stops the launch.
 
 ## Product Objectives
 

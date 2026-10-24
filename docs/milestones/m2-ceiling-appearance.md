@@ -53,16 +53,16 @@ pipeline; implementation needs separate approval. Keep binary schema, photometry
 astronomy and display unchanged. Camera extent and later acceptance evidence stay
 for their respective discussions.
 
-The current CLI parses/combines/sorts source CSVs and writes the binary on every
-launch. The binary reader reserves and loads the entire file; loading all then
-truncating would violate the loaded-record cap. The owner has settled the
-[reader policy](../decisions/application-controls.md#catalogue-controls): catalogue
-building establishes brightness ordering; viewing checks structure and validates
-only the requested prefix, with full inspection reserved for an explicit
-validation command. The quantity-aware reader is implemented, with 133 C++
-tests passing in both ordinary and ASan/UBSan builds. The existing launcher still
-uses the whole-file reader; separated commands, configuration and viewer wiring
-remain unimplemented. The broader catalogue-understanding checkpoint stays open.
+`msc view` now consumes an existing binary through the quantity-aware reader,
+using complete TOML configuration, temporary CLI overrides and scoped spdlog
+logging. The owner accepted removing the former positional source-building
+launcher during this transition. Scene mathematics and display remain the M1
+baseline. The [reader policy](../decisions/application-controls.md#catalogue-controls)
+checks file structure and the selected prefix. Building must check its completed
+temporary binary before publication; catalogue info reports the stored star
+count. All 159 C++ tests pass in both ordinary and ASan/UBSan builds.
+Catalogue build/info remain unimplemented. The broader
+catalogue-understanding checkpoint stays open.
 
 No RGBE, packed/batch layout, filter model, API, GUI, protocol, canonical Star or
 binary-schema change is selected. See [appearance/output boundaries](../decisions/ceiling-product-output.md),

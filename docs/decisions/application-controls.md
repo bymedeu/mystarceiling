@@ -1,7 +1,8 @@
 # Application controls and interface direction
 
-Status: requirements clarified through 2026-10-24; controls are not
-implemented. The [ceiling/output note](ceiling-product-output.md) records current
+Status: requirements clarified through 2026-10-24. The bounded reader,
+configured viewer and logging are implemented; catalogue commands remain pending.
+The [ceiling/output note](ceiling-product-output.md) records current
 owner priorities, proposals and open decisions; it does not approve implementation.
 
 ## Shared behavior
@@ -32,9 +33,17 @@ visualization remains visible. A change must not require restarting the app.
 ## Command interface
 
 The owner accepted `msc view`, `msc catalogue build`, `msc catalogue info`,
-`msc catalogue validate`, `msc --help` and `msc --version`. Source options are
+`msc --help` and `msc --version`. Source options are
 `--gaia` and `--hipparcos`, matching the `gaia` and `hipparcos` keys in `[sources]`.
 This accepts the interface direction, not implementation.
+
+The implemented executable supports `msc view`, help and version. The former
+positional source-building launcher is removed, as accepted by the owner.
+Catalogue build/info remain pending. The owner requires the complete part-1
+design to be settled before implementing the remaining scope.
+
+User-facing help and runtime output use product terms rather than milestone
+names. Milestone names remain appropriate in development documentation.
 
 ## Catalogue controls
 
@@ -42,9 +51,15 @@ Approved requirements, not implementation approval: normal visualization consume
 prepared runtime data. Acquisition, normalization and binary regeneration are
 separate explicit commands; launching must not rebuild the binary.
 
-Catalogue builds write a temporary file in the target's **same directory** and
-replace the target only after successful completion. Existing targets require
-`--force`. A requested build capacity is **exact**: insufficient usable input is
+Catalogue builds write a temporary file in the target's **same directory**,
+finish and check writing/closing, and check its structure, records and ordering
+before publication. Failure removes the temporary file during normal cleanup
+and preserves the previous catalogue. Existing targets require `--force`;
+the destination must not overwrite either input source.
+Building capacity is an integer of at least 64, initially 4096, independent of
+viewing quantity. Existing source parsers skip unusable rows; retain that policy
+with aggregate warnings. File-level failures stop the build.
+A requested build capacity is **exact**: insufficient usable input is
 an error, superseding the earlier upper-bound-with-warning proposal. Report the
 requested and available counts. When a valid alternative is known, show an
 otherwise-identical corrected command; never suggest a quantity below 64 or claim
@@ -61,8 +76,7 @@ including zero, negatives, malformed values and overflow. Excess is an error,
 superseding warn-and-clamp. A prepared catalogue below 64 records cannot satisfy
 this viewing contract. CLI quantity overrides TOML before validating the effective
 quantity against the opened catalogue count; never adjust quantity automatically.
-The assistant recommends an initial quantity of 4096 from M1, not an owner-selected
-permanent default.
+The initial generated viewing quantity is 4096, retaining the M1 baseline.
 
 Selection is global magnitude-first, independent of camera, time and view
 visibility. Quantity selects the first N records of the common brightness-ordered
@@ -77,11 +91,26 @@ file length and requested count before allocating for and decoding only the
 requested records. The complete file must match the header's total count
 (`32 + count * 74` bytes in version 2), independently of the viewing quantity.
 Catalogue building establishes global brightness ordering; viewing does not
-re-sort or scan the unused tail to re-establish it. A separate explicit full
-validation command inspects the entire catalogue. Prefix loading does not claim
-to validate unconsumed records. The owner separately approved the bounded
-reader-and-tests patch; remaining launch/configuration work still requires
-implementation approval.
+re-sort or scan the unused tail to re-establish it. Prefix loading does not
+claim to check unconsumed records.
+
+`catalogue info` reports the resolved catalogue path, stored record count and
+file size in bytes. Records are stars stored in the binary, independently of
+viewing quantity. The accepted output is:
+
+```text
+Catalogue: /path/to/catalogue.bin
+Records: 4096
+File size: 303136 bytes
+```
+
+Format/schema identifiers remain internal compatibility checks in the binary
+header and are not displayed by info. It reads the header and checks file length
+without scanning the records.
+Slice 1 has no public validation command or status, content hashing, saved
+verification records, or associated configuration/dependency. Building must
+succeed with a complete, correct catalogue or fail before publication.
+Magnitude-range and spatial build filters remain future ideas.
 
 ## Launch configuration
 
@@ -92,6 +121,14 @@ silent fallback. If absent, generate the file with initial defaults. Explicit CL
 values override TOML for that launch, including the first run, but apply only in
 memory and are not written into the newly generated file. CLI changes remain
 temporary unless explicit saving is chosen later.
+
+The implemented viewer's complete schema contains `catalogue.path`,
+`view.quantity`, `logging.file` and `logging.level`; see the
+[current usage and TOML example](../../README.md#run-the-prepared-catalogue-viewer).
+Source paths (`sources.gaia`, `sources.hipparcos`) and `catalogue.capacity`
+arrive with the builder command and become required fields. Existing files with
+missing fields fail clearly and are preserved; explicitly update the owner's
+local configuration while keeping its existing values during implementation.
 
 Unknown TOML keys and logging levels are errors naming the invalid setting.
 Validate the complete TOML structure (including required fields and types), then
@@ -105,19 +142,32 @@ To avoid collisions with the short name `msc`, the owner approved
 `mystarceiling/config.toml` beneath that directory. Windows `APPDATA` is a future
 portability direction.
 
+The accepted Linux data root is `$XDG_DATA_HOME/mystarceiling`, falling back to
+`~/.local/share/mystarceiling`. Its default layout is:
+
+- `catalogue.bin` for the prepared binary;
+- `sources/gaia-dr3.csv.gz` for Gaia;
+- `sources/hipparcos2-supplement.csv.gz` for the prepared Hipparcos input.
+
+Existing datasets may remain in their current locations and be referenced by
+TOML. Accepting this layout does not authorize moving or regenerating them.
+
 ## Logging
 
 Logging means spdlog messages only; command results (including help, version,
-info and validation reports) keep their normal terminal output. The owner requires
+build completion and catalogue info) keep their normal terminal output. The owner requires
 a configurable destination and level, with the initial level `warning` mapped
 to `spdlog::level::warn` (warnings, errors and critical messages).
+The viewer's propagation, magnitude-cutoff and projected-star summary is an
+`info` log, hidden at the default level and sent to the configured destination
+when enabled.
 
 A nonempty file path directs enabled spdlog messages to that file, creating it if
 absent; an empty path uses stdout/stderr. The accepted default is
 `/tmp/mystarceiling.log`. Overwrite existing contents when initializing file
 logging for a new run; messages within that run accumulate normally. If the file
-cannot be opened, report the failure to stderr and stop. These are M2 part-1
-requirements, not implemented behavior.
+cannot be opened, report the failure to stderr and stop. This behavior is
+implemented for the configured viewer.
 
 ## GUI direction
 

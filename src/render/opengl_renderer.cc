@@ -137,9 +137,8 @@ namespace msc::render
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            GLFWwindow* window =
-                glfwCreateWindow(window_width, window_height,
-                                 "MyStarCeiling M1", nullptr, nullptr);
+            GLFWwindow* window = glfwCreateWindow(
+                window_width, window_height, "MyStarCeiling", nullptr, nullptr);
             if (window == nullptr)
             {
                 glfwTerminate();
