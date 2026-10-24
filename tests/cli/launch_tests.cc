@@ -157,6 +157,9 @@ TEST_F(LaunchTest, HelpAndVersionBypassInvalidConfigAndAllLaunchSideEffects)
         {"msc"},
         {"msc", "--help"},
         {"msc", "view", "--help"},
+        {"msc", "catalogue", "--help"},
+        {"msc", "catalogue", "build", "--help"},
+        {"msc", "catalogue", "info", "--help"},
         {"msc", "--version"},
         {"msc", "--config", bad_string.c_str(), "--log-file", log.c_str(),
          "--help"},
@@ -179,7 +182,7 @@ TEST_F(LaunchTest, HelpAndVersionBypassInvalidConfigAndAllLaunchSideEffects)
 TEST_F(LaunchTest, UnsupportedCommandsAndSourceOptionsFailBeforeConfigCreation)
 {
     const std::vector<std::vector<const char*>> cases{
-        {"msc", "catalogue", "build"},
+        {"msc", "catalogue", "unknown"},
         {"msc", "old.csv", "old2.csv", "out.bin"},
         {"msc", "view", "--gaia", "source.csv"},
         {"msc", "view", "--hipparcos", "source.csv"}};

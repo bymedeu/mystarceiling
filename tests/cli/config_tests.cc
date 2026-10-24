@@ -116,19 +116,23 @@ TEST_F(LaunchTest, InvalidConfigurationStaysUnchangedAndNamesSetting)
         {valid_config().replace(valid_config().find("path = 'catalogue.bin'"),
                                 22, "path = 7"),
          "catalogue.path"},
-        {"[catalogue]\npath = ''\n[view]\nquantity = '64'\n[logging]\nfile = "
-         "''\nlevel = 'warning'\n",
+        {valid_config().replace(valid_config().find("quantity = 4096"), 15,
+                                "quantity = '64'"),
          "view.quantity"},
-        {"[catalogue]\npath = ''\n[view]\nquantity = 64.0\n[logging]\n",
+        {valid_config().replace(valid_config().find("quantity = 4096"), 15,
+                                "quantity = 64.0"),
          "view.quantity"},
-        {"[catalogue]\npath = ''\n[view]\nquantity = true\n[logging]\n",
+        {valid_config().replace(valid_config().find("quantity = 4096"), 15,
+                                "quantity = true"),
          "view.quantity"},
-        {"[catalogue]\npath = ''\n[view]\nquantity = -1\n[logging]\n",
+        {valid_config().replace(valid_config().find("quantity = 4096"), 15,
+                                "quantity = -1"),
          "view.quantity"},
         {valid_config() + "extra = true\n", "logging.extra"},
-        {valid_config() + "[sources]\ngaia = ''\n", "sources"},
+        {valid_config() + "[unknown]\ngaia = ''\n", "unknown"},
         {"catalogue = 3\n", "catalogue"},
-        {"[catalogue]\npath = ''\n[view]\nquantity = 64\n", "logging"}};
+        {valid_config().substr(0, valid_config().find("[logging]")),
+         "logging"}};
     for (const auto& [text, setting] : cases)
     {
         write(config(), text);
@@ -205,6 +209,9 @@ TEST_F(LaunchTest, EveryRequiredFieldHasStrictPresenceAndType)
     const std::vector<std::pair<std::string, std::string>> cases{
         {"path = 'catalogue.bin'", "catalogue.path"},
         {"quantity = 4096", "view.quantity"},
+        {"capacity = 4096", "catalogue.capacity"},
+        {"gaia = 'gaia.csv.gz'", "sources.gaia"},
+        {"hipparcos = 'hipparcos.csv.gz'", "sources.hipparcos"},
         {"file = ''", "logging.file"},
         {"level = 'warning'", "logging.level"}};
     for (const auto& [field, setting] : cases)
@@ -241,4 +248,25 @@ TEST_F(LaunchTest, MissingExplicitConfigIsCreatedWithoutChangingDefaultLocation)
     EXPECT_FALSE(std::filesystem::exists(config()));
     EXPECT_EQ(settings.quantity, 4096);
     EXPECT_EQ(settings.catalogue, root / "data/mystarceiling/catalogue.bin");
+}
+
+TEST_F(LaunchTest, BuilderDefaultsAndOverridesUseSamePathRules)
+{
+    const auto defaults = load_settings({});
+    EXPECT_EQ(defaults.capacity, 4096);
+    EXPECT_EQ(defaults.gaia,
+              root / "data/mystarceiling/sources/gaia-dr3.csv.gz");
+    EXPECT_EQ(defaults.hipparcos,
+              root / "data/mystarceiling/sources/hipparcos2-supplement.csv.gz");
+    write(config(), valid_config());
+    EXPECT_EQ(load_settings({}).gaia, config().parent_path() / "gaia.csv.gz");
+    Overrides overrides;
+    overrides.gaia = "cli-gaia.gz";
+    overrides.hipparcos = "cli-hip.gz";
+    overrides.capacity = "64";
+    const auto effective = load_settings(overrides);
+    EXPECT_EQ(effective.gaia, root / "cli-gaia.gz");
+    EXPECT_EQ(effective.hipparcos, root / "cli-hip.gz");
+    EXPECT_EQ(effective.capacity, 64);
+    EXPECT_EQ(read(config()), valid_config());
 }

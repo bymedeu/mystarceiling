@@ -71,6 +71,22 @@ tied to the older 76,048,576-row snapshot and was **not** freshly cross-matched
 against the completed 134,217,728-row archive; see the
 [acquisition caveat](../project-state.md#acquisition-status).
 
+## Catalogue command integration — 2026-10-24
+
+`msc catalogue build` now exposes the existing parsers, selector and binary
+encoding through strict TOML settings and temporary CLI overrides. The owner
+changed membership to Hipparcos-first: retain usable supplement records up to
+capacity, fill remaining slots from the ordered Gaia prefix, then sort the chosen
+records using the existing common magnitude/catalogue/ID ordering. If Hipparcos
+fills capacity, no Gaia source is opened. Exact capacity, replacement protection
+and checked temporary-file publication follow the
+[application contract](application-controls.md#catalogue-controls).
+
+A real-data build with capacity 4096 consumed the current 62-record supplement
+and 4034 accepted Gaia rows. Its 303136-byte output matches the SHA256 above,
+so this baseline selection is unchanged. This does not revalidate the supplement's
+overlap preparation against the final Gaia archive. No full archive scan was made.
+
 ## Implemented Hp-to-G preparation
 
 Hipparcos Hp and Gaia G use different passbands, so equal numerical magnitudes do

@@ -88,37 +88,61 @@ namespace msc::cli
             }
         }
 
+        std::size_t required_count(const toml::table& table,
+                                   std::string_view section,
+                                   std::string_view key)
+        {
+            const auto node = table[section][key];
+            const auto name = std::string{section} + "." + std::string{key};
+            if (!node.is_integer())
+                throw std::runtime_error("Missing or wrong type: " + name);
+            const auto number = *node.value<std::int64_t>();
+            if (number < 0 || !std::in_range<std::size_t>(number))
+                throw std::runtime_error("Invalid " + name + ": out of range");
+            return static_cast<std::size_t>(number);
+        }
+
         Settings read_settings(const std::filesystem::path& path)
         {
             const auto table = parse_config(path);
-            check_keys(table, "", {"catalogue", "view", "logging"});
-            check_section(table, "catalogue", {"path"});
+            check_keys(table, "", {"catalogue", "sources", "view", "logging"});
+            check_section(table, "catalogue", {"path", "capacity"});
             check_section(table, "view", {"quantity"});
             check_section(table, "logging", {"file", "level"});
-            const auto catalogue = required_string(table, "catalogue", "path");
-            const auto quantity = table["view"]["quantity"];
-            if (!quantity.is_integer())
-                throw std::runtime_error(
-                    "Missing or wrong type: view.quantity");
-            const auto number = *quantity.value<std::int64_t>();
-            if (number < 0 || !std::in_range<std::size_t>(number))
-                throw std::runtime_error("Invalid view.quantity: out of range");
+            check_section(table, "sources", {"gaia", "hipparcos"});
+            const auto base = path.parent_path();
+            Settings settings;
+            settings.catalogue =
+                resolve(base, required_string(table, "catalogue", "path"));
+            settings.quantity = required_count(table, "view", "quantity");
+            settings.capacity = required_count(table, "catalogue", "capacity");
+            settings.gaia =
+                resolve(base, required_string(table, "sources", "gaia"));
+            settings.hipparcos =
+                resolve(base, required_string(table, "sources", "hipparcos"));
             const auto file = required_string(table, "logging", "file");
-            Settings settings{resolve(path.parent_path(), catalogue),
-                              static_cast<std::size_t>(number),
-                              file.empty() ? std::filesystem::path{}
-                                           : resolve(path.parent_path(), file),
-                              required_string(table, "logging", "level")};
+            settings.log_file =
+                file.empty() ? std::filesystem::path{} : resolve(base, file);
+            settings.log_level = required_string(table, "logging", "level");
+            settings.config_file = path;
             logging_level(settings.log_level);
             return settings;
         }
 
         void create_defaults(const std::filesystem::path& path)
         {
-            const auto catalogue = xdg_root("XDG_DATA_HOME", ".local/share") /
-                "mystarceiling/catalogue.bin";
+            const auto data =
+                xdg_root("XDG_DATA_HOME", ".local/share") / "mystarceiling";
             const toml::table table{
-                {"catalogue", toml::table{{"path", catalogue.string()}}},
+                {"catalogue",
+                 toml::table{{"path", (data / "catalogue.bin").string()},
+                             {"capacity", 4096}}},
+                {"sources",
+                 toml::table{
+                     {"gaia", (data / "sources/gaia-dr3.csv.gz").string()},
+                     {"hipparcos",
+                      (data / "sources/hipparcos2-supplement.csv.gz")
+                          .string()}}},
                 {"view", toml::table{{"quantity", 4096}}},
                 {"logging",
                  toml::table{{"file", "/tmp/mystarceiling.log"},
@@ -140,14 +164,14 @@ namespace msc::cli
                                          path.string());
         }
 
-        std::size_t cli_quantity(const std::string& text)
+        std::size_t cli_count(const std::string& text, std::string_view setting)
         {
             std::size_t number{};
             const auto [end, error] =
                 std::from_chars(text.data(), text.data() + text.size(), number);
             if (error != std::errc{} || end != text.data() + text.size())
-                throw std::runtime_error(
-                    "Invalid view.quantity: expected unsigned integer");
+                throw std::runtime_error("Invalid " + std::string{setting} +
+                                         ": expected unsigned integer");
             return number;
         }
 
@@ -157,7 +181,15 @@ namespace msc::cli
             if (overrides.catalogue)
                 settings.catalogue = resolve(cwd, *overrides.catalogue);
             if (overrides.quantity)
-                settings.quantity = cli_quantity(*overrides.quantity);
+                settings.quantity =
+                    cli_count(*overrides.quantity, "view.quantity");
+            if (overrides.gaia)
+                settings.gaia = resolve(cwd, *overrides.gaia);
+            if (overrides.hipparcos)
+                settings.hipparcos = resolve(cwd, *overrides.hipparcos);
+            if (overrides.capacity)
+                settings.capacity =
+                    cli_count(*overrides.capacity, "catalogue.capacity");
             if (overrides.log_file)
                 settings.log_file = overrides.log_file->empty()
                     ? std::filesystem::path{}

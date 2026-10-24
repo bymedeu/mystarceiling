@@ -32,8 +32,9 @@ colour, useful brightness controls, modest glow and subtle effects. â€œAnimatedâ
 does not mandate meteors, Perseids or clouds now. G and BP-RP are measurements;
 derived display appearance needs documented approximations and validation.
 
-Selection remains globally magnitude-first; quantity caps loaded records before
-visibility and display filtering, as specified in application controls. It bounds
+Building follows the Hipparcos-first membership policy and stores its selection
+in brightness order; quantity caps loaded records before visibility and display
+filtering, as specified in application controls. It bounds
 workload size, without solving scaling or establishing that a million sources
 have been processed efficiently. Nested 4096, 65536, 262144 and 1048576
 sizes are measurement cases, not a requirement to show every star. M4 must still
@@ -46,12 +47,12 @@ validated observer/time behavior. Reuse appropriate coordinate math only where
 justified. The M1 pattern mismatch is low priority per owner; no new comparison
 or accuracy claim was made.
 
-## Discussion before implementation
+## Current part-1 implementation
 
-Next is a bounded part-1 plan after the owner explains the current catalogue
-pipeline; implementation needs separate approval. Keep binary schema, photometry,
-astronomy and display unchanged. Camera extent and later acceptance evidence stay
-for their respective discussions.
+Part 1 now includes build/info and the configured viewer. Binary schema,
+photometry, astronomy and display retain the existing baseline. The next bounded
+part is colour/brightness; its model and acceptance evidence remain to discuss.
+Camera extent and later acceptance evidence stay for their respective discussions.
 
 `msc view` now consumes an existing binary through the quantity-aware reader,
 using complete TOML configuration, temporary CLI overrides and scoped spdlog
@@ -59,9 +60,13 @@ logging. The owner accepted removing the former positional source-building
 launcher during this transition. Scene mathematics and display remain the M1
 baseline. The [reader policy](../decisions/application-controls.md#catalogue-controls)
 checks file structure and the selected prefix. Building must check its completed
-temporary binary before publication; catalogue info reports the stored star
-count. All 159 C++ tests pass in both ordinary and ASan/UBSan builds.
-Catalogue build/info remain unimplemented. The broader
+temporary binary before publication; catalogue info reports path, stored star
+count and bytes with decimal GB. Build capacity is exact; Hipparcos fills it
+first, followed by only the necessary accepted Gaia records. The selected
+records are stored in brightness order. Build/info and failure handling have
+integration coverage. All 175 C++ tests pass in both warning-as-error and
+ASan/UBSan builds; all 30 Python tests pass. Cppcheck, Lizard and formatting
+checks pass. The broader
 catalogue-understanding checkpoint stays open.
 
 No RGBE, packed/batch layout, filter model, API, GUI, protocol, canonical Star or

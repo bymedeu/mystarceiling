@@ -6,6 +6,9 @@
 
 namespace msc::catalogue
 {
+    [[nodiscard]] bool brightness_less(const CatalogueStar& a,
+                                       const CatalogueStar& b);
+
     // Consumes normalized records. Equal magnitudes order by catalogue, then
     // native ID; identical keys retain input order. Source files are never
     // modified.

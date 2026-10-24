@@ -1,7 +1,7 @@
 # Application controls and interface direction
 
 Status: requirements clarified through 2026-10-24. The bounded reader,
-configured viewer and logging are implemented; catalogue commands remain pending.
+configured viewer, logging and catalogue build/info commands are implemented.
 The [ceiling/output note](ceiling-product-output.md) records current
 owner priorities, proposals and open decisions; it does not approve implementation.
 
@@ -37,17 +37,16 @@ The owner accepted `msc view`, `msc catalogue build`, `msc catalogue info`,
 `--gaia` and `--hipparcos`, matching the `gaia` and `hipparcos` keys in `[sources]`.
 This accepts the interface direction, not implementation.
 
-The implemented executable supports `msc view`, help and version. The former
-positional source-building launcher is removed, as accepted by the owner.
-Catalogue build/info remain pending. The owner requires the complete part-1
-design to be settled before implementing the remaining scope.
+The executable supports `msc view`, `msc catalogue build`, `msc catalogue info`,
+help and version. The former positional source-building launcher is removed.
+Build/info use the same strict configuration and temporary override path as view.
 
 User-facing help and runtime output use product terms rather than milestone
 names. Milestone names remain appropriate in development documentation.
 
 ## Catalogue controls
 
-Approved requirements, not implementation approval: normal visualization consumes
+Implemented part-1 behavior: normal visualization consumes
 prepared runtime data. Acquisition, normalization and binary regeneration are
 separate explicit commands; launching must not rebuild the binary.
 
@@ -65,8 +64,9 @@ requested and available counts. When a valid alternative is known, show an
 otherwise-identical corrected command; never suggest a quantity below 64 or claim
 an exact maximum before consuming enough input to establish it. Give advice for
 the actual failure only, without universal guesses or echoing secrets to stdout.
-Only the command that consumes a source checks its existence. These are owner
-requirements for future implementation; the understanding checkpoint stays open.
+Only a command that consumes a source opens it. Log destinations cannot alias
+sources, the binary or the configuration. Build destinations also cannot overwrite
+the configuration.
 
 Quantity caps loaded records before scene construction. The owner's 2026-10-22
 contract requires an integer with `64 <= quantity <= available_count`, where
@@ -78,9 +78,14 @@ this viewing contract. CLI quantity overrides TOML before validating the effecti
 quantity against the opened catalogue count; never adjust quantity automatically.
 The initial generated viewing quantity is 4096, retaining the M1 baseline.
 
-Selection is global magnitude-first, independent of camera, time and view
-visibility. Quantity selects the first N records of the common brightness-ordered
-prepared catalogue; a limiting magnitude filters loaded records and may yield
+Owner selection change, 2026-10-24: building gives usable Hipparcos records
+priority, then fills the exact remaining capacity from the ordered Gaia source.
+If Hipparcos alone fills capacity, keep its brightest N and do not open Gaia.
+This supersedes global brightest-N membership across both sources. The selected
+records are still sorted by G-like magnitude, catalogue and native ID before
+storage, independently of camera, time and view visibility.
+Quantity selects the first N records of this brightness-ordered prepared
+catalogue; a limiting magnitude filters loaded records and may yield
 fewer visible stars. Zoom does not automatically deepen limiting magnitude.
 Any future explicit `all` syntax remains undecided; missing quantity is not
 implicit `all`.
@@ -90,7 +95,8 @@ The owner accepted prefix-only viewing validation: check the header, complete
 file length and requested count before allocating for and decoding only the
 requested records. The complete file must match the header's total count
 (`32 + count * 74` bytes in version 2), independently of the viewing quantity.
-Catalogue building establishes global brightness ordering; viewing does not
+Catalogue building establishes brightness ordering within the stored selection;
+viewing does not
 re-sort or scan the unused tail to re-establish it. Prefix loading does not
 claim to check unconsumed records.
 
@@ -101,10 +107,14 @@ viewing quantity. The accepted output is:
 ```text
 Catalogue: /path/to/catalogue.bin
 Records: 4096
-File size: 303136 bytes
+File size: 303136 bytes (0.000303 GB)
 ```
 
-Format/schema identifiers remain internal compatibility checks in the binary
+The byte count is exact. GB means 1,000,000,000 bytes. Use ordinary decimal
+notation with three decimal places at or above 0.001 GB; below that, retain
+leading zeros and three significant digits so a nonempty catalogue never rounds
+to zero GB. Format/schema identifiers remain internal compatibility checks in
+the binary
 header and are not displayed by info. It reads the header and checks file length
 without scanning the records.
 Slice 1 has no public validation command or status, content hashing, saved
@@ -122,13 +132,12 @@ values override TOML for that launch, including the first run, but apply only in
 memory and are not written into the newly generated file. CLI changes remain
 temporary unless explicit saving is chosen later.
 
-The implemented viewer's complete schema contains `catalogue.path`,
-`view.quantity`, `logging.file` and `logging.level`; see the
-[current usage and TOML example](../../README.md#run-the-prepared-catalogue-viewer).
-Source paths (`sources.gaia`, `sources.hipparcos`) and `catalogue.capacity`
-arrive with the builder command and become required fields. Existing files with
-missing fields fail clearly and are preserved; explicitly update the owner's
-local configuration while keeping its existing values during implementation.
+The complete schema contains `catalogue.path`, `catalogue.capacity`,
+`sources.gaia`, `sources.hipparcos`, `view.quantity`, `logging.file` and
+`logging.level`; see the [usage and TOML example](../../README.md#run-the-prepared-catalogue-viewer).
+All fields are required. Existing files with missing fields fail clearly and are
+preserved. CLI overrides are `--gaia`, `--hipparcos` and `--capacity` for building,
+`--quantity` for viewing, and `--catalogue` for each command.
 
 Unknown TOML keys and logging levels are errors naming the invalid setting.
 Validate the complete TOML structure (including required fields and types), then

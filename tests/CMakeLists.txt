@@ -7,6 +7,7 @@ add_executable(mystarceiling_tests
             catalogue/hipparcos_csv_tests.cc
             catalogue/select_brightest_tests.cc
             cli/m1_scene_tests.cc
+            cli/catalogue_commands_tests.cc
             cli/config_tests.cc
             cli/launch_tests.cc
             cli/logging_tests.cc

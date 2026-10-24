@@ -373,6 +373,25 @@ namespace msc::catalogue
 
     } // namespace
 
+    std::expected<BinaryCatalogueInfo, BinaryCatalogueError>
+    read_binary_catalogue_info(const std::filesystem::path& filename)
+    {
+        std::ifstream input{filename, std::ios::binary};
+        if (!input)
+            return std::unexpected{
+                error(BinaryCatalogueErrorCode::OpenFailed, filename.string())};
+        const auto magic_result = read_magic_bytes(input, filename);
+        if (!magic_result)
+            return std::unexpected{magic_result.error()};
+        const auto count = read_header(input);
+        if (!count)
+            return std::unexpected{count.error()};
+        const auto length = validate_file_size(filename, *count);
+        if (!length)
+            return std::unexpected{length.error()};
+        return BinaryCatalogueInfo{*count, header_size + *count * record_size};
+    }
+
     std::expected<void, BinaryCatalogueError>
     write_binary_catalogue(const std::filesystem::path& filename,
                            std::span<const CatalogueStar> stars)
@@ -385,6 +404,7 @@ namespace msc::catalogue
         for (const auto& entry : stars)
             write_record(output, entry);
 
+        output.close();
         if (!output)
             return std::unexpected{error(BinaryCatalogueErrorCode::WriteFailed,
                                          filename.string())};

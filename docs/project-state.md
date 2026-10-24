@@ -1,6 +1,6 @@
 # Current project state
 
-Last updated: 2026-10-19.
+Last updated: 2026-10-24.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
@@ -29,7 +29,9 @@ These capacity assumptions approve documentation only; full scope remains to dis
 See the [canonical roadmap](../README.md#milestones) and
 [approved M2 sequence](milestones/m2-ceiling-appearance.md#approved-sequence) and
 [part-1 controls/configuration](decisions/application-controls.md). Implementation
-is not authorized; the understanding checkpoint remains open.
+of later parts remains subject to their own design discussion. Part 1 catalogue
+build/info and configured viewing are implemented; the broader understanding
+checkpoint remains open.
 
 CPU-first portable delivery targets a 16 GB Linux laptop without an NVIDIA GPU.
 The RTX 3060 is on a separate Windows desktop; Linux there is a future possibility.
@@ -77,6 +79,19 @@ and tests to distinguish implemented behavior from intended design. See the
   and orientation evidence. See [M1](milestones/m1-fixed-toulouse-sky.md).
 - Hipparcos preparation and the source files are unchanged by this integration.
 
+## Current M2 part 1
+
+The CLI supports configured `view`, `catalogue build` and `catalogue info`.
+Builds fill exact capacity from Hipparcos first and the remaining ordered Gaia
+prefix, sort the selection and check the completed temporary binary before safe
+publication. Info reports path, count and bytes with a decimal GB equivalent.
+Source/capacity configuration, temporary CLI overrides and file logging are
+integrated. All 175 C++ tests pass in ordinary and ASan/UBSan builds; all 30
+Python tests pass. Cppcheck, Lizard and formatting checks pass.
+The complete current usage and required TOML schema are in
+[README](../README.md#run-the-prepared-catalogue-viewer); detailed behavior is in
+[application controls](decisions/application-controls.md).
+
 ## Future direction, not implemented
 
 Automatic visibility and future CLI/GUI controls remain future work. Current
@@ -116,8 +131,8 @@ the final archive.
 
 Owner requirements and proposals are distinguished from agent explanations and
 implementation state in the [ceiling/output decision note](decisions/ceiling-product-output.md).
-No launcher, camera/time, colour/cache or device implementation is authorized by
-these documentation clarifications. The understanding checkpoint remains open.
+Camera/time, colour/cache and device implementation remain future scope beyond
+the implemented part-1 controls. The understanding checkpoint remains open.
 
 ## Key records
 

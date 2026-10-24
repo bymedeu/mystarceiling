@@ -67,7 +67,9 @@ namespace msc::cli::test
 
         static std::string valid_config()
         {
-            return "[catalogue]\npath = 'catalogue.bin'\n"
+            return "[catalogue]\npath = 'catalogue.bin'\ncapacity = 4096\n"
+                   "[sources]\ngaia = 'gaia.csv.gz'\nhipparcos = "
+                   "'hipparcos.csv.gz'\n"
                    "[view]\nquantity = 4096\n"
                    "[logging]\nfile = ''\nlevel = 'warning'\n";
         }

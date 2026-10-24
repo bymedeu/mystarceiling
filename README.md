@@ -73,13 +73,45 @@ fresh clones. The viewer link uses the `build/quality` build.
 `msc view` loads only the requested prefix of an existing brightness-ordered
 binary catalogue. It prepares the unchanged fixed Toulouse M1 scene with the
 **temporary G<=4 display filter** and opens a graphical window. Launching does
-not read raw sources or rebuild the binary. Catalogue build/info commands
-are deferred; the former positional source-building launcher has been removed.
-M1 remains complete; M2 part 1 is in progress and the broader
+not read raw sources or rebuild the binary. Use the separate catalogue commands:
+
+```sh
+build/src/cli/msc catalogue build
+build/src/cli/msc catalogue info
+# Temporary overrides; an existing destination requires --force.
+build/src/cli/msc catalogue build --gaia /path/to/gaia.csv.gz \
+  --hipparcos /path/to/hipparcos-supplement.csv.gz \
+  --catalogue /path/to/catalogue.bin --capacity 4096
+```
+
+A build reads usable Hipparcos records first, retaining its brightest records
+if it fills capacity, then loads only the remaining accepted count from the
+ordered Gaia input. It sorts the selected records by brightness before storage.
+Capacity is exact and at least 64; insufficient input fails. This membership
+policy gives Hipparcos priority. It does not select the global brightest N from
+both complete sources. A completed temporary binary is checked before publication;
+failed builds preserve the existing catalogue. Source files cannot be overwritten.
+See the [build contract](docs/decisions/application-controls.md#catalogue-controls).
+
+`catalogue info` reads the header and checks total file length, without decoding
+records or reading either source. Example output:
+
+```text
+Catalogue: /path/to/catalogue.bin
+Records: 4096
+File size: 303136 bytes (0.000303 GB)
+```
+
+GB uses 1,000,000,000 bytes, with three decimal places for values of at least
+0.001 GB; smaller sizes retain leading zeros and three significant digits.
+The former positional source-building launcher has been removed.
+M1 remains complete; M2 part 1 is implemented and the broader
 [owner-understanding checkpoint](docs/project-state.md#required-understanding-checkpoint)
 remains open.
 
-Root options `--config`, `--log-file` and `--log-level` also work after `view`.
+Root options `--config`, `--log-file` and `--log-level` also work after subcommands.
+`build` accepts `--gaia`, `--hipparcos`, `--catalogue`, `--capacity` and `--force`;
+`info` accepts `--catalogue`. Without overrides, commands use TOML settings.
 `view` accepts `--catalogue` and `--quantity` (integer, `64 <= N <= catalogue count`).
 Bare `msc`, `--help`, `view --help` and `--version` have no configuration, logging
 or catalogue side effects.
@@ -98,6 +130,10 @@ The complete current TOML schema is:
 ```toml
 [catalogue]
 path = "/absolute/path/to/catalogue.bin"
+capacity = 4096
+[sources]
+gaia = "/absolute/path/to/gaia.csv.gz"
+hipparcos = "/absolute/path/to/hipparcos-supplement.csv.gz"
 [view]
 quantity = 4096
 [logging]
@@ -106,7 +142,11 @@ level = "warning"
 ```
 
 All fields are required; wrong types, unknown keys/tables and invalid logging
-levels fail. `[sources]` and builder capacity are deferred. Relative TOML paths
+levels fail. Existing configurations must include the new capacity and source
+fields; incomplete files fail without being rewritten. Generated source defaults
+are `sources/gaia-dr3.csv.gz` and `sources/hipparcos2-supplement.csv.gz` beneath
+the same data root as the default binary. Only a command consuming a source
+opens it; a build filled by Hipparcos does not open Gaia. Relative TOML paths
 use the config directory; relative CLI paths use the working directory. TOML
 strings do not expand environment variables. CLI overrides apply before the
 reader checks the effective quantity against the opened catalogue's count.
@@ -115,7 +155,8 @@ Logging affects spdlog messages only; command output and errors stay on the
 terminal. Levels are `trace`, `debug`, `info`, `warning`, `error`, `critical`,
 `off`. A nonempty log file is created or truncated once per normal launch;
 `--log-file ''` uses the standard spdlog stderr sink. Failure to open the log
-stops the launch.
+stops the launch. A log destination cannot overwrite the catalogue, a source
+or the configuration.
 
 ## Product Objectives
 
@@ -201,7 +242,7 @@ approval. Reduce optional scope before correctness or reproducible evidence.
 | --- | --- | --- |
 | M0 — Typed astronomy foundations | Existing foundations retained | Working typed path supporting M1; no new accuracy claim |
 | M1 — Fixed Toulouse sky | Completed 2026-09-13 | Working 4096-source catalogue-to-screen baseline |
-| M2 — Ceiling appearance and data controls | 2026-12-13 | Realistic-looking colour/brightness, modest glow, magnitude-first selection, proposed optional quantity cap, useful bounded inspection/projection |
+| M2 — Ceiling appearance and data controls | 2026-12-13 | Realistic-looking colour/brightness, modest glow, Hipparcos-first catalogue preparation, quantity control, useful bounded inspection/projection |
 | M3 — Validated observer and time | 2027-02-28 | Declared model/range, independent validation, controlled astronomical progression |
 | M4 — Million-source CPU baseline | 2027-04-25 | Actually measured 1,048,576-source pipeline and bounded-memory preparation baseline |
 | M5 — Profile-guided CPU work and output boundary | 2027-06-27 | Justified improvements, explicit consumer boundary, reproducible before/after evidence |
