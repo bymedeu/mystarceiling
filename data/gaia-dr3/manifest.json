@@ -1,0 +1,36 @@
+{
+  "release": "Gaia DR3",
+  "columns": [
+    "source_id",
+    "ref_epoch",
+    "ra",
+    "dec",
+    "pmra",
+    "pmdec",
+    "parallax",
+    "phot_g_mean_mag",
+    "bp_rp"
+  ],
+  "rows": 134217728,
+  "compressed_bytes": 8575699250,
+  "target_rows": 134217728,
+  "max_bytes": 10000000000,
+  "sha256": "cf0db34640b44208036bdeb2660e0bf9213acf83d793503f9187d367b37764f2",
+  "prefix_csv_sha256": {
+    "4096": "d9ef83f437b00bc33617c9ff1d203e83150247a22d2ae1b826a6852404e71dfd",
+    "65536": "33e92700dd47cc7ce762ea42676e9d5901302c57b8f921573892f145319aa734",
+    "262144": "dbea723d92f2d3a814ebacaa4118c232fafc3d0dad1fabe44071ab1d3d865ddb",
+    "1048576": "bf92b46479b6cc0a7ad40874257ffd35bf7e269466add4221b3d92b9f32db3d8"
+  },
+  "order": [
+    "phot_g_mean_mag ASC",
+    "source_id ASC"
+  ],
+  "stop_reason": "target row count",
+  "last_key": [
+    16.78596305847168,
+    5311740746825005568
+  ],
+  "format": "CSV in concatenated gzip members; one header",
+  "utc_completed": "2026-10-18T18:20:08.887686+00:00"
+}
