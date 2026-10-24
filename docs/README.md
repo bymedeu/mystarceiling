@@ -32,9 +32,9 @@ It is plain Markdown for now; Doxygen and MkDocs integration are deferred.
   evidence, and remaining questions for each active or completed milestone.
 - [Milestones in the public README](../README.md#milestones): dated objectives,
   introduced capabilities, engineering problems, and portfolio gates.
-- Portfolio-level `AGENTS.md`: ownership, approval, documentation, and delivery
-  rules. The project keeps durable technical decisions here so a standalone
-  checkout remains understandable.
+- [Project AGENTS.md](../AGENTS.md): public technical, engineering, quality and
+  documentation rules. The project keeps durable technical decisions here so a
+  standalone checkout remains understandable.
 - [Public overview](../README.md): concise introduction to the project.
 
 ## Keeping records useful

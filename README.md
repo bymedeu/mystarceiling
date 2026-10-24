@@ -134,8 +134,7 @@ not require this ceremony. Gaps in existing mechanisms are understanding debt
 to close before building important functionality on them. The current catalogue
 pipeline is the first checkpoint, required before the next substantial
 implementation task; see [current project state](docs/project-state.md).
-The enforceable rule lives in the portfolio-level
-[AGENTS.md](../AGENTS.md#algorithmic-ownership-gate).
+The public technical contract lives in [AGENTS.md](AGENTS.md).
 
 ## Status
 
