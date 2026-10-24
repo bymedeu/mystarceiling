@@ -64,7 +64,7 @@ temporary binary before publication; catalogue info reports path, stored star
 count and bytes with decimal GB. Build capacity is exact; Hipparcos fills it
 first, followed by only the necessary accepted Gaia records. The selected
 records are stored in brightness order. Build/info and failure handling have
-integration coverage. All 175 C++ tests pass in both warning-as-error and
+integration coverage. All 176 C++ tests pass in both warning-as-error and
 ASan/UBSan builds; all 30 Python tests pass. Cppcheck, Lizard and formatting
 checks pass. The broader
 catalogue-understanding checkpoint stays open.

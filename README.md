@@ -111,7 +111,9 @@ remains open.
 
 Root options `--config`, `--log-file` and `--log-level` also work after subcommands.
 `build` accepts `--gaia`, `--hipparcos`, `--catalogue`, `--capacity` and `--force`;
-`info` accepts `--catalogue`. Without overrides, commands use TOML settings.
+`info` accepts `--catalogue`. Each command also accepts `--path` as an alias
+for `--catalogue`; building creates missing destination parent directories.
+Without overrides, commands use TOML settings.
 `view` accepts `--catalogue` and `--quantity` (integer, `64 <= N <= catalogue count`).
 Bare `msc`, `--help`, `view --help` and `--version` have no configuration, logging
 or catalogue side effects.

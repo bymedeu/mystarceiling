@@ -361,3 +361,27 @@ TEST_F(CatalogueCommandTest,
     EXPECT_EQ(read(root / "catalogue.bin"), "keep");
     no_temporary_files();
 }
+
+TEST_F(CatalogueCommandTest,
+       PathAliasCreatesMissingDestinationAndWorksForInfoAndView)
+{
+    sources(62, 2);
+    const auto saved = read(root / "settings.toml");
+    const auto destination = root / "new/nested/catalogue.bin";
+    ASSERT_FALSE(std::filesystem::exists(destination.parent_path()));
+    ASSERT_EQ(run({"catalogue", "build", "--path", "new/nested/catalogue.bin"}),
+              0)
+        << errors.str();
+    ASSERT_TRUE(std::filesystem::is_regular_file(destination));
+    ASSERT_EQ(run({"catalogue", "info", "--path", "new/nested/catalogue.bin"}),
+              0)
+        << errors.str();
+    EXPECT_NE(output.str().find("Catalogue: " + destination.string()),
+              std::string::npos);
+    EXPECT_EQ(run({"view", "--path", "new/nested/catalogue.bin"}), 0)
+        << errors.str();
+    EXPECT_TRUE(shown);
+    EXPECT_EQ(read(root / "settings.toml"), saved);
+    EXPECT_FALSE(std::filesystem::exists(root / "catalogue.bin"));
+    no_temporary_files();
+}

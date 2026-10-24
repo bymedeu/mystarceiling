@@ -96,9 +96,8 @@ file length and requested count before allocating for and decoding only the
 requested records. The complete file must match the header's total count
 (`32 + count * 74` bytes in version 2), independently of the viewing quantity.
 Catalogue building establishes brightness ordering within the stored selection;
-viewing does not
-re-sort or scan the unused tail to re-establish it. Prefix loading does not
-claim to check unconsumed records.
+viewing does not re-sort or scan the unused tail to re-establish it. Prefix
+loading does not claim to check unconsumed records.
 
 `catalogue info` reports the resolved catalogue path, stored record count and
 file size in bytes. Records are stars stored in the binary, independently of
@@ -114,9 +113,8 @@ The byte count is exact. GB means 1,000,000,000 bytes. Use ordinary decimal
 notation with three decimal places at or above 0.001 GB; below that, retain
 leading zeros and three significant digits so a nonempty catalogue never rounds
 to zero GB. Format/schema identifiers remain internal compatibility checks in
-the binary
-header and are not displayed by info. It reads the header and checks file length
-without scanning the records.
+the binary header and are not displayed by info. It reads the header and checks
+file length without scanning the records.
 Slice 1 has no public validation command or status, content hashing, saved
 verification records, or associated configuration/dependency. Building must
 succeed with a complete, correct catalogue or fail before publication.
@@ -137,7 +135,8 @@ The complete schema contains `catalogue.path`, `catalogue.capacity`,
 `logging.level`; see the [usage and TOML example](../../README.md#run-the-prepared-catalogue-viewer).
 All fields are required. Existing files with missing fields fail clearly and are
 preserved. CLI overrides are `--gaia`, `--hipparcos` and `--capacity` for building,
-`--quantity` for viewing, and `--catalogue` for each command.
+`--quantity` for viewing, and `--catalogue` (alias `--path`) for each command.
+Building creates missing destination parent directories and the binary file.
 
 Unknown TOML keys and logging levels are errors naming the invalid setting.
 Validate the complete TOML structure (including required fields and types), then

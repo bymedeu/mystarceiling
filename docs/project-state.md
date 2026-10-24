@@ -86,7 +86,7 @@ Builds fill exact capacity from Hipparcos first and the remaining ordered Gaia
 prefix, sort the selection and check the completed temporary binary before safe
 publication. Info reports path, count and bytes with a decimal GB equivalent.
 Source/capacity configuration, temporary CLI overrides and file logging are
-integrated. All 175 C++ tests pass in ordinary and ASan/UBSan builds; all 30
+integrated. All 176 C++ tests pass in ordinary and ASan/UBSan builds; all 30
 Python tests pass. Cppcheck, Lizard and formatting checks pass.
 The complete current usage and required TOML schema are in
 [README](../README.md#run-the-prepared-catalogue-viewer); detailed behavior is in

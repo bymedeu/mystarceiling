@@ -45,7 +45,7 @@ namespace msc::cli
                            "Log file (empty uses stderr)");
             app.add_option("--log-level", overrides.log_level,
                            "trace/debug/info/warning/error/critical/off");
-            view.add_option("--catalogue", overrides.catalogue,
+            view.add_option("--catalogue,--path", overrides.catalogue,
                             "Prepared binary catalogue");
             view.add_option("--quantity", overrides.quantity,
                             "Catalogue prefix quantity (64..count)");
@@ -66,11 +66,12 @@ namespace msc::cli
             commands.build->add_option(
                 "--capacity", overrides.capacity,
                 "Exact stored record count (at least 64)");
-            commands.build->add_option("--catalogue", overrides.catalogue,
+            commands.build->add_option("--catalogue,--path",
+                                       overrides.catalogue,
                                        "Destination binary catalogue");
             commands.build->add_flag("--force", commands.force,
                                      "Replace an existing catalogue");
-            commands.info->add_option("--catalogue", overrides.catalogue,
+            commands.info->add_option("--catalogue,--path", overrides.catalogue,
                                       "Prepared binary catalogue");
         }
 
