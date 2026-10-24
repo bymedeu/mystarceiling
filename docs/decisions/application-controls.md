@@ -1,6 +1,6 @@
 # Application controls and interface direction
 
-Status: requirements clarified through 2026-10-23; controls are not
+Status: requirements clarified through 2026-10-24; controls are not
 implemented. The [ceiling/output note](ceiling-product-output.md) records current
 owner priorities, proposals and open decisions; it does not approve implementation.
 
@@ -28,6 +28,13 @@ visualization remains visible. A change must not require restarting the app.
   resolver. An online geocoder conflicts with the offline-first runtime unless
   invoked explicitly; a packaged/local gazetteer adds data and maintenance.
   The resolver and default observer remain open decisions.
+
+## Command interface
+
+The owner accepted `msc view`, `msc catalogue build`, `msc catalogue info`,
+`msc catalogue validate`, `msc --help` and `msc --version`. Source options are
+`--gaia` and `--hipparcos`, matching the `gaia` and `hipparcos` keys in `[sources]`.
+This accepts the interface direction, not implementation.
 
 ## Catalogue controls
 
@@ -65,6 +72,17 @@ Any future explicit `all` syntax remains undecided; missing quantity is not
 implicit `all`.
 Quantity bounds work, not the need for later measured scaling evidence.
 
+The owner accepted prefix-only viewing validation: check the header, complete
+file length and requested count before allocating for and decoding only the
+requested records. The complete file must match the header's total count
+(`32 + count * 74` bytes in version 2), independently of the viewing quantity.
+Catalogue building establishes global brightness ordering; viewing does not
+re-sort or scan the unused tail to re-establish it. A separate explicit full
+validation command inspects the entire catalogue. Prefix loading does not claim
+to validate unconsumed records. The owner separately approved the bounded
+reader-and-tests patch; remaining launch/configuration work still requires
+implementation approval.
+
 ## Launch configuration
 
 Every launch checks the chosen config path. The owner requires a complete TOML
@@ -75,11 +93,31 @@ values override TOML for that launch, including the first run, but apply only in
 memory and are not written into the newly generated file. CLI changes remain
 temporary unless explicit saving is chosen later.
 
+Unknown TOML keys and logging levels are errors naming the invalid setting.
+Validate the complete TOML structure (including required fields and types), then
+apply CLI overrides before validating effective command settings. In particular,
+a saved quantity exceeding the opened catalogue count may be overridden by a
+valid CLI quantity; a missing required TOML field still fails.
+
 Automatic user configuration discovery and an explicit config-path override are
 accepted direction. Linux honors `XDG_CONFIG_HOME`, falling back to `~/.config`.
 To avoid collisions with the short name `msc`, the owner approved
 `mystarceiling/config.toml` beneath that directory. Windows `APPDATA` is a future
 portability direction.
+
+## Logging
+
+Logging means spdlog messages only; command results (including help, version,
+info and validation reports) keep their normal terminal output. The owner requires
+a configurable destination and level, with the initial level `warning` mapped
+to `spdlog::level::warn` (warnings, errors and critical messages).
+
+A nonempty file path directs enabled spdlog messages to that file, creating it if
+absent; an empty path uses stdout/stderr. The accepted default is
+`/tmp/mystarceiling.log`. Overwrite existing contents when initializing file
+logging for a new run; messages within that run accumulate normally. If the file
+cannot be opened, report the failure to stderr and stop. These are M2 part-1
+requirements, not implemented behavior.
 
 ## GUI direction
 

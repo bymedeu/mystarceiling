@@ -53,15 +53,16 @@ pipeline; implementation needs separate approval. Keep binary schema, photometry
 astronomy and display unchanged. Camera extent and later acceptance evidence stay
 for their respective discussions.
 
-Read-only inspection: the current CLI parses/combines/sorts source CSVs and writes
-the binary on every launch. The binary reader reserves and loads the entire file;
-loading all then truncating would violate the loaded-record cap. A bounded reader
-must allocate only for the resolved count. The writer preserves supplied order;
-version/schema 2 does not certify brightness ordering. Decide explicitly whether
-runtime trusts preparation's ordering and validates only the selected prefix, or
-scans the whole file with bounded retained storage to validate records/order.
-Prefix-only validation cannot detect invalid or out-of-order tail records; a full
-scan retains whole-file I/O cost. This reader policy remains open.
+The current CLI parses/combines/sorts source CSVs and writes the binary on every
+launch. The binary reader reserves and loads the entire file; loading all then
+truncating would violate the loaded-record cap. The owner has settled the
+[reader policy](../decisions/application-controls.md#catalogue-controls): catalogue
+building establishes brightness ordering; viewing checks structure and validates
+only the requested prefix, with full inspection reserved for an explicit
+validation command. The quantity-aware reader is implemented, with 133 C++
+tests passing in both ordinary and ASan/UBSan builds. The existing launcher still
+uses the whole-file reader; separated commands, configuration and viewer wiring
+remain unimplemented. The broader catalogue-understanding checkpoint stays open.
 
 No RGBE, packed/batch layout, filter model, API, GUI, protocol, canonical Star or
 binary-schema change is selected. See [appearance/output boundaries](../decisions/ceiling-product-output.md),
