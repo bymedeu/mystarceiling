@@ -1,6 +1,6 @@
 # Current project state
 
-Last updated: 2026-10-24.
+Last updated: 2026-10-25.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
@@ -92,6 +92,16 @@ The complete current usage and required TOML schema are in
 [README](../README.md#run-the-prepared-catalogue-viewer); detailed behavior is in
 [application controls](decisions/application-controls.md).
 
+## Current M2 part-2 decisions, not implemented
+
+The owner selected build-time conversion of both catalogues to high-precision
+linear RGB, a separate double-precision magnitude, and common-epoch position
+preparation. Original source values need not be recoverable from the binary;
+source CSVs remain available. Existing colour/motion approximation errors are
+accepted for M2; calibration and astrometric upgrades are deferred. Invalid source
+rows are skipped with warnings. Exact conversion, RGB storage and motion-state
+handling remain bounded-plan details. See the [canonical decision](decisions/ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25).
+
 ## Future direction, not implemented
 
 Automatic visibility and future CLI/GUI controls remain future work. Current
@@ -127,12 +137,14 @@ the final archive.
   measuring the existing 4,096-row baseline;
 - remaining M2 detail, including camera scope; approved sequence is in the M2 plan;
 - output geometry/projection, fixture mapping, transport and controller contract;
-- preparation-time colour/radiance conversion and runtime/cache representation.
+- exact RGB conversion/colour space/channel width and motion-state representation
+  for the selected build-time preparation direction.
 
 Owner requirements and proposals are distinguished from agent explanations and
 implementation state in the [ceiling/output decision note](decisions/ceiling-product-output.md).
-Camera/time, colour/cache and device implementation remain future scope beyond
-the implemented part-1 controls. The understanding checkpoint remains open.
+Camera/time, the selected colour/preparation changes and device implementation
+remain future scope beyond the implemented part-1 controls. The understanding
+checkpoint remains open.
 
 ## Key records
 

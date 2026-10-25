@@ -1,6 +1,6 @@
 # Star ceiling, product uses and output boundaries
 
-Status: owner clarifications recorded on 2026-10-18; documentation only
+Status: owner clarifications updated on 2026-10-25; documentation only
 (MODE GREEN). Requirements below describe direction, not implementation approval.
 The [catalogue understanding checkpoint](../project-state.md#required-understanding-checkpoint)
 remains open.
@@ -12,10 +12,10 @@ such as shooting stars. Its two main uses are a fixed astronomical sky with
 effects and a sky with astronomical time progression. A completely static image
 is secondary. Screenshot export is only an idea, not required scope.
 
-Catalogue selection remains magnitude based, brightest first. A count option is
-an owner proposal, not approved implementation or a mandate for spatial
-selection. Camera exploration is secondary. Full M2 scope and ordering remain
-to be agreed, including its camera scope. The revised 2026-10-18 dates are
+Catalogue building now uses the implemented Hipparcos-first capacity policy,
+then stores the selection in brightness order. View quantity controls the loaded
+prefix; neither policy mandates spatial selection. Camera exploration is secondary.
+Full M2 scope and ordering remain to be agreed, including its camera scope. The revised 2026-10-18 dates are
 planning estimates; astronomical time remains M3 in the current
 [roadmap](../../README.md#milestones).
 
@@ -30,23 +30,61 @@ Desired flexibility includes rectangular outputs, fisheye views and curved
 hemispherical/bubble fixtures. A hemispherical surface is physical geometry;
 fisheye is a projection. Neither determines the other.
 
-## Owner proposal: prepared colour and radiance
+## Accepted catalogue preparation — 2026-10-25
 
-The owner proposes deriving rendering colour/radiance from BP-RP and G during
-ingestion/preparation, potentially retaining compact RGBE or an equivalent in a
-runtime representation instead of the original photometry. Source measurements
-can remain in the source catalogue while a device/render cache contains only
-derived data it needs. Click-to-inspect is optional and no longer drives the
-representation.
+Owner-selected direction for M2, not implemented by this documentation:
 
-Agent explanation: BP-RP/G conversion to display colour and radiance is
-approximate. Arbitrary synthetic or artistic colours need not fabricate BP-RP.
-Keeping measurement provenance separate from display appearance remains useful;
-it does not require every runtime layer to retain every source field.
+- Convert Gaia and Hipparcos photometry into common, high-precision linear RGB
+  colour during binary building. Keep observed colour, including existing
+  interstellar reddening; synthetic colours use the same RGB interface.
+- Preserve magnitude as a separate double-precision baseline for core algorithms.
+  Accept the existing estimated Gaia G for Hipparcos. Common photometric units
+  do not mean averaging different stars' magnitudes; overlapping light is later
+  combined in linear intensity.
+- Document how source fields are converted or fused into common fields. Original
+  values need not be recoverable from the binary; retain the source CSVs so better
+  conversions can regenerate it. Do not discard useful stellar inputs silently.
+- Leave Hipparcos `g_estimation_method` and `resolution_reason` out of the binary.
+  They remain preparation/debugging metadata in the source files.
+- Move the existing common-epoch position preparation into building, targeting
+  the current J2016 baseline. Accept the existing simplified motion approximation;
+  a more accurate astrometric model is not an M2 prerequisite. Epoch labels and
+  associated motion assumptions must remain explicit, and the viewer must not
+  repeat the source-to-common-epoch displacement. See [motion limits](stellar-motion.md).
+- Store complete, valid records, including usable RGB for either source. Skip
+  malformed/incomplete source rows and report warnings. This rejection policy
+  already exists in catalogue building; Gaia acquisition also filters missing
+  fields and validates rows before writing the source archive.
 
-Open decisions: representation and layer boundary, colour model and packing.
-RGBE is a candidate, not a selected format. No photometry conversion, cache or
-binary-schema change is approved or implemented by this clarification.
+The binary holds stellar baselines. The view core derives working brightness and
+appearance from them; a presentation conversion supplies values to the simple
+UI. M2 starts with an ideal night sky. Light pollution, clouds and Sun/Moon effects
+remain later work rather than additional M2 requirements.
+
+The owner accepts colour-conversion and motion-model approximation errors to
+keep M2 proportional to the star-ceiling objective. A calibration campaign or
+full astrometric upgrade would exceed the intended scope. Basic implementation
+checks still cover finite values, documented conversions, epoch handling and
+binary round trips; accepted model error does not imply accepting inconsistent
+units, corrupted records or applying a displacement twice.
+
+Exact RGB channel width/colour space, the bounded conversion formula and the
+motion-state representation remain implementation-plan details to settle.
+The earlier RGBE packing proposal is superseded. No converter or binary-schema change
+has been implemented by this decision.
+
+## Deferred accuracy work
+
+These are optional later improvements, not new M2 acceptance requirements or
+release promises:
+
+- Refine source-index-to-RGB conversion against observed reference spectra,
+  compare colour errors across stellar populations, and consider richer input
+  photometry/spectra if justified. More storage bits alone cannot improve a
+  conversion model; retained CSVs permit rebuilding after model improvements.
+- Revisit consistent motion-state propagation, radial velocity and perspective
+  effects with M3 observer/time planning. Declare the supported model/date range
+  and limitations there; full astrometric accuracy is not promised.
 
 ## Appearance, exposure and data limits
 
@@ -59,9 +97,9 @@ scope or implementation approval. A bounded visible-light exposure prototype
 remains one possible optional extension; full photographic realism is not a
 release promise. See [M2 planning](../milestones/m2-ceiling-appearance.md).
 
-Visible exposure changes can use linear HDR radiance/intensity (possibly RGBE)
-plus a scene/time model. A final clipped or tone-mapped image alone cannot recover
-lost range or generate motion integration. Time integration is distinct from a
+Visible exposure changes can use linear HDR radiance/intensity derived from
+RGB colour and magnitude, plus a scene/time model. A final clipped or tone-mapped
+image alone cannot recover lost range or generate motion integration. Time integration is distinct from a
 brightness slider; tracking, optics/PSF/aperture, sensor noise/response/saturation
 and atmosphere/background remain explicit model choices.
 
@@ -83,9 +121,10 @@ The owner is concerned about duplicating physical photometry and derived pixels.
 Different representations need not coexist at every stage. Compact prepared
 records may omit unused fields from hot memory while reproducible source data,
 including future spectra, remain offline on disk. Do not irreversibly discard
-sources. Removing magnitude/BP-RP from canonical Star or the binary schema is an
-unapproved RED decision. No future packed representation follows from
-[current size accounting](memory-accounting.md).
+sources. Magnitude remains a baseline field; source colour indices may be
+converted to common RGB under the accepted direction above. Exact packing still
+requires a bounded implementation plan. No future packed representation follows
+from [current size accounting](memory-accounting.md).
 
 Multiple consumers/renderers need explicit output boundaries; no do-everything
 schema is selected. Cloud/display effects may adapt, degrade or be omitted

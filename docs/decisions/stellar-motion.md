@@ -91,6 +91,16 @@ The complete suite passed 106 of 106 tests on 2026-09-13.
   unchanged. This is the approved catalogue epoch target, not a claim that
   `2016-01-01 00:00:00 UTC` equals the precise J2016 Julian epoch.
 
+## Accepted M2 preparation direction — 2026-10-25
+
+The owner wants the existing J2016 common-position preparation moved from scene
+construction into binary building and accepts the current model's approximation
+errors for M2. This is a direction, not an implemented move. The current helper
+returns direction only; the implementation plan must state how stored motion and
+epoch relate to that direction, and avoid applying the displacement twice.
+A more accurate propagation/calibration programme is deferred; supported-date
+validation belongs to M3. See the [accepted appearance/preparation limits](ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25).
+
 ## Reference behavior
 
 - [ERFA `pmpx`](https://github.com/liberfa/erfa/blob/master/src/pmpx.c) documents

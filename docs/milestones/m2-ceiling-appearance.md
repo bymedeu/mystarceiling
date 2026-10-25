@@ -29,8 +29,12 @@ Path-prediction/generation speed modes are future ideas, not M2 requirements.
 Build on the working first 4096-source M1 path and the recorded 119 passing C++
 tests after the source-independent Star refactor. Aim for realistic-looking
 colour, useful brightness controls, modest glow and subtle effects. “Animated”
-does not mandate meteors, Perseids or clouds now. G and BP-RP are measurements;
-derived display appearance needs documented approximations and validation.
+does not mandate meteors, Perseids or clouds now. The owner accepts approximate
+source-photometry-to-RGB conversion and the current simplified motion model.
+High-precision RGB and separate double-precision magnitude are the selected
+preparation direction. Check implementation correctness, record model limits,
+and defer a colour-calibration campaign and astrometric accuracy upgrades; see
+[accepted preparation and deferred accuracy work](../decisions/ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25).
 
 Building follows the Hipparcos-first membership policy and stores its selection
 in brightness order; quantity caps loaded records before visibility and display
@@ -51,8 +55,10 @@ or accuracy claim was made.
 
 Part 1 now includes build/info and the configured viewer. Binary schema,
 photometry, astronomy and display retain the existing baseline. The next bounded
-part is colour/brightness; its model and acceptance evidence remain to discuss.
-Camera extent and later acceptance evidence stay for their respective discussions.
+part is colour/brightness; common RGB preparation and accepted approximation
+limits are recorded in the appearance decision. The exact conversion and motion
+representation still need a bounded implementation plan. Camera extent and later
+acceptance evidence stay for their respective discussions.
 
 `msc view` now consumes an existing binary through the quantity-aware reader,
 using complete TOML configuration, temporary CLI overrides and scoped spdlog
@@ -69,7 +75,9 @@ ASan/UBSan builds; all 30 Python tests pass. Cppcheck, Lizard and formatting
 checks pass. The broader
 catalogue-understanding checkpoint stays open.
 
-No RGBE, packed/batch layout, filter model, API, GUI, protocol, canonical Star or
-binary-schema change is selected. See [appearance/output boundaries](../decisions/ceiling-product-output.md),
+Common high-precision RGB, separate magnitude and build-time common-position
+preparation are the selected direction, not implemented changes. Exact packing,
+filter models, APIs, GUI and protocols remain open. See
+[appearance/output boundaries](../decisions/ceiling-product-output.md),
 [application controls](../decisions/application-controls.md) and
 [record-size accounting](../decisions/memory-accounting.md).
