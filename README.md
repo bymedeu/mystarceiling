@@ -245,6 +245,7 @@ approval. Reduce optional scope before correctness or reproducible evidence.
 | M0 — Typed astronomy foundations | Existing foundations retained | Working typed path supporting M1; no new accuracy claim |
 | M1 — Fixed Toulouse sky | Completed 2026-09-13 | Working 4096-source catalogue-to-screen baseline |
 | M2 — Ceiling appearance and data controls | 2026-12-13 | Realistic-looking colour/brightness, modest glow, Hipparcos-first catalogue preparation, quantity control, useful bounded inspection/projection |
+| Project documentation | After M2, before M3; no separate date assigned | Consolidated usage, development and model-limit documentation; [todo list](docs/todo.md#documentation-phase-between-m2-and-m3) |
 | M3 — Validated observer and time | 2027-02-28 | Declared model/range, independent validation, controlled astronomical progression |
 | M4 — Million-source CPU baseline | 2027-04-25 | Actually measured 1,048,576-source pipeline and bounded-memory preparation baseline |
 | M5 — Profile-guided CPU work and output boundary | 2027-06-27 | Justified improvements, explicit consumer boundary, reproducible before/after evidence |

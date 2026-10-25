@@ -29,7 +29,10 @@ These capacity assumptions approve documentation only; full scope remains to dis
 See the [canonical roadmap](../README.md#milestones) and
 [approved M2 sequence](milestones/m2-ceiling-appearance.md#approved-sequence) and
 [part-1 controls/configuration](decisions/application-controls.md). Implementation
-of later parts remains subject to their own design discussion. Part 1 catalogue
+of later parts remains subject to their own design discussion. A dedicated
+[project-documentation phase](todo.md#documentation-phase-between-m2-and-m3) is
+planned after M2 and before M3; no tooling or separate date is selected.
+Part 1 catalogue
 build/info and configured viewing are implemented; the broader understanding
 checkpoint remains open.
 

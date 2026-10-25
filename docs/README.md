@@ -12,6 +12,8 @@ It is plain Markdown for now; Doxygen and MkDocs integration are deferred.
   device flexibility and unselected implementation choices.
 - [M2 planning](milestones/m2-ceiling-appearance.md): bounded appearance/data controls,
   estimate and open scope; no implementation approval.
+- [Project todo list](todo.md): documentation phase after M2 and before M3,
+  plus deferred accuracy work.
 - [Record-size accounting](decisions/memory-accounting.md): measured sizeof/alignment,
   memory illustrations and current overlapping lifetimes; not peak RSS.
 - [Catalogue integration](decisions/catalogue-integration.md): approved
