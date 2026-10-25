@@ -32,10 +32,11 @@ fisheye is a projection. Neither determines the other.
 
 ## Accepted catalogue preparation — 2026-10-25
 
-Owner-selected direction for M2, not implemented by this documentation:
+Owner-selected direction for M2, now implemented for catalogue preparation and
+the initial coloured viewer:
 
-- Convert Gaia and Hipparcos photometry into common, high-precision linear RGB
-  colour during binary building. Keep observed colour, including existing
+- Convert Gaia and Hipparcos photometry into common linear RGB8 colour during
+  binary building; the owner selected compact uint8 channels over floats. Keep observed colour, including existing
   interstellar reddening; synthetic colours use the same RGB interface.
 - Preserve magnitude as a separate double-precision baseline for core algorithms.
   Accept the existing estimated Gaia G for Hipparcos. Common photometric units
@@ -68,10 +69,11 @@ checks still cover finite values, documented conversions, epoch handling and
 binary round trips; accepted model error does not imply accepting inconsistent
 units, corrupted records or applying a displacement twice.
 
-Exact RGB channel width/colour space, the bounded conversion formula and the
-motion-state representation remain implementation-plan details to settle.
-The earlier RGBE packing proposal is superseded. No converter or binary-schema change
-has been implemented by this decision.
+The concrete encoding is three linear-sRGB uint8 channels, with source-specific
+temperature approximations documented in the [colour decision](stellar-colour.md).
+Binary version 3 stores prepared J2016 positions and retains native motion values
+under the stated approximation. The earlier RGBE/float packing proposals are
+superseded. No glare, contrast/detectability or future-date motion model is added.
 
 ## Deferred accuracy work
 
@@ -151,10 +153,10 @@ No wire protocol, animation placement (engine or controller), update rate,
 controller capability, geometry, fixture mapping, projection or ID scheme is
 selected. Device output remains direction for design discussion.
 
-The current application still renders the fixed M1 Toulouse scene with grayscale
-points. The bounded source-independent Star refactor is implemented; colour,
-scintillation, events, camera/time controls and hardware output are not added by
-this work. See [project state](../project-state.md) and
+The current application renders the fixed M1 Toulouse geometry with prepared
+RGB8 colour. It retains three-pixel points, the existing white-star brightness
+curve and the temporary magnitude cutoff. Scintillation, glow, events,
+camera/time controls and hardware output remain future work. See [project state](../project-state.md) and
 [application controls](application-controls.md) for existing behavior and plans.
 
 ## M1 comparison correction

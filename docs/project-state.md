@@ -12,7 +12,8 @@ The first bounded M2 refactor separates source-independent
 `core::astronomy::Star` and its measurement wrappers from
 `catalogue::CatalogueStar` identity/provenance. See the
 [boundary decision](decisions/catalogue-integration.md#first-bounded-m2-refactor--owner-decision-2026-09-13).
-The version-2 binary contract and M1 scene behavior are preserved. The recorded
+That first refactor preserved the version-2 binary and M1 scene behavior; later
+M2 preparation changes are recorded below. The recorded
 post-refactor suite passed all 119 tests, including a frozen-byte compatibility check against
 the pre-refactor writer.
 
@@ -40,7 +41,8 @@ CPU-first portable delivery targets a 16 GB Linux laptop without an NVIDIA GPU.
 The RTX 3060 is on a separate Windows desktop; Linux there is a future possibility.
 CUDA is conditional on setup/access and a justified measured workload.
 [Size accounting](decisions/memory-accounting.md) measured Star/CatalogueStar/
-ScreenPoint at 72/88/12 bytes, alignments 8/8/4; this is not peak RSS or a benchmark.
+ScreenPoint at 64/80/16 bytes after RGB8 integration, alignments 8/8/4; this is
+not peak RSS or a benchmark.
 Completed 134m acquisition does not demonstrate full-catalogue runtime capability.
 
 ## Required understanding checkpoint
@@ -59,7 +61,7 @@ records, brightness selection, binary storage, and scene hand-off. Inspect code
 and tests to distinguish implemented behavior from intended design. See the
 [decision history](development-history/2026-09-14.md).
 
-## Implemented and verified
+## Historical M1 evidence
 
 - M1 normalizes the 4096-row Gaia prefix and resolved 62-row Hipparcos supplement
   through separate parsers, then selects the brightest 4096 combined records.
@@ -95,22 +97,30 @@ The complete current usage and required TOML schema are in
 [README](../README.md#run-the-prepared-catalogue-viewer); detailed behavior is in
 [application controls](decisions/application-controls.md).
 
-## Current M2 part-2 decisions, not implemented
+## Initial M2 part-2 implementation
 
-The owner selected build-time conversion of both catalogues to high-precision
-linear RGB, a separate double-precision magnitude, and common-epoch position
-preparation. Original source values need not be recoverable from the binary;
-source CSVs remain available. Existing colour/motion approximation errors are
-accepted for M2; calibration and astrometric upgrades are deferred. Invalid source
-rows are skipped with warnings. Exact conversion, RGB storage and motion-state
-handling remain bounded-plan details. See the [canonical decision](decisions/ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25).
+Both parsers now prepare compact linear-sRGB uint8 colour through source-specific
+temperature approximations and move positions to J2016 during building. Magnitude
+remains double precision. Binary version 3 uses complete 68-byte records; old
+binaries require rebuilding. The viewer uploads integer RGB attributes and encodes
+sRGB exactly once, preserving the prior white-star display curve. Native motion
+components/parallax are retained as an accepted approximation. Source CSVs remain
+available for rebuilding; diagnostic metadata stays outside the binary.
+
+All 189 C++ tests pass in ordinary and ASan/UBSan/leak builds. Software-OpenGL pixel
+checks and a real 4096-record build pass, retaining all 62 Hipparcos supplement
+stars and exact source magnitude values. The record sizes are now 64/80/16 bytes
+for Star/CatalogueStar/ScreenPoint. No physical-display review or full-size runtime
+claim follows. See the [colour model](decisions/stellar-colour.md),
+[prepared catalogue contract](decisions/catalogue-integration.md#current-prepared-catalogue--2026-10-25)
+and [memory evidence](decisions/memory-accounting.md).
 
 ## Future direction, not implemented
 
 Automatic visibility and future CLI/GUI controls remain future work. Current
 local time is the approved future time default; the default observer and
-place-name resolution remain open. M1 still uses fixed Toulouse/time. Colour,
-glow, exposure, camera controls, and scintillation are not implemented.
+place-name resolution remain open. The viewer still uses fixed Toulouse/time. Glow, exposure controls, camera
+controls, and scintillation are not implemented.
 
 ## Acquisition status
 
@@ -140,13 +150,13 @@ the final archive.
   measuring the existing 4,096-row baseline;
 - remaining M2 detail, including camera scope; approved sequence is in the M2 plan;
 - output geometry/projection, fixture mapping, transport and controller contract;
-- exact RGB conversion/colour space/channel width and motion-state representation
-  for the selected build-time preparation direction.
+- remaining appearance/brightness controls and visual acceptance; future-date
+  motion handling remains M3 work.
 
 Owner requirements and proposals are distinguished from agent explanations and
 implementation state in the [ceiling/output decision note](decisions/ceiling-product-output.md).
-Camera/time, the selected colour/preparation changes and device implementation
-remain future scope beyond the implemented part-1 controls. The understanding
+Camera/time and device implementation remain future scope beyond the implemented
+controls and initial colour path. The understanding
 checkpoint remains open.
 
 ## Key records

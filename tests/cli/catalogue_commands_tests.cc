@@ -291,7 +291,7 @@ TEST_F(CatalogueCommandTest, InfoUsesOnlyHeaderAndLengthAndPrintsDecimalGb)
     ASSERT_EQ(run({"catalogue", "info"}), 0) << errors.str();
     EXPECT_EQ(output.str(),
               "Catalogue: " + (root / "catalogue.bin").string() +
-                  "\nRecords: 64\nFile size: 4768 bytes (0.00000477 GB)\n");
+                  "\nRecords: 64\nFile size: 4384 bytes (0.00000438 GB)\n");
     EXPECT_FALSE(read_binary_catalogue(root / "catalogue.bin"));
     EXPECT_FALSE(shown);
 }
@@ -329,9 +329,9 @@ TEST_F(CatalogueCommandTest, InfoUsesThreeDecimalsForLargerSparseBinary)
         count >>= 8;
     }
     binary.close();
-    std::filesystem::resize_file(root / "catalogue.bin", 1480000032);
+    std::filesystem::resize_file(root / "catalogue.bin", 1360000032);
     ASSERT_EQ(run({"catalogue", "info"}), 0) << errors.str();
-    EXPECT_NE(output.str().find("1480000032 bytes (1.480 GB)"),
+    EXPECT_NE(output.str().find("1360000032 bytes (1.360 GB)"),
               std::string::npos);
 }
 

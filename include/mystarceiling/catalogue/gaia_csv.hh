@@ -18,6 +18,7 @@ namespace msc::catalogue
         InvalidNumber,
         InvalidRightAscension,
         InvalidDeclination,
+        InvalidPropagation,
         Count
     };
 

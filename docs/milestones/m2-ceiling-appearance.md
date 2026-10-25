@@ -31,7 +31,7 @@ tests after the source-independent Star refactor. Aim for realistic-looking
 colour, useful brightness controls, modest glow and subtle effects. “Animated”
 does not mandate meteors, Perseids or clouds now. The owner accepts approximate
 source-photometry-to-RGB conversion and the current simplified motion model.
-High-precision RGB and separate double-precision magnitude are the selected
+Compact RGB8 and separate double-precision magnitude are the selected
 preparation direction. Check implementation correctness, record model limits,
 and defer a colour-calibration campaign and astrometric accuracy upgrades; see
 [accepted preparation and deferred accuracy work](../decisions/ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25).
@@ -53,12 +53,9 @@ or accuracy claim was made.
 
 ## Current part-1 implementation
 
-Part 1 now includes build/info and the configured viewer. Binary schema,
-photometry, astronomy and display retain the existing baseline. The next bounded
-part is colour/brightness; common RGB preparation and accepted approximation
-limits are recorded in the appearance decision. The exact conversion and motion
-representation still need a bounded implementation plan. Camera extent and later
-acceptance evidence stay for their respective discussions.
+Part 1 includes build/info and the configured viewer. Its existing catalogue
+controls remain unchanged by the initial part-2 colour path below. Camera extent
+and later acceptance evidence stay for their respective discussions.
 
 `msc view` now consumes an existing binary through the quantity-aware reader,
 using complete TOML configuration, temporary CLI overrides and scoped spdlog
@@ -75,9 +72,25 @@ ASan/UBSan builds; all 30 Python tests pass. Cppcheck, Lizard and formatting
 checks pass. The broader
 catalogue-understanding checkpoint stays open.
 
-Common high-precision RGB, separate magnitude and build-time common-position
-preparation are the selected direction, not implemented changes. Exact packing,
-filter models, APIs, GUI and protocols remain open. See
-[appearance/output boundaries](../decisions/ceiling-product-output.md),
+## Initial part-2 colour implementation — 2026-10-25
+
+Both parsers now prepare temperature-based linear-sRGB colour in three uint8
+channels, keep magnitude as double, and move source positions to J2016 during
+building. Binary version 3 uses 68-byte records with mandatory RGB. The renderer
+uploads compact RGB bytes directly, scales linear light, and performs one sRGB
+output encoding. The prior white-star display curve, fixed geometry, cutoff and
+point size remain. See the [colour model](../decisions/stellar-colour.md) and
+[prepared catalogue contract](../decisions/catalogue-integration.md#current-prepared-catalogue--2026-10-25).
+
+All 189 C++ tests pass in ordinary and ASan/UBSan/leak builds. An independent
+software-OpenGL check compiled/linked the actual shaders and verified pixel
+values and detection of double encoding; this does not validate the physical
+display/window. A real 4096-record build retained 62 Hipparcos and 4034 Gaia stars,
+exact source magnitude values, complete RGB and J2016 positions. No full archive
+benchmark, new cross-match or owner visual acceptance is claimed.
+
+This does not complete all colour/brightness controls or M2: appearance review,
+remaining controls and glow/subtle animation still need their respective scope
+and acceptance discussions. See [appearance/output boundaries](../decisions/ceiling-product-output.md),
 [application controls](../decisions/application-controls.md) and
-[record-size accounting](../decisions/memory-accounting.md).
+[updated record sizes](../decisions/memory-accounting.md).

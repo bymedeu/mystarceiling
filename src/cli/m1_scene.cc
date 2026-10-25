@@ -9,30 +9,25 @@
 #include <mystarceiling/core/coordinates/latitude.hh>
 #include <mystarceiling/core/coordinates/longitude.hh>
 #include <mystarceiling/core/coordinates/observer_location.hh>
-#include <mystarceiling/core/coordinates/propagate_proper_motion.hh>
 #include <mystarceiling/core/maths/angle.hh>
 #include <mystarceiling/core/projection/zenith_perspective.hh>
 #include <mystarceiling/core/time/earth_rotation.hh>
 #include <mystarceiling/core/time/julian_date.hh>
-#include <mystarceiling/core/time/reference_epoch.hh>
 #include <mystarceiling/render/opengl_renderer.hh>
 #include <optional>
 #include <span>
 
 namespace msc::cli
 {
-    using catalogue::CatalogueSource;
     using catalogue::CatalogueStar;
     using core::coordinates::icrs_to_enu;
     using core::coordinates::Latitude;
     using core::coordinates::Longitude;
     using core::coordinates::ObserverLocation;
-    using core::coordinates::propagate_proper_motion;
     using core::maths::Angle;
     using core::projection::project_zenith_perspective;
     using core::time::earth_rotation_angle;
     using core::time::JulianDate;
-    using core::time::ReferenceEpoch;
     using render::ScreenPoint;
 
     float m1_display_intensity(double magnitude) noexcept
@@ -46,25 +41,15 @@ namespace msc::cli
 
     namespace
     {
-        std::optional<core::coordinates::IcrsDirection>
-        scene_direction(const CatalogueStar& entry, ReferenceEpoch target,
-                        M1Scene& scene)
+        float linear_intensity(double magnitude) noexcept
         {
-            const auto& star = entry.star();
-            auto direction = star.direction();
-            if (entry.source_catalogue() == CatalogueSource::Hipparcos2)
-            {
-                const auto propagated =
-                    propagate_proper_motion(direction, star.proper_motion(),
-                                            star.reference_epoch(), target);
-                if (!propagated)
-                {
-                    ++scene.propagation_failures;
-                    return std::nullopt;
-                }
-                direction = *propagated;
-            }
-            return direction;
+            // Preserve the existing white-star display curve; colour scales
+            // linear light before the renderer applies its output encoding.
+            const auto display =
+                static_cast<double>(m1_display_intensity(magnitude));
+            return static_cast<float>(
+                display <= 0.04045 ? display / 12.92
+                                   : std::pow((display + 0.055) / 1.055, 2.4));
         }
     } // namespace
 
@@ -76,16 +61,12 @@ namespace msc::cli
         // Fixed M1 approximation: UT1 = UTC, distinct from the J2016 motion
         // target.
         const auto rotation = earth_rotation_angle(JulianDate{2457388.5, 0.0});
-        const auto target = *ReferenceEpoch::try_from_julian_year(2016.0);
         M1Scene scene;
         scene.points.reserve(stars.size());
         for (const auto& entry : stars)
         {
             const auto& star = entry.star();
-            const auto direction = scene_direction(entry, target, scene);
-            if (!direction)
-                continue;
-            const auto enu = icrs_to_enu(*direction, observer, rotation);
+            const auto enu = icrs_to_enu(star.direction(), observer, rotation);
             const auto projected =
                 project_zenith_perspective(enu, 1280.0 / 720.0);
             if (!projected)
@@ -97,10 +78,10 @@ namespace msc::cli
                 ++scene.magnitude_excluded;
                 continue;
             }
-            scene.points.push_back(
-                ScreenPoint{static_cast<float>(projected->x),
-                            static_cast<float>(projected->y),
-                            m1_display_intensity(star.magnitude().gaia_g())});
+            scene.points.push_back(ScreenPoint{
+                static_cast<float>(projected->x),
+                static_cast<float>(projected->y),
+                linear_intensity(star.magnitude().gaia_g()), star.colour()});
         }
         return scene;
     }

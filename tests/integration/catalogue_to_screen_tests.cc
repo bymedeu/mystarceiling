@@ -120,6 +120,7 @@ TEST(CatalogueToScreenTest,
     EXPECT_NEAR(scene.points[0].x, -0.1532045692891902, 2e-8);
     EXPECT_NEAR(scene.points[0].y, 0.08015878094575217, 2e-8);
     EXPECT_DOUBLE_EQ(
-        loaded->stars.front().star().reference_epoch().julian_year(), 1991.25);
-    EXPECT_FALSE(loaded->stars.front().star().colour());
+        loaded->stars.front().star().reference_epoch().julian_year(), 2016.0);
+    EXPECT_NE(loaded->stars.front().star().colour().red,
+              loaded->stars.front().star().colour().blue);
 }

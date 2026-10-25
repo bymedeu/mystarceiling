@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 #include <mystarceiling/catalogue/binary_catalogue.hh>
 #include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/core/astronomy/linear_rgb8.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
@@ -49,7 +50,7 @@ namespace
                 *ProperMotion::try_from_milliarcseconds_per_year(0)},
             *Parallax::try_from_milliarcseconds(1),
             *ApparentMagnitude::try_from_gaia_g(3),
-            std::nullopt};
+            msc::core::astronomy::LinearRgb8{255, 255, 255}};
         std::vector<msc::catalogue::CatalogueStar> stars;
         for (std::uint64_t id = 1; id <= 64; ++id)
             stars.emplace_back(id, msc::catalogue::CatalogueSource::GaiaDr3,

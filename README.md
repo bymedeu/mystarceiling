@@ -71,8 +71,8 @@ These relative links are ignored by Git and are not created automatically on
 fresh clones. The viewer link uses the `build/quality` build.
 
 `msc view` loads only the requested prefix of an existing brightness-ordered
-binary catalogue. It prepares the unchanged fixed Toulouse M1 scene with the
-**temporary G<=4 display filter** and opens a graphical window. Launching does
+binary catalogue. It uses the fixed Toulouse M1 geometry with prepared stellar
+colour and the **temporary G<=4 display filter**, then opens a graphical window. Launching does
 not read raw sources or rebuild the binary. Use the separate catalogue commands:
 
 ```sh
@@ -99,13 +99,17 @@ records or reading either source. Example output:
 ```text
 Catalogue: /path/to/catalogue.bin
 Records: 4096
-File size: 303136 bytes (0.000303 GB)
+File size: 278560 bytes (0.000279 GB)
 ```
 
 GB uses 1,000,000,000 bytes, with three decimal places for values of at least
 0.001 GB; smaller sizes retain leading zeros and three significant digits.
 The former positional source-building launcher has been removed.
-M1 remains complete; M2 part 1 is implemented and the broader
+The current binary uses RGB8 colour and J2016 positions. Rebuild older binaries
+with `msc catalogue build --force`; original source files and settings remain
+unchanged. See the [colour model and accepted limits](docs/decisions/stellar-colour.md).
+M1 remains complete; M2 part 1 and initial colour preparation/display are implemented,
+and the broader
 [owner-understanding checkpoint](docs/project-state.md#required-understanding-checkpoint)
 remains open.
 

@@ -1,10 +1,10 @@
 #pragma once
 
+#include <mystarceiling/core/astronomy/linear_rgb8.hh>
 #include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/proper_motion.hh>
 #include <mystarceiling/core/time/reference_epoch.hh>
-#include <optional>
 
 namespace msc::core::astronomy
 {
@@ -12,15 +12,15 @@ namespace msc::core::astronomy
     using core::coordinates::ProperMotionComponents;
     using core::time::ReferenceEpoch;
 
-    // Source-independent validated stellar state; photometry is G-like and
-    // BP-RP.
+    // Source-independent stellar baseline; photometry is G-like with linear
+    // RGB8.
     class Star
     {
     public:
         constexpr Star(ReferenceEpoch reference_epoch, IcrsDirection direction,
                        ProperMotionComponents proper_motion, Parallax parallax,
-                       ApparentMagnitude magnitude,
-                       std::optional<ColourIndex> colour) noexcept :
+                       ApparentMagnitude magnitude, LinearRgb8 colour) noexcept
+            :
             reference_epoch_{reference_epoch}, direction_{direction},
             proper_motion_{proper_motion}, parallax_{parallax},
             magnitude_{magnitude}, colour_{colour}
@@ -47,9 +47,9 @@ namespace msc::core::astronomy
         {
             return magnitude_;
         }
-        // Gaia BP-RP only; unavailable for the Hipparcos supplement.
-        [[nodiscard]] constexpr std::optional<ColourIndex>
-        colour() const noexcept
+        // Observed colour proportions; brightness remains a separate
+        // measurement.
+        [[nodiscard]] constexpr LinearRgb8 colour() const noexcept
         {
             return colour_;
         }
@@ -60,6 +60,6 @@ namespace msc::core::astronomy
         ProperMotionComponents proper_motion_;
         Parallax parallax_;
         ApparentMagnitude magnitude_;
-        std::optional<ColourIndex> colour_;
+        LinearRgb8 colour_;
     };
 } // namespace msc::core::astronomy

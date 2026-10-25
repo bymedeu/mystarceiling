@@ -1,7 +1,51 @@
 # Catalogue integration and runtime layering
 
-Status: bounded combined M1 runtime integration implemented on 2026-09-13
-under explicit owner approval.
+Status: M2 RGB8 catalogue preparation and coloured viewing implemented on
+2026-10-25 under owner approval. Earlier dated sections below retain historical
+M1/version-2 decisions; this current contract supersedes their storage/epoch rules.
+
+## Current prepared catalogue — 2026-10-25
+
+Each source parser prepares complete `Star` baselines with observed linear-sRGB
+colour in three `uint8_t` channels, separate double-precision G-like magnitude,
+and positions propagated to J2016. Gaia BP-RP and Hipparcos B-V have distinct
+temperature conversions; see the [colour model](stellar-colour.md). The fixed
+viewer consumes prepared positions without repeating proper-motion propagation.
+Measured proper-motion components and parallax are retained under the accepted
+M2 approximation, rather than claiming a fully rebased astrometric solution.
+
+Binary version/schema 3 keeps the 32-byte little-endian header and uses 68-byte
+records, independent of C++ padding:
+
+| Record offset | Field | Encoding |
+| ---: | --- | --- |
+| 0 | Native source ID | uint64 |
+| 8 | Position reference epoch | binary64, exactly J2016 |
+| 16, 24 | Right ascension, declination | Two binary64 values, degrees |
+| 32, 40 | Proper motion in RA*cos(dec), declination | Two binary64 values, mas/year |
+| 48 | Parallax | binary64, mas; negative measurements remain valid |
+| 56 | G-like apparent magnitude | binary64 |
+| 64, 65, 66 | Linear sRGB red, green, blue | Three uint8 values, divided by 255 |
+| 67 | Source catalogue | uint8: Gaia=0, Hipparcos=1 |
+
+Writer validation requires J2016 before opening the destination. Readers check
+that epoch and the existing numeric, identity/provenance and file-length
+invariants. Versions 1 and 2 are rejected with a rebuild instruction. Native
+colour indices and the colour-presence flag are no longer binary fields.
+
+Source mapping is explicit: astrometry changes units/epoch as needed; Gaia G or
+prepared Hipparcos `estimated_g` supplies magnitude; Gaia BP-RP or Hipparcos B-V
+supplies RGB. Hipparcos Hp and B-V/V-I already contribute to upstream G estimation.
+The original indices and `g_estimation_method`/`resolution_reason` remain in the
+source CSVs, available for rebuilding, rather than in the runtime record.
+Malformed/incomplete rows and failed position preparation are skipped and counted
+in the existing aggregate warning. No fake default colour fills a missing input.
+
+Hipparcos-first membership, brightness ordering, capacity/prefix semantics and
+safe temporary-file publication are unchanged. A real-data 4096-record build
+retained all 62 supplement stars and 4034 Gaia stars, with exact source magnitude
+values, complete RGB, J2016 positions, sorted order and a 278560-byte output.
+This does not redo cross-matching or scan the full Gaia archive.
 
 ## Approved boundary
 

@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/catalogue/gaia_csv.hh>
+#include <mystarceiling/core/astronomy/linear_rgb8.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <stdexcept>
 #include <string>
@@ -69,7 +70,6 @@ TEST(GaiaCatalogueTest, InterpretsKnownGaiaRow)
     EXPECT_EQ(star.source_id(), 418551920284673408ULL);
     EXPECT_EQ(star.source_catalogue(),
               msc::catalogue::CatalogueSource::GaiaDr3);
-    ASSERT_TRUE(star.star().colour());
     EXPECT_DOUBLE_EQ(star.star().reference_epoch().julian_year(), 2016.0);
     EXPECT_DOUBLE_EQ(
         star.star().direction().get_right_ascension().get_angle().to_degrees(),
@@ -88,7 +88,8 @@ TEST(GaiaCatalogueTest, InterpretsKnownGaiaRow)
     EXPECT_DOUBLE_EQ(star.star().parallax().milliarcseconds(),
                      14.090976249252234);
     EXPECT_DOUBLE_EQ(star.star().magnitude().gaia_g(), 1.9425238);
-    EXPECT_DOUBLE_EQ(star.star().colour()->gaia_bp_minus_rp(), 1.1434835);
+    EXPECT_EQ(star.star().colour(),
+              (msc::core::astronomy::LinearRgb8{255, 201, 162}));
 }
 
 TEST(GaiaCatalogueTest, RejectsBadRowsAndContinuesToAcceptedLimit)
@@ -122,4 +123,38 @@ TEST(GaiaCatalogueTest, PreservesNegativeParallax)
     ASSERT_EQ(result->stars.size(), 1);
     EXPECT_DOUBLE_EQ(result->stars.front().star().parallax().milliarcseconds(),
                      -0.5);
+}
+
+TEST(GaiaCatalogueTest, PreparesNonstandardEpochAndKeepsMagnitudePrecision)
+{
+    const TemporaryGzip fixture{std::string{header} +
+                                "3,1991.25,0,0,3600000,0,1,4.00001,1.0\n" +
+                                "4,2016,0,0,0,0,1,4.00002,1.0\n"};
+    const auto result = load_gaia_csv_gzip(fixture.filename(), 2);
+    ASSERT_TRUE(result);
+    ASSERT_EQ(result->stars.size(), 2);
+    const auto& first = result->stars.front().star();
+    EXPECT_DOUBLE_EQ(first.reference_epoch().julian_year(), 2016.0);
+    // Tangent displacement of 24.75 degrees; the model normalises that vector.
+    EXPECT_NEAR(
+        first.direction().get_right_ascension().get_angle().to_degrees(),
+        23.36284714437749, 1e-12);
+    EXPECT_DOUBLE_EQ(first.magnitude().gaia_g(), 4.00001);
+    EXPECT_DOUBLE_EQ(result->stars[1].star().magnitude().gaia_g(), 4.00002);
+    EXPECT_NE(first.magnitude().gaia_g(),
+              result->stars[1].star().magnitude().gaia_g());
+}
+
+TEST(GaiaCatalogueTest, RejectsFailedPreparationAndContinuesToAcceptedLimit)
+{
+    const TemporaryGzip fixture{
+        std::string{header} +
+        "1,-1.7976931348623157e308,0,0,1.7976931348623157e308,0,1,4,1\n" +
+        std::string{known_row}};
+    const auto result = load_gaia_csv_gzip(fixture.filename(), 1);
+    ASSERT_TRUE(result);
+    ASSERT_EQ(result->stars.size(), 1);
+    EXPECT_EQ(result->statistics.rejected[static_cast<std::size_t>(
+                  GaiaRowError::InvalidPropagation)],
+              1);
 }

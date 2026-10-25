@@ -1,5 +1,6 @@
 #include <mystarceiling/catalogue/binary_catalogue.hh>
 
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <cstddef>
@@ -11,6 +12,7 @@
 #include <istream>
 #include <limits>
 #include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/core/astronomy/linear_rgb8.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
@@ -31,7 +33,7 @@
 namespace msc::catalogue
 {
     using core::astronomy::ApparentMagnitude;
-    using core::astronomy::ColourIndex;
+    using core::astronomy::LinearRgb8;
     using core::astronomy::Parallax;
     using core::astronomy::Star;
     using core::coordinates::Declination;
@@ -50,10 +52,10 @@ namespace msc::catalogue
 
         constexpr std::array<char, 8> magic{'M', 'S', 'C', 'S',
                                             'T', 'A', 'R', '\0'};
-        constexpr u16 format_version = 2;
+        constexpr u16 format_version = 3;
         constexpr u16 header_size = 32;
-        constexpr u32 schema_id = 2;
-        constexpr u32 record_size = 74;
+        constexpr u32 schema_id = 3;
+        constexpr u32 record_size = 68;
 
         template <typename Integer>
         void write_unsigned(std::ostream& stream, Integer value)
@@ -137,13 +139,12 @@ namespace msc::catalogue
                 star.proper_motion().declination.milliarcseconds_per_year());
             write_double(output, star.parallax().milliarcseconds());
             write_double(output, star.magnitude().gaia_g());
-            write_double(output,
-                         star.colour() ? star.colour()->gaia_bp_minus_rp()
-                                       : 0.0);
+            const auto colour = star.colour();
+            write_unsigned(output, colour.red);
+            write_unsigned(output, colour.green);
+            write_unsigned(output, colour.blue);
             write_unsigned(output,
                            static_cast<std::uint8_t>(entry.source_catalogue()));
-            write_unsigned(
-                output, static_cast<std::uint8_t>(star.colour().has_value()));
         }
 
         std::expected<void, BinaryCatalogueError>
@@ -164,9 +165,10 @@ namespace msc::catalogue
                         u32 actual_record_size)
         {
             if (version != format_version || actual_header_size != header_size)
-                return std::unexpected{
-                    error(BinaryCatalogueErrorCode::UnsupportedVersion,
-                          "Unsupported catalogue header or version")};
+                return std::unexpected{error(
+                    BinaryCatalogueErrorCode::UnsupportedVersion,
+                    "Unsupported catalogue header or version; rebuild with "
+                    "msc catalogue build --force")};
             if (actual_schema != schema_id)
                 return std::unexpected{
                     error(BinaryCatalogueErrorCode::UnsupportedSchema,
@@ -221,9 +223,9 @@ namespace msc::catalogue
         struct Record
         {
             u64 source_id{};
-            std::array<double, 8> values{};
+            std::array<double, 7> values{};
+            LinearRgb8 colour{};
             std::uint8_t provenance{};
-            std::uint8_t has_colour{};
         };
 
         std::expected<Record, BinaryCatalogueError>
@@ -233,7 +235,7 @@ namespace msc::catalogue
             auto& source_id = record.source_id;
             auto& values = record.values;
             auto& provenance = record.provenance;
-            auto& has_colour = record.has_colour;
+            auto& colour = record.colour;
             if (!read_unsigned(input, source_id))
                 return std::unexpected{
                     error(BinaryCatalogueErrorCode::ReadFailed,
@@ -241,8 +243,10 @@ namespace msc::catalogue
             bool complete = true;
             for (auto& value : values)
                 complete = complete && read_double(input, value);
-            complete = complete && read_unsigned(input, provenance) &&
-                read_unsigned(input, has_colour);
+            complete = complete && read_unsigned(input, colour.red) &&
+                read_unsigned(input, colour.green) &&
+                read_unsigned(input, colour.blue) &&
+                read_unsigned(input, provenance);
             if (!complete)
                 return std::unexpected{
                     error(BinaryCatalogueErrorCode::ReadFailed,
@@ -255,7 +259,6 @@ namespace msc::catalogue
         decode_star(const Record& record)
         {
             const auto& values = record.values;
-            const auto has_colour = record.has_colour;
             const auto epoch = ReferenceEpoch::try_from_julian_year(values[0]);
             const auto ra =
                 RightAscension::try_from(Angle::from_degrees(values[1]));
@@ -268,10 +271,8 @@ namespace msc::catalogue
             const auto parallax = Parallax::try_from_milliarcseconds(values[5]);
             const auto magnitude =
                 ApparentMagnitude::try_from_gaia_g(values[6]);
-            const auto colour =
-                ColourIndex::try_from_gaia_bp_minus_rp(values[7]);
             if (!epoch || !ra || !dec || !pmra || !pmdec || !parallax ||
-                !magnitude || !colour)
+                !magnitude || values[0] != 2016.0)
                 return std::unexpected{
                     error(BinaryCatalogueErrorCode::InvalidRecord,
                           "Invalid stellar record")};
@@ -282,20 +283,20 @@ namespace msc::catalogue
                                        .declination = *pmdec},
                 *parallax,
                 *magnitude,
-                has_colour ? std::optional{*colour} : std::nullopt};
+                record.colour};
         }
 
         std::expected<CatalogueStar, BinaryCatalogueError>
         decode_record(const Record& record)
         {
-            const auto& [source_id, values, provenance, has_colour] = record;
+            const auto source_id = record.source_id;
+            const auto provenance = record.provenance;
             const auto star = decode_star(record);
             if (!star)
                 return std::unexpected{star.error()};
-            if (source_id == 0 || has_colour > 1 ||
+            if (source_id == 0 ||
                 provenance >
-                    static_cast<std::uint8_t>(CatalogueSource::Hipparcos2) ||
-                (!has_colour && values[7] != 0.0))
+                    static_cast<std::uint8_t>(CatalogueSource::Hipparcos2))
                 return std::unexpected{
                     error(BinaryCatalogueErrorCode::InvalidRecord,
                           "Invalid stellar record")};
@@ -396,6 +397,16 @@ namespace msc::catalogue
     write_binary_catalogue(const std::filesystem::path& filename,
                            std::span<const CatalogueStar> stars)
     {
+        if (std::ranges::any_of(
+                stars,
+                [](const CatalogueStar& entry)
+                {
+                    return entry.star().reference_epoch().julian_year() !=
+                        2016.0;
+                }))
+            return std::unexpected{
+                error(BinaryCatalogueErrorCode::InvalidRecord,
+                      "Catalogue positions must be prepared at J2016")};
         std::ofstream output{filename, std::ios::binary | std::ios::trunc};
         if (!output)
             return std::unexpected{

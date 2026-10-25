@@ -94,7 +94,7 @@ Quantity bounds work, not the need for later measured scaling evidence.
 The owner accepted prefix-only viewing validation: check the header, complete
 file length and requested count before allocating for and decoding only the
 requested records. The complete file must match the header's total count
-(`32 + count * 74` bytes in version 2), independently of the viewing quantity.
+(`32 + count * 68` bytes in version 3), independently of the viewing quantity.
 Catalogue building establishes brightness ordering within the stored selection;
 viewing does not re-sort or scan the unused tail to re-establish it. Prefix
 loading does not claim to check unconsumed records.

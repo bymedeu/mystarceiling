@@ -6,6 +6,7 @@
 #include <limits>
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/catalogue/select_brightest.hh>
+#include <mystarceiling/core/astronomy/linear_rgb8.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
@@ -45,7 +46,8 @@ namespace
                               *Declination::try_from(Angle::from_degrees(0))},
                 ProperMotionComponents{zero, zero},
                 *Parallax::try_from_milliarcseconds(1),
-                *ApparentMagnitude::try_from_gaia_g(magnitude), std::nullopt}};
+                *ApparentMagnitude::try_from_gaia_g(magnitude),
+                msc::core::astronomy::LinearRgb8{255, 255, 255}}};
     }
 } // namespace
 

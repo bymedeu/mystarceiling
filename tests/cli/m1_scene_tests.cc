@@ -5,6 +5,7 @@
 #include <array>
 #include <limits>
 #include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/core/astronomy/linear_rgb8.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
@@ -47,7 +48,8 @@ namespace
                     *ProperMotion::try_from_milliarcseconds_per_year(motion),
                     *ProperMotion::try_from_milliarcseconds_per_year(0)},
                 *Parallax::try_from_milliarcseconds(1),
-                *ApparentMagnitude::try_from_gaia_g(magnitude), std::nullopt}};
+                *ApparentMagnitude::try_from_gaia_g(magnitude),
+                msc::core::astronomy::LinearRgb8{255, 255, 255}}};
     }
 } // namespace
 
@@ -63,29 +65,18 @@ TEST(M1SceneTest, MagnitudeBoundaryIsInclusiveAndCountFollowsVisibility)
     EXPECT_NEAR(scene.points[0].y, -0.12855289148878088, 2e-8);
 }
 
-TEST(M1SceneTest, HipparcosMovesToJ2016AndGaiaDirectionIsUnchanged)
+TEST(M1SceneTest, DoesNotRepeatMotionForEitherPreparedSource)
 {
     const auto scene = make_m1_scene(std::array{
-        star(2, 33, CatalogueSource::Hipparcos2, 1991.25, 3600000),
+        star(2, 33, CatalogueSource::Hipparcos2, 2016, 3600000),
         star(2, 33, CatalogueSource::GaiaDr3, 2016, 3600000), star(2, 33)});
     ASSERT_EQ(scene.points.size(), 3);
-    // Large eastward motion provides an unmistakable screen-space signal;
-    // core tests separately validate the tangent-vector numerical model.
-    EXPECT_GT(scene.points[0].x, scene.points[1].x + 0.2F);
-    EXPECT_EQ(scene.points[1].x, scene.points[2].x);
-    EXPECT_EQ(scene.points[1].y, scene.points[2].y);
-}
-
-TEST(M1SceneTest, CountsAndSkipsFailedPropagationWithoutUsingStaleDirection)
-{
-    const auto scene =
-        make_m1_scene(std::array{star(2, 33, CatalogueSource::Hipparcos2,
-                                      -std::numeric_limits<double>::max(),
-                                      std::numeric_limits<double>::max()),
-                                 star(2)});
-    EXPECT_EQ(scene.propagation_failures, 1);
-    EXPECT_EQ(scene.magnitude_excluded, 0);
-    EXPECT_EQ(scene.points.size(), 1);
+    for (const auto& point : scene.points)
+    {
+        EXPECT_EQ(point.x, scene.points.front().x);
+        EXPECT_EQ(point.y, scene.points.front().y);
+    }
+    EXPECT_EQ(scene.propagation_failures, 0);
 }
 
 TEST(M1SceneTest, BrightnessHasContrastThroughoutTemporaryVisibleRange)
@@ -96,4 +87,23 @@ TEST(M1SceneTest, BrightnessHasContrastThroughoutTemporaryVisibleRange)
     EXPECT_GT(m1_display_intensity(3), m1_display_intensity(4));
     EXPECT_GT(m1_display_intensity(4), 0.05F);
     EXPECT_FLOAT_EQ(m1_display_intensity(-10), 1);
+}
+
+TEST(M1SceneTest, CarriesPackedColourAndLinearBrightnessToPresentation)
+{
+    auto white = star(2);
+    const auto& baseline = white.star();
+    const CatalogueStar coloured{
+        2, CatalogueSource::GaiaDr3,
+        Star{baseline.reference_epoch(), baseline.direction(),
+             baseline.proper_motion(), baseline.parallax(),
+             baseline.magnitude(),
+             msc::core::astronomy::LinearRgb8{255, 17, 0}}};
+    const auto scene = make_m1_scene(std::array{white, coloured});
+    ASSERT_EQ(scene.points.size(), 2);
+    EXPECT_EQ(scene.points[1].colour,
+              (msc::core::astronomy::LinearRgb8{255, 17, 0}));
+    EXPECT_EQ(scene.points[0].intensity, scene.points[1].intensity);
+    // Independent decode of the legacy G=2 white-star display value.
+    EXPECT_NEAR(scene.points[0].intensity, 0.032957344424256865, 1e-8);
 }

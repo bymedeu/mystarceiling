@@ -1,7 +1,7 @@
 # Stellar proper-motion propagation
 
-Status: core operation and bounded Hipparcos M1 scene integration implemented
-and verified on 2026-09-13.
+Status: core operation verified on 2026-09-13; common-position preparation moved
+from the M1 scene into catalogue parsing/building on 2026-10-25.
 
 ## Selected model
 
@@ -93,13 +93,15 @@ The complete suite passed 106 of 106 tests on 2026-09-13.
 
 ## Accepted M2 preparation direction — 2026-10-25
 
-The owner wants the existing J2016 common-position preparation moved from scene
-construction into binary building and accepts the current model's approximation
-errors for M2. This is a direction, not an implemented move. The current helper
-returns direction only; the implementation plan must state how stored motion and
-epoch relate to that direction, and avoid applying the displacement twice.
-A more accurate propagation/calibration programme is deferred; supported-date
-validation belongs to M3. See the [accepted appearance/preparation limits](ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25).
+Both parsers now prepare source directions at J2016, including a nonstandard
+Gaia input epoch. Source G-like magnitude, proper-motion components and parallax
+are retained; the stored epoch refers to the prepared position. Keeping the native
+motion components is an accepted M2 approximation, not a fully rebased motion
+state. The fixed viewer consumes the prepared direction without another
+propagation. Failed preparation is rejected during loading and included in the
+build warning. Binary version 3 requires J2016 on writing and reading.
+A more accurate propagation model is deferred; supported-date validation and
+future-date motion handling belong to M3. See the [accepted appearance/preparation limits](ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25).
 
 ## Reference behavior
 

@@ -1,5 +1,7 @@
 #include <mystarceiling/catalogue/gaia_csv.hh>
 
+#include "prepare_star.hh"
+
 #include <array>
 #include <charconv>
 #include <cmath>
@@ -9,6 +11,7 @@
 #include <filesystem>
 #include <memory>
 #include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/catalogue/stellar_colour.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
@@ -27,7 +30,6 @@
 namespace msc::catalogue
 {
     using core::astronomy::ApparentMagnitude;
-    using core::astronomy::ColourIndex;
     using core::astronomy::Parallax;
     using core::astronomy::Star;
     using core::coordinates::Declination;
@@ -171,15 +173,17 @@ namespace msc::catalogue
             const auto parallax = Parallax::try_from_milliarcseconds(values[5]);
             const auto magnitude =
                 ApparentMagnitude::try_from_gaia_g(values[6]);
-            const auto colour =
-                ColourIndex::try_from_gaia_bp_minus_rp(values[7]);
-            return CatalogueStar{
-                source_id, CatalogueSource::GaiaDr3,
-                Star{*epoch, IcrsDirection{*ra, *dec},
-                     ProperMotionComponents{.right_ascension_cos_declination =
-                                                *pmra,
-                                            .declination = *pmdec},
-                     *parallax, *magnitude, *colour}};
+            const auto colour = colour_from_gaia_bp_rp(values[7]);
+            const auto prepared =
+                prepare_star(source_id, CatalogueSource::GaiaDr3,
+                             Star{*epoch, IcrsDirection{*ra, *dec},
+                                  ProperMotionComponents{
+                                      .right_ascension_cos_declination = *pmra,
+                                      .declination = *pmdec},
+                                  *parallax, *magnitude, *colour});
+            if (!prepared)
+                return std::unexpected{GaiaRowError::InvalidPropagation};
+            return *prepared;
         }
 
         std::expected<void, GaiaFileError>

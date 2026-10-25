@@ -39,21 +39,28 @@ namespace msc::render
                 #version 330 core
                 layout (location = 0) in vec2 position;
                 layout (location = 1) in float intensity;
-                out float star_intensity;
+                layout (location = 2) in vec3 stellar_colour;
+                out vec3 star_light;
                 void main()
                 {
                     gl_Position = vec4(position, 0.0, 1.0);
                     gl_PointSize = 3.0;
-                    star_intensity = intensity;
+                    star_light = stellar_colour * intensity;
                 }
             )";
         constexpr const char* fragment_source = R"(
                 #version 330 core
-                in float star_intensity;
+                in vec3 star_light;
                 out vec4 colour;
+                vec3 encode_srgb(vec3 linear_light)
+                {
+                    return mix(1.055 * pow(linear_light, vec3(1.0 / 2.4)) - 0.055,
+                               12.92 * linear_light,
+                               lessThanEqual(linear_light, vec3(0.0031308)));
+                }
                 void main()
                 {
-                    colour = vec4(vec3(star_intensity), 1.0);
+                    colour = vec4(encode_srgb(star_light), 1.0);
                 }
             )";
 
@@ -107,6 +114,12 @@ namespace msc::render
                                   reinterpret_cast<const void*>(
                                       offsetof(ScreenPoint, intensity)));
             glEnableVertexAttribArray(1);
+            glVertexAttribPointer(
+                2, 3, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ScreenPoint),
+                reinterpret_cast<const void*>(offsetof(ScreenPoint, colour)));
+            glEnableVertexAttribArray(2);
+            // The fragment shader performs the single output transfer.
+            glDisable(GL_FRAMEBUFFER_SRGB);
             glEnable(GL_PROGRAM_POINT_SIZE);
         }
 

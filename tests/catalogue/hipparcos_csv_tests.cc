@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/catalogue/hipparcos_csv.hh>
+#include <mystarceiling/core/astronomy/linear_rgb8.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <stdexcept>
 #include <string>
@@ -59,7 +60,7 @@ namespace
 } // namespace
 
 
-TEST(HipparcosCatalogueTest, InterpretsSiriusWithoutInventingBpRp)
+TEST(HipparcosCatalogueTest, PreparesSiriusPositionAndObservedColour)
 {
     const TemporaryGzip fixture{std::string{header} + std::string{known_row}};
     const auto result = load_hipparcos_csv_gzip(fixture.filename());
@@ -69,14 +70,15 @@ TEST(HipparcosCatalogueTest, InterpretsSiriusWithoutInventingBpRp)
     EXPECT_EQ(star.source_id(), 32349);
     EXPECT_EQ(star.source_catalogue(),
               msc::catalogue::CatalogueSource::Hipparcos2);
-    EXPECT_FALSE(star.star().colour());
-    EXPECT_DOUBLE_EQ(star.star().reference_epoch().julian_year(), 1991.25);
-    EXPECT_DOUBLE_EQ(
+    EXPECT_EQ(star.star().colour(),
+              (msc::core::astronomy::LinearRgb8{150, 179, 255}));
+    EXPECT_DOUBLE_EQ(star.star().reference_epoch().julian_year(), 2016.0);
+    EXPECT_NEAR(
         star.star().direction().get_right_ascension().get_angle().to_degrees(),
-        101.2885410520664);
-    EXPECT_DOUBLE_EQ(
+        101.28462149217448, 1e-12);
+    EXPECT_NEAR(
         star.star().direction().get_declination().get_angle().to_degrees(),
-        -16.713143062644765);
+        -16.72155163189165, 1e-12);
     EXPECT_DOUBLE_EQ(
         star.star()
             .proper_motion()
@@ -98,11 +100,13 @@ TEST(HipparcosCatalogueTest, RejectsMalformedRowsAndContinues)
         "3,1991.25,0,0,0,0,1,2,3,4,nan,method,reason\n" +
         "4,1991.25,360,0,0,0,1,2,3,4,5,method,reason\n" +
         "5,1991.25,0,91,0,0,1,2,3,4,5,method,reason\n" +
+        "6,-1.7976931348623157e308,0,0,1.7976931348623157e308,0,1,2,0.5,0.5,1,"
+        "method,reason\n" +
         std::string{known_row}};
     const auto result = load_hipparcos_csv_gzip(fixture.filename());
     ASSERT_TRUE(result);
     EXPECT_EQ(result->statistics.accepted, 1);
-    EXPECT_EQ(result->statistics.rows_seen, 7);
+    EXPECT_EQ(result->statistics.rows_seen, 8);
     for (const auto count : result->statistics.rejected)
         EXPECT_EQ(count, 1);
 }
