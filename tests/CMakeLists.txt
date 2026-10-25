@@ -4,6 +4,7 @@ find_package(ZLIB CONFIG REQUIRED)
 add_executable(mystarceiling_tests
             catalogue/binary_catalogue_tests.cc
             catalogue/gaia_csv_tests.cc
+            catalogue/stellar_colour_tests.cc
             catalogue/hipparcos_csv_tests.cc
             catalogue/select_brightest_tests.cc
             cli/m1_scene_tests.cc
