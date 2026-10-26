@@ -153,10 +153,11 @@ No wire protocol, animation placement (engine or controller), update rate,
 controller capability, geometry, fixture mapping, projection or ID scheme is
 selected. Device output remains direction for design discussion.
 
-The current application renders the fixed M1 Toulouse geometry with prepared
-RGB8 colour. It retains three-pixel points, the existing white-star brightness
-curve and the temporary magnitude cutoff. Scintillation, glow, events,
-camera/time controls and hardware output remain future work. See [project state](../project-state.md) and
+The ordinary viewer renders the fixed M1 Toulouse geometry with prepared
+RGB8 colour, three-pixel points and the temporary magnitude cutoff. The opt-in
+[native appearance trial](stellar-appearance-trial.md) adds provisional twinkling,
+glow and unequal rays for owner review. Events, camera/time controls and hardware
+output remain future work. See [project state](../project-state.md) and
 [application controls](application-controls.md) for existing behavior and plans.
 
 ## M1 comparison correction

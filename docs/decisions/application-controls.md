@@ -191,6 +191,14 @@ Visual controls such as magnitude/exposure and camera movement can update live;
 astronomical or catalogue changes can use Apply. Exact behavior remains
 context-dependent rather than one universal rule.
 
+An opt-in [native appearance trial](stellar-appearance-trial.md) provides
+session-only CLI and keyboard adjustments during M2. These operational trial
+options require `--appearance-trial`; they do not extend or relax the strict
+saved TOML schema. Persistent appearance settings remain to be decided after
+visual review. The owner clarified two pause meanings: astronomical time pause
+allows effects to continue; picture mode also freezes animation. The current
+fixed astronomical scene already has paused time.
+
 ## Milestone boundary
 
 The [revised roadmap](../../README.md#milestones) estimates M2 at 2026-12-13

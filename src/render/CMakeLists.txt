@@ -26,10 +26,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glad)
 glad_add_library(msc_glad STATIC REPRODUCIBLE API gl:core=3.3 EXTENSIONS NONE)
 
-add_library(mystarceiling_renderer_gl opengl_renderer.cc)
+add_library(mystarceiling_renderer_gl opengl_renderer.cc
+    appearance_trial.cc appearance_trial_resources.cc
+    appearance_trial_controls.cc appearance_trial_draw.cc)
 
 target_include_directories(mystarceiling_renderer_gl
     PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 target_compile_definitions(mystarceiling_renderer_gl PRIVATE GLFW_INCLUDE_NONE)
-target_link_libraries(mystarceiling_renderer_gl PRIVATE glfw msc_glad)
+target_link_libraries(mystarceiling_renderer_gl PRIVATE glfw msc_glad mystarceiling_core)

@@ -2,6 +2,7 @@ find_package(GTest CONFIG REQUIRED)
 find_package(ZLIB CONFIG REQUIRED)
 
 add_executable(mystarceiling_tests
+            render/appearance_settings_tests.cc
             catalogue/binary_catalogue_tests.cc
             catalogue/gaia_csv_tests.cc
             catalogue/stellar_colour_tests.cc

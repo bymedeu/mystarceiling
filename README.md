@@ -93,6 +93,17 @@ both complete sources. A completed temporary binary is checked before publicatio
 failed builds preserve the existing catalogue. Source files cannot be overwritten.
 See the [build contract](docs/decisions/application-controls.md#catalogue-controls).
 
+An opt-in native appearance trial adds animated brightness/colour, horizon-dependent
+twinkling, soft glow and adjustable tapered rays:
+
+```sh
+./msc view --appearance-trial
+```
+
+Space freezes/resumes picture mode; arrows adjust twinkling/colour, Minus/Plus
+adjust brightness, and F/R adjust ray strength. The trial keeps the fixed sky
+geometry and existing configuration intact. See [all trial controls and limits](docs/decisions/stellar-appearance-trial.md).
+
 `catalogue info` reads the header and checks total file length, without decoding
 records or reading either source. Example output:
 

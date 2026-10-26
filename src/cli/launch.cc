@@ -5,6 +5,7 @@
 #include <exception>
 #include <functional>
 #include <mystarceiling/catalogue/binary_catalogue.hh>
+#include <optional>
 #include <ostream>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
@@ -14,17 +15,20 @@
 #include "config.hh"
 #include "logging.hh"
 #include "m1_scene.hh"
+#include "trial_options.hh"
 
 namespace msc::cli
 {
-    M1Scene prepare_view(const Settings& settings)
+    M1Scene prepare_view(const Settings& settings,
+                         const std::optional<render::TrialSettings>& trial)
     {
         const auto stars = catalogue::read_binary_catalogue(settings.catalogue,
                                                             settings.quantity);
         if (!stars)
             throw std::runtime_error("Binary catalogue read failed: " +
                                      stars.error().detail);
-        return make_m1_scene(*stars);
+        return trial ? make_appearance_scene(*stars, *trial)
+                     : make_m1_scene(*stars);
     }
 
     namespace
@@ -34,6 +38,7 @@ namespace msc::cli
             CLI::App* build{};
             CLI::App* info{};
             bool force{};
+            TrialOptions trial;
         };
 
         void add_options(CLI::App& app, CLI::App& view, Overrides& overrides,
@@ -49,6 +54,7 @@ namespace msc::cli
                             "Prepared binary catalogue");
             view.add_option("--quantity", overrides.quantity,
                             "Catalogue prefix quantity (64..count)");
+            add_trial_options(view, commands.trial);
             auto* catalogue = app.add_subcommand(
                 "catalogue", "Prepare or inspect a catalogue");
             catalogue->require_subcommand(1);
@@ -77,11 +83,28 @@ namespace msc::cli
 
         void report_scene(const M1Scene& scene)
         {
+            if (scene.trial)
+            {
+                spdlog::info("Appearance trial: {} above-horizon sources; "
+                             "G-like limit {} applied by the renderer.",
+                             scene.trial_stars.size(),
+                             scene.trial->limiting_magnitude);
+                return;
+            }
             spdlog::info(
                 "Propagation failures: {}; visible records excluded by "
                 "temporary G<=4 cutoff: {}; projected {} stars.",
                 scene.propagation_failures, scene.magnitude_excluded,
                 scene.points.size());
+        }
+
+        void validate_trial(const TrialOptions& trial)
+        {
+            if (trial.enabled && !render::valid_trial_settings(trial.settings))
+                throw std::runtime_error(
+                    "Invalid appearance-trial settings: values must be finite "
+                    "and within supported ranges; halo-fraction + ray-fraction "
+                    "must not exceed 1. Run view --help for trial controls.");
         }
     } // namespace
 
@@ -101,7 +124,11 @@ namespace msc::cli
                 catalogue_info(settings, output);
             else
             {
-                const auto scene = prepare_view(settings);
+                const auto scene =
+                    prepare_view(settings,
+                                 commands.trial.enabled
+                                     ? std::optional{commands.trial.settings}
+                                     : std::nullopt);
                 report_scene(scene);
                 show(scene);
             }
@@ -128,6 +155,7 @@ namespace msc::cli
                 return EXIT_SUCCESS;
             }
             app.parse(argc, argv);
+            validate_trial(commands.trial);
             execute(commands, load_settings(overrides), output, show);
             return EXIT_SUCCESS;
         }

@@ -94,3 +94,16 @@ remaining controls and glow/subtle animation still need their respective scope
 and acceptance discussions. See [appearance/output boundaries](../decisions/ceiling-product-output.md),
 [application controls](../decisions/application-controls.md) and
 [updated record sizes](../decisions/memory-accounting.md).
+
+## Native animated trial — 2026-10-26
+
+The owner accepted the catalogue colour appearance and wants the next visual
+review through the MSC executable. The opt-in `view --appearance-trial` adds
+deterministic horizon-dependent brightness and colour animation, unequal tapered
+rays, soft glow and live adjustment. Picture mode freezes the animation without
+resetting phase. The fixed astronomical time is independent and remains paused.
+No configuration migration or derived-catalogue rebuild is needed.
+
+This is provisional appearance work, not M2 closeout or a large-source performance
+result. Native visual acceptance and the proposed zone/full/compact rendering
+strategy remain outstanding. See the [focused trial record](../decisions/stellar-appearance-trial.md).

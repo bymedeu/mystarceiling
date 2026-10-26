@@ -24,6 +24,8 @@ It is plain Markdown for now; Doxygen and MkDocs integration are deferred.
   catalogue, reproducible acquisition, and official Gaia cross-match evidence.
 - [Prepared stellar colour](decisions/stellar-colour.md): RGB8 encoding, temperature
   approximations and rendering transfer conventions.
+- [Native stellar appearance trial](decisions/stellar-appearance-trial.md):
+  executable preview, ray profiles, animation, live controls and scaling limits.
 - [Stellar-motion propagation](decisions/stellar-motion.md): selected vector
   model, core boundary, validation, and accuracy limits.
 - [Application controls](decisions/application-controls.md): settled CLI/GUI

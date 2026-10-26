@@ -1,6 +1,6 @@
 # Current project state
 
-Last updated: 2026-10-25.
+Last updated: 2026-10-26.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
@@ -115,12 +115,23 @@ claim follows. See the [colour model](decisions/stellar-colour.md),
 [prepared catalogue contract](decisions/catalogue-integration.md#current-prepared-catalogue--2026-10-25)
 and [memory evidence](decisions/memory-accounting.md).
 
+## Native appearance trial
+
+The owner accepted the current catalogue colour appearance on 2026-10-26 and
+approved a provisional animated trial in the executable. `msc view --appearance-trial`
+adds deterministic horizon-dependent brightness/colour variation, soft glow and
+unequal tapered rays, with session-only live controls and picture freeze/resume.
+The ordinary viewer and strict saved configuration remain unchanged. Astronomical
+geometry/time is still fixed. See the [trial model and controls](decisions/stellar-appearance-trial.md).
+Visual acceptance of the native trial and zone/tier optimizations remain pending.
+
 ## Future direction, not implemented
 
 Automatic visibility and future CLI/GUI controls remain future work. Current
 local time is the approved future time default; the default observer and
-place-name resolution remain open. The viewer still uses fixed Toulouse/time. Glow, exposure controls, camera
-controls, and scintillation are not implemented.
+place-name resolution remain open. The viewer still uses fixed Toulouse/time.
+The opt-in appearance trial does not implement camera controls, physical exposure
+integration, Moon/cloud models, zone selection or rendering tiers.
 
 ## Acquisition status
 

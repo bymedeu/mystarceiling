@@ -3,6 +3,7 @@
 #include "cli/m1_scene.hh"
 
 #include <array>
+#include <cstdint>
 #include <limits>
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/core/astronomy/linear_rgb8.hh>
@@ -106,4 +107,32 @@ TEST(M1SceneTest, CarriesPackedColourAndLinearBrightnessToPresentation)
     EXPECT_EQ(scene.points[0].intensity, scene.points[1].intensity);
     // Independent decode of the legacy G=2 white-star display value.
     EXPECT_NEAR(scene.points[0].intensity, 0.032957344424256865, 1e-8);
+}
+
+TEST(M1SceneTest, AppearanceTrialRetainsFaintSourcesForLiveMagnitudeChanges)
+{
+    const auto scene = msc::cli::make_appearance_scene(
+        std::array{star(2), star(9)}, msc::render::TrialSettings{});
+    ASSERT_TRUE(scene.trial);
+    ASSERT_EQ(scene.trial_stars.size(), 2);
+    EXPECT_EQ(scene.trial_stars[0].magnitude, 2);
+    EXPECT_EQ(scene.trial_stars[1].magnitude, 9);
+    EXPECT_GT(scene.trial_stars[0].enu.z(), 0);
+    EXPECT_TRUE(scene.points.empty());
+}
+
+TEST(M1SceneTest, AppearanceKeysRetainHighIdBitsAndCatalogueIdentity)
+{
+    const auto base = star(2);
+    const std::array stars{
+        CatalogueStar{1, CatalogueSource::GaiaDr3, base.star()},
+        CatalogueStar{(std::uint64_t{1} << 32) | 1, CatalogueSource::GaiaDr3,
+                      base.star()},
+        CatalogueStar{1, CatalogueSource::Hipparcos2, base.star()}};
+    const auto scene = msc::cli::make_appearance_scene(stars, {});
+    ASSERT_EQ(scene.trial_stars.size(), 3);
+    const auto first = scene.trial_stars[0].animation_key;
+    EXPECT_EQ(first.low, scene.trial_stars[1].animation_key.low);
+    EXPECT_NE(first.high, scene.trial_stars[1].animation_key.high);
+    EXPECT_NE(first.high, scene.trial_stars[2].animation_key.high);
 }

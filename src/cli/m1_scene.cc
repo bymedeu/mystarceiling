@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <mystarceiling/catalogue/catalogue_star.hh>
+#include <mystarceiling/core/appearance/scintillation.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/icrs_to_enu.hh>
@@ -82,6 +84,35 @@ namespace msc::cli
                 static_cast<float>(projected->x),
                 static_cast<float>(projected->y),
                 linear_intensity(star.magnitude().gaia_g()), star.colour()});
+        }
+        return scene;
+    }
+
+    M1Scene make_appearance_scene(std::span<const CatalogueStar> stars,
+                                  const render::TrialSettings& settings)
+    {
+        const ObserverLocation observer{
+            *Latitude::try_from(Angle::from_degrees(43.6045)),
+            *Longitude::try_from(Angle::from_degrees(1.4440))};
+        const auto rotation = earth_rotation_angle(JulianDate{2457388.5, 0.0});
+        M1Scene scene;
+        scene.trial = settings;
+        scene.trial_stars.reserve(stars.size());
+        for (const auto& entry : stars)
+        {
+            const auto& star = entry.star();
+            const auto enu = icrs_to_enu(star.direction(), observer, rotation);
+            if (enu.z() <= 0)
+                continue;
+            const auto id = entry.source_id();
+            const auto catalogue =
+                static_cast<std::uint32_t>(entry.source_catalogue());
+            const core::appearance::AnimationKey key{
+                static_cast<std::uint32_t>(id),
+                static_cast<std::uint32_t>(id >> 32) ^
+                    (0x9e3779b9U * catalogue)};
+            scene.trial_stars.push_back(
+                {enu, star.magnitude().gaia_g(), star.colour(), key});
         }
         return scene;
     }
