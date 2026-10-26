@@ -1,5 +1,6 @@
 add_library(mystarceiling_core
             foo.cc
+            appearance/scintillation.cc
             coordinates/icrs_direction.cc
             coordinates/propagate_proper_motion.cc
             coordinates/icrs_to_enu.cc

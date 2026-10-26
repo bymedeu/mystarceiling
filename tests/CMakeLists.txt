@@ -12,6 +12,7 @@ add_executable(mystarceiling_tests
             cli/config_tests.cc
             cli/launch_tests.cc
             cli/logging_tests.cc
+            core/appearance/scintillation_tests.cc
             core/astronomy/stellar_measurements_tests.cc
             core/coordinates/declination_tests.cc
             core/coordinates/propagate_proper_motion_tests.cc
