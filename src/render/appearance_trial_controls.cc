@@ -4,6 +4,15 @@ namespace msc::render::trial
 {
     namespace
     {
+        void update_title(GLFWwindow* window, const State& state)
+        {
+            glfwSetWindowTitle(
+                window,
+                state.settings.picture_mode
+                    ? "MSC appearance trial | picture | Space resume, Esc close"
+                    : "MSC appearance trial | animated | Space freeze, Esc "
+                      "close");
+        }
         void key_event(GLFWwindow* window, int key, int, int action, int)
         {
             if (action != GLFW_PRESS)
@@ -29,12 +38,4 @@ namespace msc::render::trial
         update_title(window, state);
     }
 
-    void update_title(GLFWwindow* window, const State& state)
-    {
-        glfwSetWindowTitle(
-            window,
-            state.settings.picture_mode
-                ? "MSC appearance trial | picture | Space resume, Esc close"
-                : "MSC appearance trial | animated | Space freeze, Esc close");
-    }
 } // namespace msc::render::trial

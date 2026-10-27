@@ -47,24 +47,19 @@ namespace msc::render::trial
                        { return std::isfinite(v) && std::abs(v) <= 1.00001; });
         }
 
-        std::vector<Instance> instances(std::span<const TrialStar> stars,
-                                        std::uint32_t seed)
+        std::vector<Instance> instances(std::span<const TrialStar> stars)
         {
             std::vector<Instance> result;
             result.reserve(stars.size());
-            const auto salt =
-                seed == 0 ? 0U : core::appearance::hash_noise({seed, 0}, 0);
             for (const auto& star : stars)
             {
-                auto key = star.animation_key;
-                key.low ^= salt;
                 result.push_back({{static_cast<float>(star.enu.x()),
                                    static_cast<float>(star.enu.y()),
                                    static_cast<float>(star.enu.z())},
                                   static_cast<float>(
                                       std::clamp(star.magnitude, -30.0, 31.0)),
                                   star.colour,
-                                  key});
+                                  star.animation_key});
             }
             return result;
         }
@@ -79,10 +74,9 @@ namespace msc::render::trial
             glVertexAttribDivisor(index, 1);
         }
 
-        void upload(Resources& resources, std::span<const TrialStar> stars,
-                    std::uint32_t seed)
+        void upload(Resources& resources, std::span<const TrialStar> stars)
         {
-            const auto data = instances(stars, seed);
+            const auto data = instances(stars);
             glGenVertexArrays(1, &resources.vao);
             glGenBuffers(1, &resources.buffer);
             glBindVertexArray(resources.vao);
@@ -120,35 +114,39 @@ namespace msc::render::trial
         glDeleteProgram(display);
     }
 
-    GLuint compile_program(const char* vertex, const char* fragment,
-                           std::string& error)
+    namespace
     {
-        const auto vs = shader(GL_VERTEX_SHADER, vertex, error);
-        if (vs == 0)
-            return 0;
-        const auto fs = shader(GL_FRAGMENT_SHADER, fragment, error);
-        if (fs == 0)
+        GLuint compile_program(const char* vertex, const char* fragment,
+                               std::string& error)
         {
+            const auto vs = shader(GL_VERTEX_SHADER, vertex, error);
+            if (vs == 0)
+                return 0;
+            const auto fs = shader(GL_FRAGMENT_SHADER, fragment, error);
+            if (fs == 0)
+            {
+                glDeleteShader(vs);
+                return 0;
+            }
+            const auto result = glCreateProgram();
+            glAttachShader(result, vs);
+            glAttachShader(result, fs);
+            glLinkProgram(result);
             glDeleteShader(vs);
+            glDeleteShader(fs);
+            GLint ok{};
+            glGetProgramiv(result, GL_LINK_STATUS, &ok);
+            if (ok == GL_TRUE)
+                return result;
+            GLint length{};
+            glGetProgramiv(result, GL_INFO_LOG_LENGTH, &length);
+            error.resize(static_cast<std::size_t>(std::max(length, 1)));
+            glGetProgramInfoLog(result, length, nullptr, error.data());
+            glDeleteProgram(result);
             return 0;
         }
-        const auto result = glCreateProgram();
-        glAttachShader(result, vs);
-        glAttachShader(result, fs);
-        glLinkProgram(result);
-        glDeleteShader(vs);
-        glDeleteShader(fs);
-        GLint ok{};
-        glGetProgramiv(result, GL_LINK_STATUS, &ok);
-        if (ok == GL_TRUE)
-            return result;
-        GLint length{};
-        glGetProgramiv(result, GL_INFO_LOG_LENGTH, &length);
-        error.resize(static_cast<std::size_t>(std::max(length, 1)));
-        glGetProgramInfoLog(result, length, nullptr, error.data());
-        glDeleteProgram(result);
-        return 0;
-    }
+
+    } // namespace
 
     std::expected<void, std::string> initialize(Window& window,
                                                 const TrialSettings& settings)
@@ -186,7 +184,7 @@ namespace msc::render::trial
             compile_program(display_vertex, display_fragment, error);
         if (resources.display == 0)
             return std::unexpected{"Display shader failure: " + error};
-        upload(resources, stars, settings.seed);
+        upload(resources, stars);
         initialize_rays(resources.stars, settings);
         glGenFramebuffers(1, &resources.framebuffer);
         glGenTextures(1, &resources.texture);

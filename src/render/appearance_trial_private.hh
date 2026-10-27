@@ -5,7 +5,6 @@
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 
-#include <array>
 #include <cstddef>
 #include <expected>
 #include <span>
@@ -48,11 +47,5 @@ namespace msc::render::trial
     [[nodiscard]] std::expected<void, std::string> render(Resources&,
                                                           const State&);
     void install_controls(GLFWwindow*, State&);
-    void update_title(GLFWwindow*, const State&);
-    void uniform(GLuint program, const char* name, double value);
-    void set_profile(GLuint program, const TrialSettings&);
     void initialize_rays(GLuint program, const TrialSettings&);
-    [[nodiscard]] GLuint compile_program(const char* vertex,
-                                         const char* fragment,
-                                         std::string& error);
 } // namespace msc::render::trial

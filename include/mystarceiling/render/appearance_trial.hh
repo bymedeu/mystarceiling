@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <expected>
 #include <mystarceiling/core/appearance/scintillation.hh>
 #include <mystarceiling/core/astronomy/linear_rgb8.hh>
@@ -33,10 +31,7 @@ namespace msc::render
         double ray_fraction{0.25};
         double ray_length{4};
         double ray_width{0.20};
-        double ray_rotation{};
-        double animation_speed{1};
         double support_sigma{4};
-        std::uint32_t seed{};
         int ray_count{12};
         int width{1280};
         int height{720};
@@ -55,9 +50,6 @@ namespace msc::render
             std::array{value.ray_fraction, 0.0, 1.0},
             std::array{value.ray_length, 0.5, 32.0},
             std::array{value.ray_width, 0.1, 3.0},
-            std::array{value.ray_rotation, -3.141592653589793,
-                       3.141592653589793},
-            std::array{value.animation_speed, 0.01, 10.0},
             std::array{value.support_sigma, 2.0, 6.0},
             std::array{value.twinkle.slow_rate, 0.05, 60.0},
             std::array{value.twinkle.fast_rate, 0.05, 60.0},

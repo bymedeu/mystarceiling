@@ -109,7 +109,7 @@ TEST(M1SceneTest, CarriesPackedColourAndLinearBrightnessToPresentation)
     EXPECT_NEAR(scene.points[0].intensity, 0.032957344424256865, 1e-8);
 }
 
-TEST(M1SceneTest, AppearanceTrialRetainsFaintSourcesForLiveMagnitudeChanges)
+TEST(M1SceneTest, AppearanceTrialRetainsFaintSourcesForRendererSelection)
 {
     const auto scene = msc::cli::make_appearance_scene(
         std::array{star(2), star(9)}, msc::render::TrialSettings{});

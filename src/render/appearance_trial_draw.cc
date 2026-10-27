@@ -9,6 +9,29 @@ namespace msc::render::trial
 {
     namespace
     {
+        void uniform(GLuint program, const char* name, double value)
+        {
+            glUniform1f(glGetUniformLocation(program, name),
+                        static_cast<float>(value));
+        }
+
+        void set_profile(GLuint program, const TrialSettings& s)
+        {
+            uniform(program, "brightness", s.brightness);
+            uniform(program, "limiting_magnitude", s.limiting_magnitude);
+            uniform(program, "core_width", s.core_width);
+            uniform(program, "halo_width", s.halo_width);
+            uniform(program, "halo_fraction", s.halo_fraction);
+            uniform(program, "ray_fraction", s.ray_fraction);
+            uniform(program, "ray_width", s.ray_width);
+            uniform(program, "ray_length", s.ray_length);
+            const auto sigma = std::max(
+                {s.core_width, s.halo_width, s.ray_length, s.ray_width});
+            const auto radius =
+                s.support_sigma * std::sqrt(sigma * sigma + 1.0 / 12);
+            uniform(program, "support_radius", radius);
+        }
+
         void clocks(GLuint program, const State& state)
         {
             const auto& s = state.settings.twinkle;
@@ -59,43 +82,19 @@ namespace msc::render::trial
         }
     } // namespace
 
-    void uniform(GLuint program, const char* name, double value)
-    {
-        glUniform1f(glGetUniformLocation(program, name),
-                    static_cast<float>(value));
-    }
-
-    void set_profile(GLuint program, const TrialSettings& s)
-    {
-        uniform(program, "brightness", s.brightness);
-        uniform(program, "limiting_magnitude", s.limiting_magnitude);
-        uniform(program, "core_width", s.core_width);
-        uniform(program, "halo_width", s.halo_width);
-        uniform(program, "halo_fraction", s.halo_fraction);
-        uniform(program, "ray_fraction", s.ray_fraction);
-        uniform(program, "ray_width", s.ray_width);
-        uniform(program, "ray_length", s.ray_length);
-        const auto sigma =
-            std::max({s.core_width, s.halo_width, s.ray_length, s.ray_width});
-        const auto radius =
-            s.support_sigma * std::sqrt(sigma * sigma + 1.0 / 12);
-        uniform(program, "support_radius", radius);
-    }
-
     void initialize_rays(GLuint program, const TrialSettings& settings)
     {
         std::array<std::array<float, 4>, 24> rays{};
-        const core::appearance::AnimationKey key{0x734f9aU, settings.seed};
+        const core::appearance::AnimationKey key{0x734f9aU, 0};
         double total{};
         for (int i = 0; i < settings.ray_count; ++i)
         {
             const auto index = static_cast<std::size_t>(i);
             const auto n = core::appearance::hash_noise(
                 key, static_cast<std::uint32_t>(i));
-            const auto a = settings.ray_rotation +
-                2 * std::numbers::pi *
-                    (i + .3 * (static_cast<double>(n & 1023U) / 1023 - .5)) /
-                    settings.ray_count;
+            const auto a = 2 * std::numbers::pi *
+                (i + .3 * (static_cast<double>(n & 1023U) / 1023 - .5)) /
+                settings.ray_count;
             const auto length =
                 .4F + .6F * static_cast<float>((n >> 10U) & 1023U) / 1023;
             const auto weight =
