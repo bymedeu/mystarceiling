@@ -242,18 +242,9 @@ TEST_F(LaunchTest, NativeAppearanceTrialReachesViewerWithoutEditingConfig)
 {
     write(config(), valid_config());
     write_catalogue(root / "catalogue.bin");
-    const std::array args{"msc",
-                          "view",
-                          "--appearance-trial",
-                          "--catalogue",
-                          "catalogue.bin",
-                          "--quantity",
-                          "64",
-                          "--brightness",
-                          "25",
-                          "--ray-fraction",
-                          "0.4",
-                          "--picture-mode"};
+    const std::array args{"msc",         "view",          "--appearance-trial",
+                          "--catalogue", "catalogue.bin", "--quantity",
+                          "64"};
     std::ostringstream output, errors;
     bool shown = false;
     EXPECT_EQ(msc::cli::run_cli(args.size(), args.data(), output, errors,
@@ -261,9 +252,7 @@ TEST_F(LaunchTest, NativeAppearanceTrialReachesViewerWithoutEditingConfig)
                                 {
                                     shown = true;
                                     ASSERT_TRUE(scene.trial);
-                                    EXPECT_EQ(scene.trial->brightness, 25);
-                                    EXPECT_EQ(scene.trial->ray_fraction, 0.4);
-                                    EXPECT_TRUE(scene.trial->picture_mode);
+                                    EXPECT_FALSE(scene.trial->picture_mode);
                                     EXPECT_TRUE(scene.points.empty());
                                 }),
               0);
@@ -272,16 +261,15 @@ TEST_F(LaunchTest, NativeAppearanceTrialReachesViewerWithoutEditingConfig)
     EXPECT_EQ(read(config()), valid_config());
 }
 
-TEST_F(LaunchTest, InvalidOrUnactivatedTrialOptionsHaveNoLaunchSideEffects)
+TEST_F(LaunchTest, RemovedTrialOptionsFailBeforeLaunchSideEffects)
 {
     const std::vector<std::vector<const char*>> cases{
-        {"msc", "view", "--ray-fraction", "0.4"},
-        {"msc", "view", "--appearance-trial", "--brightness", "nan"},
-        {"msc", "view", "--appearance-trial", "--width", "0"},
-        {"msc", "view", "--appearance-trial", "--ray-count", "25"},
-        {"msc", "view", "--appearance-trial", "--twinkle-strength", "1"},
-        {"msc", "view", "--appearance-trial", "--halo-fraction", "0.7",
-         "--ray-fraction", "0.6"}};
+        {"msc", "view", "--appearance-trial", "--brightness", "25"},
+        {"msc", "view", "--appearance-trial", "--ray-fraction", "0.4"},
+        {"msc", "view", "--appearance-trial", "--twinkle-strength", "0.5"},
+        {"msc", "view", "--appearance-trial", "--width", "1280"},
+        {"msc", "view", "--appearance-trial", "--seed", "123"},
+        {"msc", "view", "--appearance-trial", "--picture-mode"}};
     for (const auto& args : cases)
     {
         std::ostringstream output, errors;

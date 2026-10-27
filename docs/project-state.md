@@ -120,10 +120,13 @@ and [memory evidence](decisions/memory-accounting.md).
 The owner accepted the current catalogue colour appearance on 2026-10-26 and
 approved a provisional animated trial in the executable. `msc view --appearance-trial`
 adds deterministic horizon-dependent brightness/colour variation, soft glow and
-unequal tapered rays, with session-only live controls and picture freeze/resume.
-The ordinary viewer and strict saved configuration remain unchanged. Astronomical
-geometry/time is still fixed. See the [trial model and controls](decisions/stellar-appearance-trial.md).
-Visual acceptance of the native trial and zone/tier optimizations remain pending.
+unequal tapered rays, with Space for picture freeze/resume and Escape to close.
+On 2026-10-27 the owner requested removal of the extra CLI/keyboard tuning controls;
+these are removed, with no additions to saved configuration. Ordinary `msc view`
+remains static and astronomical geometry/time is still fixed. The owner likes the
+sky appearance but reports imperceptible animation and pixelation; native visual
+acceptance and zone/tier optimizations remain pending. See the
+[trial model and limits](decisions/stellar-appearance-trial.md).
 
 ## Future direction, not implemented
 

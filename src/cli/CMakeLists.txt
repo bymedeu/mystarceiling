@@ -6,7 +6,7 @@ find_package(CLI11 CONFIG REQUIRED)
 find_package(tomlplusplus CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
-add_library(mystarceiling_launch STATIC config.cc launch.cc logging.cc catalogue_commands.cc trial_options.cc)
+add_library(mystarceiling_launch STATIC config.cc launch.cc logging.cc catalogue_commands.cc)
 target_include_directories(mystarceiling_launch PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_link_libraries(mystarceiling_launch PUBLIC mystarceiling_m1 spdlog::spdlog
     PRIVATE CLI11::CLI11 tomlplusplus::tomlplusplus)

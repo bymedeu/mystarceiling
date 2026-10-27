@@ -15,7 +15,6 @@
 #include "config.hh"
 #include "logging.hh"
 #include "m1_scene.hh"
-#include "trial_options.hh"
 
 namespace msc::cli
 {
@@ -38,7 +37,7 @@ namespace msc::cli
             CLI::App* build{};
             CLI::App* info{};
             bool force{};
-            TrialOptions trial;
+            bool appearance_trial{};
         };
 
         void add_options(CLI::App& app, CLI::App& view, Overrides& overrides,
@@ -54,7 +53,8 @@ namespace msc::cli
                             "Prepared binary catalogue");
             view.add_option("--quantity", overrides.quantity,
                             "Catalogue prefix quantity (64..count)");
-            add_trial_options(view, commands.trial);
+            view.add_flag("--appearance-trial", commands.appearance_trial,
+                          "Preview animated stellar light and rays");
             auto* catalogue = app.add_subcommand(
                 "catalogue", "Prepare or inspect a catalogue");
             catalogue->require_subcommand(1);
@@ -97,15 +97,6 @@ namespace msc::cli
                 scene.propagation_failures, scene.magnitude_excluded,
                 scene.points.size());
         }
-
-        void validate_trial(const TrialOptions& trial)
-        {
-            if (trial.enabled && !render::valid_trial_settings(trial.settings))
-                throw std::runtime_error(
-                    "Invalid appearance-trial settings: values must be finite "
-                    "and within supported ranges; halo-fraction + ray-fraction "
-                    "must not exceed 1. Run view --help for trial controls.");
-        }
     } // namespace
 
     namespace
@@ -126,8 +117,8 @@ namespace msc::cli
             {
                 const auto scene =
                     prepare_view(settings,
-                                 commands.trial.enabled
-                                     ? std::optional{commands.trial.settings}
+                                 commands.appearance_trial
+                                     ? std::optional{render::TrialSettings{}}
                                      : std::nullopt);
                 report_scene(scene);
                 show(scene);
@@ -155,7 +146,6 @@ namespace msc::cli
                 return EXIT_SUCCESS;
             }
             app.parse(argc, argv);
-            validate_trial(commands.trial);
             execute(commands, load_settings(overrides), output, show);
             return EXIT_SUCCESS;
         }

@@ -94,15 +94,16 @@ failed builds preserve the existing catalogue. Source files cannot be overwritte
 See the [build contract](docs/decisions/application-controls.md#catalogue-controls).
 
 An opt-in native appearance trial adds animated brightness/colour, horizon-dependent
-twinkling, soft glow and adjustable tapered rays:
+twinkling, soft glow and tapered rays:
 
 ```sh
 ./msc view --appearance-trial
 ```
 
-Space freezes/resumes picture mode; arrows adjust twinkling/colour, Minus/Plus
-adjust brightness, and F/R adjust ray strength. The trial keeps the fixed sky
-geometry and existing configuration intact. See [all trial controls and limits](docs/decisions/stellar-appearance-trial.md).
+Space freezes/resumes picture mode; Escape closes the window. The trial keeps
+the fixed sky geometry and existing configuration intact. Ordinary `msc view`
+uses the static viewer. There are no appearance-tuning CLI options or shortcuts.
+See the [trial model and limits](docs/decisions/stellar-appearance-trial.md).
 
 `catalogue info` reads the header and checks total file length, without decoding
 records or reading either source. Example output:

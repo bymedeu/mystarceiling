@@ -6,44 +6,56 @@ the earlier catalogue colours and wants animated light with unequal tapered rays
 rather than only a circular halo. The image references describe a visual target;
 their colours, particles and photographic processing are not reconstructed data.
 
-## Run and adjust
+## Run
 
 ```sh
 ./msc view --appearance-trial
-./msc view --appearance-trial --ray-fraction 0.4 --ray-length 6
-./msc view --appearance-trial --picture-mode --seed 123
 ```
 
-These are operational trial options. Existing catalogue/configuration/logging
-options still apply. No source data or binary rebuild is needed. The ordinary
-viewer remains available without the flag; the trial does not change the strict
-TOML schema, add required keys or rewrite the owner's settings. Its initial
-appearance values and live changes are session-only; persistent product controls
-remain to be selected after visual review. `view --help` lists all trial options.
+Existing catalogue/configuration/logging options still apply. No source data or
+binary rebuild is needed. Ordinary `msc view` remains the static viewer. The
+trial does not change the strict TOML schema or rewrite saved settings.
 
-| Key | Adjustment |
+On 2026-10-27 the owner requested removal of the extra appearance CLI options
+and tuning shortcuts added during the trial.
+The trial now uses its existing C++ model defaults. No animation/profile
+coefficients were changed as part of the control removal. There are no public
+appearance-tuning parameters, including window-size, seed or initial-picture
+options. The window can still be resized normally.
+
+| Key | Action |
 | --- | --- |
 | Space | Toggle picture mode, freezing/resuming the animation phase |
-| Minus / Plus | Decrease / increase display brightness |
-| Left / Right | Decrease / increase colour variation |
-| Down / Up | Decrease / increase brightness twinkling |
-| Left / right bracket | Decrease / increase animation speed |
-| H / J | Decrease / increase soft-halo light fraction |
-| F / R | Decrease / increase ray light fraction |
-| G / T | Decrease / increase ray length |
-| K / L | Decrease / increase limiting magnitude |
 | Escape | Close the window |
 
-The window title reports the current values. Changes are immediate; they do not
-save settings or rebuild the catalogue. Increasing limiting magnitude can only
-reveal sources already loaded through `--quantity`.
+The window title identifies animated or picture mode. Time pause and picture
+mode are different: astronomical time pause keeps atmospheric animation running,
+while picture mode freezes both. The fixed Toulouse/time geometry already has
+paused astronomical time. No new astronomical clock, observer controls or
+artificial sky drift is introduced. Time spent frozen is not accumulated on resume.
 
-Time pause and picture mode are different: astronomical time pause keeps the
-atmospheric animation running, while picture mode freezes both. This trial still
-uses the existing fixed Toulouse/time geometry, so astronomical time is already
-paused. No new astronomical clock, observer controls or artificial sky drift is
-introduced. Animation speed changes preserve phase; time spent frozen is not
-accumulated on resume.
+## Current visual limitations
+
+The owner likes the sky appearance but reports that animation is not apparent
+and small sources look pixelated. The trial is provisional, not visually accepted.
+Ordinary `msc view` has no animation; the trial must be explicitly selected.
+In the trial, the zenith-facing view attenuates modulation by design, and the
+highlight-compression pass reduces visible bright-core variation further. Its
+animation changes intensity/colour, without moving the profile or source position.
+Pixel-footprint approximation and framebuffer sampling also limit the appearance
+of small stars; screen resolution alone does not explain away these limitations.
+
+The owner's [video reference](https://www.youtube.com/shorts/m34BUDkIoDM) is a
+magnified telescope view. It is a qualitative motion/colour reference, not an
+approved angular scale, diffraction model or numerical calibration. Improving
+animation visibility and pixel sampling remains follow-up appearance work.
+
+An offscreen check on 2026-10-27 linked the actual compiled renderer and used the
+configured 4,096-source prefix at 1280x720 on Mesa llvmpipe. Advancing animation
+from 0 to 0.25 seconds changed 17,585 final RGB8 pixels, with a maximum channel
+difference of 11 levels. Picture mode ignored ten seconds of elapsed time and
+preserved the image exactly; resuming changed pixels again. This verifies
+variation in rendered output, not perceptual strength or native-window presentation.
 
 ## Model and boundaries
 

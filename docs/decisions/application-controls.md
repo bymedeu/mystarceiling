@@ -191,13 +191,15 @@ Visual controls such as magnitude/exposure and camera movement can update live;
 astronomical or catalogue changes can use Apply. Exact behavior remains
 context-dependent rather than one universal rule.
 
-An opt-in [native appearance trial](stellar-appearance-trial.md) provides
-session-only CLI and keyboard adjustments during M2. These operational trial
-options require `--appearance-trial`; they do not extend or relax the strict
-saved TOML schema. Persistent appearance settings remain to be decided after
-visual review. The owner clarified two pause meanings: astronomical time pause
-allows effects to continue; picture mode also freezes animation. The current
-fixed astronomical scene already has paused time.
+The opt-in [native appearance trial](stellar-appearance-trial.md) is activated
+with `--appearance-trial`. On 2026-10-27 the owner rejected the extra appearance
+options and tuning shortcuts added during the trial. Only Space for picture
+freeze/resume and Escape to close remain; model coefficients have C++ defaults
+and are not user settings. The strict saved TOML schema is unchanged. A possible
+later JSON customization mechanism is [deferred for discussion](../todo.md#later-customization).
+The owner clarified two pause meanings: astronomical time pause allows effects
+to continue; picture mode also freezes animation. The current fixed astronomical
+scene already has paused time.
 
 ## Milestone boundary
 

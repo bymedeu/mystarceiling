@@ -100,7 +100,8 @@ and acceptance discussions. See [appearance/output boundaries](../decisions/ceil
 The owner accepted the catalogue colour appearance and wants the next visual
 review through the MSC executable. The opt-in `view --appearance-trial` adds
 deterministic horizon-dependent brightness and colour animation, unequal tapered
-rays, soft glow and live adjustment. Picture mode freezes the animation without
+rays and soft glow. Extra appearance-tuning options and shortcuts were removed
+on owner request on 2026-10-27. Picture mode freezes the animation without
 resetting phase. The fixed astronomical time is independent and remains paused.
 No configuration migration or derived-catalogue rebuild is needed.
 

@@ -1,7 +1,8 @@
 # Project todo list
 
-Owner decisions recorded on 2026-10-25. These tasks describe planned follow-up;
-they do not claim completed work or select implementation tooling.
+Owner decisions recorded on 2026-10-25 and updated on 2026-10-27. These tasks
+describe planned follow-up; they do not claim completed work or select
+implementation tooling.
 
 ## Documentation phase between M2 and M3
 
@@ -27,3 +28,10 @@ usage instructions continue to be maintained while M2 is implemented.
 
 The [accepted catalogue preparation decision](decisions/ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25)
 is the canonical record of the current approximations and remaining design details.
+
+## Later customization
+
+- [ ] Discuss the owner's suggested JSON-based appearance/behaviour customization
+  after the current visual behaviour is settled. This is a possible later option;
+  no schema, parser, persistence mechanism or implementation is selected. Do not
+  add appearance-tuning keys to the current configuration as part of the trial.
