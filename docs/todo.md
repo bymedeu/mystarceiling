@@ -60,3 +60,15 @@ is the canonical record of the current approximations and remaining design detai
   no schema, parser, persistence mechanism or implementation is selected. Do not
   add appearance-tuning keys to the current configuration as part of the viewer
   promotion.
+
+## Bright-source coverage
+
+- [x] Repair the observed-minimum-G supplementation gap under the owner's bounded
+  2026-10-28 authorization: inclusive estimated-G<=6 candidates, published-match
+  evidence, fallbacks resolved against actual selected output, fresh retained raw
+  source and verified runtime rebuild. See the
+  [policy and measured result](hipparcos2-datasets.md#verified-result-run-20261028t194241299001z).
+- [ ] Revisit completeness/component identity and photometric disagreements only
+  within a separately agreed accuracy scope. Current fit limits, probabilistic
+  matches and normal capacity truncation remain explicit limitations. This repair
+  does not close the catalogue-understanding checkpoint or M2.

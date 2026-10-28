@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<VOTABLE version="1.3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+    xmlns:stc="http://www.ivoa.net/xml/STC/v1.30">
+    <RESOURCE type="results">
+        <LINK title="gaiadr3.hipparcos2_best_neighbour" content-role="doc" href="https://doi.org/10.17876/gaia/dr.3/14"/>
+        <INFO name="QUERY_STATUS" value="OK" />
+        <INFO name="QUERY" value="SELECT COUNT(*) AS match_count FROM gaiadr3.hipparcos2_best_neighbour AS x WHERE x.original_ext_source_id IN (43,88,99,106,107,122,124,145,154,171,181,183,194,207,301,302,330,343,355,377,379,394,399,418,443,476,518,522,531,544,636,655,664,671,677,696,716,729,746,760,761,765,813,814,840,841,852,873,910,930,950,967,983,1067,1074,1086,1096,1099,1146,1158,1168,1170,1191,1195,1196,1208,1288,1319,1325,1339,1352,1354,1366,1372,1421,1429,1465,1473,1493,1502,1562,1575,1599,1630,1645,1647,1652,1657,1686,1706,1708,1728,1772,1809,1821,1849,1921,1939,1960,1982,2006,2021,2072,2081,2086,2100,2159,2210,2219,2224,2225,2235,2240,2256,2271,2353,2355,2377,2381,2383,2422,2472,2475,2484,2487,2497,2505,2548,2568,2578,2599,2611,2661,2711,2762,2787,2789,2802,2852,2854,2876,2900,2903,2912,2920,2926,2941,2942,2954,3031,3056,3083,3092,3093,3137,3138,3170,3179,3185,3193,3231,3245,3269,3277,3299,3300,3330,3352,3405,3414,3419,3436,3455,3456,3478,3489,3504,3505,3521,3544,3552,3572,3583,3607,3632,3675,3693,3697,3717,3721,3741,3750,3760,3765,3781,3786,3801,3810,3821,3833,3834,3849,3881,3885,3909,3949,3951,3988,4104,4147,4151,4179,4185,4200,4257,4267,4283,4288,4292,4293,4298,4317,4346,4363,4371,4383,4422,4427,4436,4440,4463,4501,4510,4552,4572,4577,4587,4655,4675,4726,4770,4829,4852,4879,4889,4890,4903,4906,4914,4962,4979,4998,5021,5074,5081,5121)" />
+        <INFO name="QUERY_LANGUAGE" value="adql-2.1" />
+        <INFO name="SOURCE" value="gaiadr3.hipparcos2_best_neighbour" />
+        <TABLE name="gaia_user_anonymous.2026-10-28-19-42-44-977073">
+                <FIELD name="match_count" datatype="long" />
+            <DATA>
+                <TABLEDATA><TR><TD>205</TD></TR>
+                </TABLEDATA>
+            </DATA>
+        </TABLE>
+    </RESOURCE>
+    <RESOURCE type="meta" utype="adhoc:service">
+        <PARAM name="standardID" datatype="char" arraysize="*" value="ivo://ivoa.net/std/DataLink#links-1.0" />
+        <PARAM name="accessURL" datatype="char" arraysize="*" value="https://gaia.aip.de/datalink/links" />
+        <GROUP name="inputParams">
+            <PARAM name="ID" datatype="char" arraysize="*" value="" ref="datalinkID"/>
+        </GROUP>
+    </RESOURCE>
+</VOTABLE>

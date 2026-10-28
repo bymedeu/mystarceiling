@@ -85,9 +85,14 @@ build/src/cli/msc catalogue build --gaia /path/to/gaia.csv.gz \
   --catalogue /path/to/catalogue.bin --capacity 4096
 ```
 
-A build reads usable Hipparcos records first, retaining its brightest records
-if it fills capacity, then loads only the remaining accepted count from the
-ordered Gaia input. It sorts the selected records by brightness before storage.
+A build reads usable Hipparcos records first. Unconditional native fallbacks
+reserve capacity; eligible published Gaia preferences are checked against a
+bounded Gaia prefix. Hipparcos retains its brightest records if fallbacks fill
+capacity. It sorts the selected records by brightness before storage.
+New bright-range supplements retain native fallbacks until their published Gaia
+counterparts actually survive the selected prefix, and explicitly exclude
+published out-of-range neighbours from Gaia fill; see the
+[bright-source policy](docs/hipparcos2-datasets.md#implemented-preparation-policy).
 Capacity is exact and at least 64; insufficient input fails. This membership
 policy gives Hipparcos priority. It does not select the global brightest N from
 both complete sources. A completed temporary binary is checked before publication;
@@ -164,7 +169,7 @@ levels fail. Existing configurations must include the new capacity and source
 fields; incomplete files fail without being rewritten. Generated source defaults
 are `sources/gaia-dr3.csv.gz` and `sources/hipparcos2-supplement.csv.gz` beneath
 the same data root as the default binary. Only a command consuming a source
-opens it; a build filled by Hipparcos does not open Gaia. Relative TOML paths
+opens it; a build whose unconditional Hipparcos records fill capacity does not open Gaia. Relative TOML paths
 use the config directory; relative CLI paths use the working directory. TOML
 strings do not expand environment variables. CLI overrides apply before the
 reader checks the effective quantity against the opened catalogue's count.

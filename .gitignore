@@ -62,3 +62,6 @@ __pycache__/
 
 # Local central Clang configuration cache
 .quality-style
+
+# Verbose acquisition traces remain local; manifests and query evidence are retained.
+data/hipparcos2/runs/*/acquisition-log.md

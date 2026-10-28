@@ -20,8 +20,8 @@ It is plain Markdown for now; Doxygen and MkDocs integration are deferred.
   Gaia/Hipparcos boundary, Hp/G choices, and Stellarium-derived lessons.
 - [Gaia datasets](gaia-datasets.md): current acquisition scope, field review,
   benchmark counts, and storage constraints.
-- [Hipparcos-2 supplement](hipparcos2-datasets.md): separate provisional Hp-selected
-  catalogue, reproducible acquisition, and official Gaia cross-match evidence.
+- [Hipparcos-2 supplement](hipparcos2-datasets.md): inclusive estimated-G bright-range
+  policy, reproducible acquisition, native fallbacks and published Gaia evidence.
 - [Prepared stellar colour](decisions/stellar-colour.md): RGB8 encoding, temperature
   approximations and rendering transfer conventions.
 - [Animated stellar viewer](decisions/stellar-appearance-trial.md):

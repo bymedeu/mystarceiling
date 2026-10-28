@@ -162,11 +162,29 @@ record; live service status was unavailable through the sandbox's user bus.
 Earlier incomplete checkpoints and service observations in the
 [recovery record](gaia-recovery.md) are historical.
 
-The latest Hipparcos completed run is `20260912T191816.016104Z`, tied to the
-previous 76,048,576-row Gaia snapshot. Its overlap preparation has not been
-revalidated against completed Gaia. Regeneration requires separate authorization
-and was not performed. Do not treat the old supplement as freshly prepared for
-the final archive.
+The latest Hipparcos completed run is `20261028T194241.299001Z`, prepared under
+the owner's explicit bounded bright-source repair authorization on 2026-10-28.
+The default selection is now inclusive estimated-G<=6, with all 6,752 native
+fallbacks retained until actual capped-build resolution. The full 117,955-row
+raw source is retained locally; September's missing raw files are documented.
+Published Gaia preferences require complete fields, proven local selection and
+actual output membership. Out-of-range published neighbours cannot substitute
+for primaries and are excluded from Gaia fill. See the
+[canonical policy and validation](hipparcos2-datasets.md#verified-result-run-20261028t194241299001z).
+
+The backed-up default runtime binary was atomically replaced while preserving
+65,536 records (1,575 Hipparcos, 63,961 Gaia). Its default 4,096-record view prefix
+contains Algol/HIP 14576, Mintaka/HIP 25930 and Phecda/HIP 58001, plus the four
+preservation landmarks. Only the local Hipparcos source path changed; configured
+quantity/capacity stay 4,096. A separate 4,096-capacity build retains these seven
+but normally truncates the declared bright set. Neither bounded selection nor
+the catalogue's complete-row subset establishes general sky completeness.
+
+Repair validation passes 217 C++ tests in ordinary and leak-enabled ASan/UBSan
+builds, 35 offline Python tests, cppcheck, Lizard, formatting and Ruff checks.
+Rendering, colour and motion models are unchanged; no new graphical acceptance
+or scientific accuracy claim follows. The broader understanding checkpoint
+remains open.
 
 ## Open owner decisions
 

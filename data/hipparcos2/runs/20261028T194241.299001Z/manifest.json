@@ -1,0 +1,581 @@
+{
+  "format_version": 2,
+  "release": "Hipparcos-2 (van Leeuwen 2007), CDS I/311",
+  "utc_started": "2026-10-28T19:42:41.299001+00:00",
+  "utc_completed": "2026-10-28T19:52:19.315084+00:00",
+  "script_sha256": "9ad2ea9a69dbea5ca745c611258c14a21c2739ac466094c250c3d48eb9786ecf",
+  "source_url": "https://vizier.cfa.harvard.edu/ftp/cats/I/311/",
+  "selection": {
+    "expression": "estimated_g <= g_limit",
+    "g_limit": 6.0,
+    "target_band": "Gaia EDR3 G",
+    "required_native_columns": [
+      "hip_id",
+      "ref_epoch",
+      "ra",
+      "dec",
+      "pmra",
+      "pmdec",
+      "parallax",
+      "hp_mag",
+      "b_v",
+      "v_i"
+    ],
+    "formula_primary": "G-Hp=-0.02392-0.4069*(B-V)+0.04569*(B-V)^2-0.0452*(B-V)^3",
+    "primary_range": "-0.25 < B-V <= 1.4",
+    "formula_fallback": "G-Hp=0.01546-0.4308*(V-I)-0.01872*(V-I)^2",
+    "fallback_range": "-0.25 < V-I < 5.0",
+    "primary_reported_scatter_mag": 0.02417,
+    "fallback_reported_scatter_mag": 0.08191,
+    "source": "Gaia EDR3 documentation, photometric relationships"
+  },
+  "counts": {
+    "source_rows": 117955,
+    "complete_native_rows": 117955,
+    "edr3_hp_bv_rows": 106255,
+    "outside_derived_g_selection": 111152,
+    "edr3_hp_vi_fallback_rows": 11649,
+    "unsupported_photometry_rows": 51,
+    "selected_rows": 6752
+  },
+  "crossmatch_status_row_counts": {
+    "no_published_best_neighbour": 1294,
+    "matched_not_in_verified_local_selection": 281,
+    "matched_locally_downloaded": 5177
+  },
+  "resolution_counts": {
+    "no_published_best_neighbour": 1294,
+    "published_gaia_missing_required_fields": 143,
+    "prefer_complete_local_gaia_if_selected": 5177,
+    "published_gaia_outside_bright_range": 138
+  },
+  "crossmatch_endpoint": "https://gaia.aip.de/tap/sync",
+  "crossmatch_table": "gaiadr3.hipparcos2_best_neighbour",
+  "gaia_snapshot": {
+    "kind": "completed_archive",
+    "path": "/home/amade/projects/portfolio/msc/data/gaia-dr3/gaia-dr3.csv.gz",
+    "rows": 134217728,
+    "rows_scanned": 6519,
+    "verification_scope": "ordered bright prefix",
+    "membership_g_limit": 6.0,
+    "manifest": {
+      "release": "Gaia DR3",
+      "columns": [
+        "source_id",
+        "ref_epoch",
+        "ra",
+        "dec",
+        "pmra",
+        "pmdec",
+        "parallax",
+        "phot_g_mean_mag",
+        "bp_rp"
+      ],
+      "rows": 134217728,
+      "compressed_bytes": 8575699250,
+      "target_rows": 134217728,
+      "max_bytes": 10000000000,
+      "sha256": "cf0db34640b44208036bdeb2660e0bf9213acf83d793503f9187d367b37764f2",
+      "prefix_csv_sha256": {
+        "4096": "d9ef83f437b00bc33617c9ff1d203e83150247a22d2ae1b826a6852404e71dfd",
+        "65536": "33e92700dd47cc7ce762ea42676e9d5901302c57b8f921573892f145319aa734",
+        "262144": "dbea723d92f2d3a814ebacaa4118c232fafc3d0dad1fabe44071ab1d3d865ddb",
+        "1048576": "bf92b46479b6cc0a7ad40874257ffd35bf7e269466add4221b3d92b9f32db3d8"
+      },
+      "order": [
+        "phot_g_mean_mag ASC",
+        "source_id ASC"
+      ],
+      "stop_reason": "target row count",
+      "last_key": [
+        16.78596305847168,
+        5311740746825005568
+      ],
+      "format": "CSV in concatenated gzip members; one header",
+      "utc_completed": "2026-10-18T18:20:08.887686+00:00"
+    },
+    "manifest_sha256": "d39df6c231e87d1597545d4e9cd4d30ff05f612206a97ba57d76425f62e11ffe"
+  },
+  "units": {
+    "ra": "degrees ICRS",
+    "dec": "degrees ICRS",
+    "ref_epoch": "Julian year 1991.25",
+    "pmra": "mas/yr, RA motion with cos(dec)",
+    "pmdec": "mas/yr",
+    "parallax": "mas",
+    "hp_mag": "Hipparcos Hp mag",
+    "b_v": "B minus V mag",
+    "v_i": "V minus I mag",
+    "estimated_g": "derived Gaia EDR3 G mag",
+    "angular_distance": "arcsec"
+  },
+  "order": [
+    "estimated_g ASC",
+    "hip_id ASC"
+  ],
+  "limitations": [
+    "Estimated G is derived photometry, not a Gaia measurement.",
+    "Published fit scatter is population-level, not per-star uncertainty.",
+    "No position propagation was performed.",
+    "No published best neighbour does not establish absence from Gaia.",
+    "Resolution uses the recorded local Gaia snapshot and must be regenerated when it changes.",
+    "Native source flags, errors and other fields remain in hip2.dat.gz.",
+    "Multiple best neighbours fail validation; no local positional identity is invented.",
+    "Eligible Gaia preferences are resolved against the actual build prefix.",
+    "A neighbour outside the declared G range cannot represent a bright primary."
+  ],
+  "files": {
+    "ReadMe": {
+      "bytes": 10375,
+      "sha256": "6c017925d658447d40983da3b459ba16bf9789c8f7573e263952c75692622499"
+    },
+    "gaia-crossmatch.csv.gz": {
+      "bytes": 435188,
+      "sha256": "4d57148ada4e0867d525eee24c544d1fafc010e4257f21fa7a3c5f876c937aee"
+    },
+    "hip2.dat.gz": {
+      "bytes": 8977907,
+      "sha256": "8e624f843d4254a9b7c2e8dda8e3158dbe825bf98f6bf3dbbae7f0d0b73d6858"
+    },
+    "hipparcos2-supplement.csv.gz": {
+      "bytes": 391467,
+      "sha256": "87d518cc1027b53eb69306caf7ff845adcee2b59934d1d415b9e2a02f916a81c"
+    },
+    "hipparcos2.csv.gz": {
+      "bytes": 320455,
+      "sha256": "a3487f50c4957a6c6282bc658843f046949aac53c0f2d688f14b40cd65b65344"
+    },
+    "match-count-0000.xml": {
+      "bytes": 2621,
+      "sha256": "76661d8c8c9f4520f3042636897c18556128f6e09e165a7f5ab925ac19cf1dfc"
+    },
+    "match-count-0000.xml.adql": {
+      "bytes": 1335,
+      "sha256": "abb5e27520b3fbb6790feb9490737d89e41891403fb6e80a195bc7e81c5769e9"
+    },
+    "match-count-0001.xml": {
+      "bytes": 2677,
+      "sha256": "3f80121fa113c78dcaa24b94124e71d6187dbdcc2c671daee0de66a30efd5c1c"
+    },
+    "match-count-0001.xml.adql": {
+      "bytes": 1391,
+      "sha256": "3e52fe885a48238dfa998d090cfeaab3cdacc7fcb4b027eaae238bfaa82db7ac"
+    },
+    "match-count-0002.xml": {
+      "bytes": 2932,
+      "sha256": "03463abc9fa994ed534ec11232a22d95ee48a8c3f1aa1118274757ee47900d2c"
+    },
+    "match-count-0002.xml.adql": {
+      "bytes": 1646,
+      "sha256": "643ee971806bf2da56beb4a74bfc2685f810a7dff963d60b1835095ffa158bfe"
+    },
+    "match-count-0003.xml": {
+      "bytes": 2933,
+      "sha256": "8dc26ba16fcec66620c2229bd86b5352b7ab0571c83d038fd5ba86c939c9e7a6"
+    },
+    "match-count-0003.xml.adql": {
+      "bytes": 1647,
+      "sha256": "97071cf2cb552a3a5736711d3d3910b40cb89b673a2a82f6fa2b5c093444aefa"
+    },
+    "match-count-0004.xml": {
+      "bytes": 2933,
+      "sha256": "d1c7d4eb0fcc68a8bd75231ebca7b8abfb28af4c17b2182169ff2dc0fb7f6a07"
+    },
+    "match-count-0004.xml.adql": {
+      "bytes": 1647,
+      "sha256": "29a2a74442345edaec4c6a6826b73961c141c0dd84617233dfd4c1ed40d08d0f"
+    },
+    "match-count-0005.xml": {
+      "bytes": 2933,
+      "sha256": "66d402c64cb473a6a4cdcf7616f29eb1926f4a1b3f6e0a0dafa15ea82be4dd99"
+    },
+    "match-count-0005.xml.adql": {
+      "bytes": 1647,
+      "sha256": "8cd9bbf554e1783f5b754c71d53e36073bef7c62d61fa7c52e486810709d9a11"
+    },
+    "match-count-0006.xml": {
+      "bytes": 2933,
+      "sha256": "da079f9d0ae342fe8b6949f70f02f63d52ca2a5eb8dd0595ddaa90f01a29292a"
+    },
+    "match-count-0006.xml.adql": {
+      "bytes": 1647,
+      "sha256": "c67d393202ae4d8a239171c9f1f1d19fecfe67bf86d1e439447036e2596cd625"
+    },
+    "match-count-0007.xml": {
+      "bytes": 2933,
+      "sha256": "e3d27e23bb5cb689dc55f6fbe5b199cda7688e4f16f08ccb16bba046e7f04406"
+    },
+    "match-count-0007.xml.adql": {
+      "bytes": 1647,
+      "sha256": "0702100c2e9f45336327657f6800d59b095fe7d2df642cfefa99582ddf27aaae"
+    },
+    "match-count-0008.xml": {
+      "bytes": 2933,
+      "sha256": "dcd3c79ac04e3dd8ea07a4ca2d9c5ab0dc2f08ace6deb4e3d0de501b33738a89"
+    },
+    "match-count-0008.xml.adql": {
+      "bytes": 1647,
+      "sha256": "e0bc1e9dc999f580e12fd3d1f7c232a4d0e053dfdeccc5f5ef1c048a4b8cfc41"
+    },
+    "match-count-0009.xml": {
+      "bytes": 2933,
+      "sha256": "0d01918bfc316637991b86f5d101e222cbd58f82c49fdd3801fca8ad76a8b2f2"
+    },
+    "match-count-0009.xml.adql": {
+      "bytes": 1647,
+      "sha256": "ecb35a47f4ab95838f832933801355f728de35923d8de8055964cb9f06fc0eb5"
+    },
+    "match-count-0010.xml": {
+      "bytes": 2933,
+      "sha256": "081e54945e1cf306f2cc9b6417348f2b1160b10f8db3f683c97a2d85d822b34b"
+    },
+    "match-count-0010.xml.adql": {
+      "bytes": 1647,
+      "sha256": "270811e3afb91798f9f9114a074cd3ca76c0d881f06a12ce6f85cad47c7b5839"
+    },
+    "match-count-0011.xml": {
+      "bytes": 2933,
+      "sha256": "d27c78aa7d9e73d636c8de772d738124679d3dbf97dac9deafbb699666e02f6f"
+    },
+    "match-count-0011.xml.adql": {
+      "bytes": 1647,
+      "sha256": "eace28b98e37be0405be12f21cca3fcc664a98e0e3b3526299d7f8299cbcda34"
+    },
+    "match-count-0012.xml": {
+      "bytes": 2933,
+      "sha256": "f8e881caa6208c876e02d1c68c4ace821b31e90feb3f9a437e9e959f56e85640"
+    },
+    "match-count-0012.xml.adql": {
+      "bytes": 1647,
+      "sha256": "50e90203016492b3c060f9c81f3d9bf11cca923ca36293a436d8fba6554e4c6b"
+    },
+    "match-count-0013.xml": {
+      "bytes": 2933,
+      "sha256": "6320570d4c95aa0e7331d447ae5f0da75c21db7f79c7aa5e34436a97f5372c18"
+    },
+    "match-count-0013.xml.adql": {
+      "bytes": 1647,
+      "sha256": "e046b163c908aff315ba0ee55611d72429797a647414316aa91903043323feb7"
+    },
+    "match-count-0014.xml": {
+      "bytes": 2933,
+      "sha256": "e20996cfe9b54a7fac2a47de9d00447c346142ad6b3a9a3ed8155e860f9f3832"
+    },
+    "match-count-0014.xml.adql": {
+      "bytes": 1647,
+      "sha256": "220b7b678b9f990f95f882089c4d8cd54c1c5ae9fb9236dce7fe8c453042b9c7"
+    },
+    "match-count-0015.xml": {
+      "bytes": 2933,
+      "sha256": "e6980d2dedf09fb544f95edb50bb1f0d2e535b1922f15e5821ba7ee7fc75c7e8"
+    },
+    "match-count-0015.xml.adql": {
+      "bytes": 1647,
+      "sha256": "62cf2a588269c30016a421cfb7e6441fd584709e9bd69422f15c21fffd7c10e7"
+    },
+    "match-count-0016.xml": {
+      "bytes": 2933,
+      "sha256": "f9e8ceb5b683df87a7c2d3a80c7e7b9d08a314bd6974b6add3eaceb534f0d56f"
+    },
+    "match-count-0016.xml.adql": {
+      "bytes": 1647,
+      "sha256": "a840aa210774458b01eab3214b6ba7817eccfc6e1a3324ad71c8cfce121ae22e"
+    },
+    "match-count-0017.xml": {
+      "bytes": 2933,
+      "sha256": "0b91218d69cc5332eaaa938bc746089f2355f0cc8e310ad1ccda0bf8a6c0aaa9"
+    },
+    "match-count-0017.xml.adql": {
+      "bytes": 1647,
+      "sha256": "5a2e6ccd4af68f8dfb8a661b98aca7f685f872cb163341c60144bac5466b739e"
+    },
+    "match-count-0018.xml": {
+      "bytes": 2933,
+      "sha256": "8e87945088f6b0bc15586214e16566d4b637bdf42aca086ada3bc393f137b411"
+    },
+    "match-count-0018.xml.adql": {
+      "bytes": 1647,
+      "sha256": "bbddea96d093a40777906e06fb1e3aa31d7a1fcffd5e2f5f019f578bd2cfabf3"
+    },
+    "match-count-0019.xml": {
+      "bytes": 2933,
+      "sha256": "0bab1f7d1be5efe1d8591bd97ddd06cc50c5aeec80f5892dbb489eaf902617a6"
+    },
+    "match-count-0019.xml.adql": {
+      "bytes": 1647,
+      "sha256": "e7534e2cfb180eca733a1d3af587e06b4bf4959dedd80e3bd360a43bae5c776a"
+    },
+    "match-count-0020.xml": {
+      "bytes": 2933,
+      "sha256": "c65525721427286b23aa16a1b43938e508854f7bfec566659d6b8cb22c57dc30"
+    },
+    "match-count-0020.xml.adql": {
+      "bytes": 1647,
+      "sha256": "7e270f3511789259ec8d06617942c02e141460322edb3adcacfaf44005971eb7"
+    },
+    "match-count-0021.xml": {
+      "bytes": 2933,
+      "sha256": "142f573eedb99d0f7ef20bc66c4914241856a648be6720988236c8fd6ac68c03"
+    },
+    "match-count-0021.xml.adql": {
+      "bytes": 1647,
+      "sha256": "9a849eed70c2e719566f7c8f8e736aba3fda80dc7d3e2e056007fff461f9ca2e"
+    },
+    "match-count-0022.xml": {
+      "bytes": 3066,
+      "sha256": "33835a9fffccd3bc3ec43c548e70fb12c32471ddcf9bf7a2137de1bad0704941"
+    },
+    "match-count-0022.xml.adql": {
+      "bytes": 1780,
+      "sha256": "ee14104ee0b20bcc31b5734b3941ad73912fc9854c786008ee02e754136a95e5"
+    },
+    "match-count-0023.xml": {
+      "bytes": 3189,
+      "sha256": "04e536fde28cf45983bf642a084ddf888f1f32fc2b1c03ae6f674a0b5cb5a706"
+    },
+    "match-count-0023.xml.adql": {
+      "bytes": 1903,
+      "sha256": "39d418a4b6d01160fca52cdc6f0286ab8efe30b1d0a411bc6ec74ef72e7f48e9"
+    },
+    "match-count-0024.xml": {
+      "bytes": 3189,
+      "sha256": "20330a3907f0f9a03ee0898da1f5fe6f107a02f9b3b743e3bfc389473ceb41ae"
+    },
+    "match-count-0024.xml.adql": {
+      "bytes": 1903,
+      "sha256": "0e8be48f476e3906f279ed912fc4bc110dad626895e33f82815c9c67d0f62c68"
+    },
+    "match-count-0025.xml": {
+      "bytes": 3189,
+      "sha256": "2234684d373c7f9c4f84cd79d0ba6f3ab8089a073572da9c93195d5855ffa7df"
+    },
+    "match-count-0025.xml.adql": {
+      "bytes": 1903,
+      "sha256": "c7cf32d0ed834db5b80bc87b99829840021ce632c9b4dd43880acd2d0b93faeb"
+    },
+    "match-count-0026.xml": {
+      "bytes": 2068,
+      "sha256": "30da810213ccb679ec7f3ec3d0a856ed309f003a52a107e306ba59a5c63c8938"
+    },
+    "match-count-0026.xml.adql": {
+      "bytes": 783,
+      "sha256": "0568c510cbbd9092001db601894902cd2db9d16f977de58bc7cbd39e72aef2c8"
+    },
+    "matches-0000.xml": {
+      "bytes": 61171,
+      "sha256": "0dd4edcd0f4e32944f3fbc93128a039b7d1836e47751f4834ae3c7faf90b8e03"
+    },
+    "matches-0000.xml.adql": {
+      "bytes": 1612,
+      "sha256": "495a3f59c972a6d996e9689a5cac1a19dc1a8337c215e5dcb3ffd7b68df03511"
+    },
+    "matches-0001.xml": {
+      "bytes": 59149,
+      "sha256": "39713d386e84ef8053da01b9d6359f37a13209730ac9bb56cfd929a8d00691c9"
+    },
+    "matches-0001.xml.adql": {
+      "bytes": 1668,
+      "sha256": "a716c51a300f3fe6d2a0c9768388699bbc1a4ba4ececa84f78df0bc9bc3e4d81"
+    },
+    "matches-0002.xml": {
+      "bytes": 57500,
+      "sha256": "c20f93814685bf717a7e1a98384d8adbe492869df1d5a6aa3874aa920ed3f2de"
+    },
+    "matches-0002.xml.adql": {
+      "bytes": 1923,
+      "sha256": "e87b14486f4893824165a8ee836f8f546e8a7401e33b2d5f06653d9fb2e5b789"
+    },
+    "matches-0003.xml": {
+      "bytes": 60229,
+      "sha256": "fbca5182c679f23109946f527fd8fb56d13cd0b7aeef13cc59cb504d702e7d5e"
+    },
+    "matches-0003.xml.adql": {
+      "bytes": 1924,
+      "sha256": "ccb3bd2de69f7f2039f303f9c84f0797db733953f731eba253249c8beac6f540"
+    },
+    "matches-0004.xml": {
+      "bytes": 59461,
+      "sha256": "addc74e694d40a063d382b4b7fef515f5116fc5ea654f0b1bb847f97cfbc22ce"
+    },
+    "matches-0004.xml.adql": {
+      "bytes": 1924,
+      "sha256": "5ab4ac938067772894da21b7099deb0a5c8b45a2b9e5f8213af7b5e79105aa21"
+    },
+    "matches-0005.xml": {
+      "bytes": 61111,
+      "sha256": "619327e20e2d2c13181c3351f79361fa37096f3a3b836c9e4297c5252406510e"
+    },
+    "matches-0005.xml.adql": {
+      "bytes": 1924,
+      "sha256": "2bf8b7f72067c15a787400a2714c4353e21a7281134128d8e0628c1c909fa872"
+    },
+    "matches-0006.xml": {
+      "bytes": 63093,
+      "sha256": "6f6c692985f8eeb3924d5ff1229d48d0dc7c3fce53a79006fa9cccc42377f4e8"
+    },
+    "matches-0006.xml.adql": {
+      "bytes": 1924,
+      "sha256": "e6e6090c3ff08813951c67b32471df40f0579b374fa3d1e328e89746805c1da5"
+    },
+    "matches-0007.xml": {
+      "bytes": 65439,
+      "sha256": "0f94568cc389583637468f55997dd74048f77c61361bf3aadfba92c49a4ecd2a"
+    },
+    "matches-0007.xml.adql": {
+      "bytes": 1924,
+      "sha256": "18704f2b324274d0f465c384a5aad08c0d0030e7966807a8ca26095ba5630a81"
+    },
+    "matches-0008.xml": {
+      "bytes": 62811,
+      "sha256": "86088964eba8bd982edd847464a54524f036871d8bf847bfc862e8efcc62636b"
+    },
+    "matches-0008.xml.adql": {
+      "bytes": 1924,
+      "sha256": "f8a106de819689a266e4da04916314131c776b299028cf35438423f1097cbe76"
+    },
+    "matches-0009.xml": {
+      "bytes": 63949,
+      "sha256": "674389f12496c6617c7a4514d77a50b2fbd05e60cf2e9381cea6aad7682dbc2e"
+    },
+    "matches-0009.xml.adql": {
+      "bytes": 1924,
+      "sha256": "7e6ce0ea92f609399bd6bc4ec41ea3f90f14c3db4c32fd6e868dda223ede383e"
+    },
+    "matches-0010.xml": {
+      "bytes": 59869,
+      "sha256": "2c161266a2f7ba2984f1f21e3a8d099638556b81b8619862ce649c673c4dda0a"
+    },
+    "matches-0010.xml.adql": {
+      "bytes": 1924,
+      "sha256": "db8dba40eef9236a623cbf3e6636b94eab1c6a906f9aeb1f213f0282cfbb4b6b"
+    },
+    "matches-0011.xml": {
+      "bytes": 64978,
+      "sha256": "219d02cf9a4470560df1648c34d7a34ba493148f6ad1ff1c8a41e7600c298b30"
+    },
+    "matches-0011.xml.adql": {
+      "bytes": 1924,
+      "sha256": "276c7a58b3e9d1d972419fd876f70be3d4c3a642c60278fbbe7fec42e1a896c3"
+    },
+    "matches-0012.xml": {
+      "bytes": 62940,
+      "sha256": "577e87e0cd1176650a07890f41f59c47943adf022eee36893609729a8b0679a6"
+    },
+    "matches-0012.xml.adql": {
+      "bytes": 1924,
+      "sha256": "8ecdcc824a1345dce80fdf3fb335dcecdab9e22fc2030f6c92b7f92ec95182ca"
+    },
+    "matches-0013.xml": {
+      "bytes": 61677,
+      "sha256": "3a618194d88f009c8719eb9d28f5dfbe366f5f67ec103ab8cbe1219a002ea622"
+    },
+    "matches-0013.xml.adql": {
+      "bytes": 1924,
+      "sha256": "91868c8a83da3767eac742b4bebf3dd6e601d78f46d08db1ea7204040cfa4593"
+    },
+    "matches-0014.xml": {
+      "bytes": 62409,
+      "sha256": "265436c7f4ce38390ff9b32ed79df5f1ed19fd454078df9e37f6eb29a2046479"
+    },
+    "matches-0014.xml.adql": {
+      "bytes": 1924,
+      "sha256": "b58d8d52404aac3c8913d2c8c76b67eb75c18244aae0b8b9e0efc3a209ba5f04"
+    },
+    "matches-0015.xml": {
+      "bytes": 62074,
+      "sha256": "5643850f53ef2b116266f4c99df9af3fa894c3b944d2f4c5c5f0e7f5a4bce333"
+    },
+    "matches-0015.xml.adql": {
+      "bytes": 1924,
+      "sha256": "096b6629471a6eb51da2e203819829f6950f4ec07b5ce819e23e54810d002690"
+    },
+    "matches-0016.xml": {
+      "bytes": 60282,
+      "sha256": "31fc4d65ff993b234da7f791791e8fb169670195058f7c1b1e5eb2447bf68b31"
+    },
+    "matches-0016.xml.adql": {
+      "bytes": 1924,
+      "sha256": "06a8108bdee301c49700d42096a66196ea5cda68b91ff7e3fffd62a0be1da006"
+    },
+    "matches-0017.xml": {
+      "bytes": 63874,
+      "sha256": "451c9d7c4c85867fc65f0b48f4f8661a99f3f9f0087a660f318a376d80b4e9e1"
+    },
+    "matches-0017.xml.adql": {
+      "bytes": 1924,
+      "sha256": "5286ed49064e12ef8e55ee49acc6f3b2a7703e4b2e09aec852d2ad4c62b999d8"
+    },
+    "matches-0018.xml": {
+      "bytes": 63833,
+      "sha256": "82008d00e1de3191d5425d6fddd666c9f8432be69e9ef7d6e578d45f84173a52"
+    },
+    "matches-0018.xml.adql": {
+      "bytes": 1924,
+      "sha256": "ed7529926c15df728295aad78201608e53ed3ab9344b887d10017105a8fb26c2"
+    },
+    "matches-0019.xml": {
+      "bytes": 62480,
+      "sha256": "84a6527d62466082ef5b1447f0a1264848c10022008d150608c01dc9e3ba9abb"
+    },
+    "matches-0019.xml.adql": {
+      "bytes": 1924,
+      "sha256": "3889823bf8f80d0cf6e287dc1e90cdfa665cde0642c5a81820a1d929ee108fd2"
+    },
+    "matches-0020.xml": {
+      "bytes": 66921,
+      "sha256": "b867a3975096e453a1b52c4783856f204212636b1a75c1defdcb02529e3b98b3"
+    },
+    "matches-0020.xml.adql": {
+      "bytes": 1924,
+      "sha256": "4233697e46ecb15c786a89bc106ac13676cd501650cfeca17bb357f35f02acfd"
+    },
+    "matches-0021.xml": {
+      "bytes": 63093,
+      "sha256": "c31ca9a06b3bc5f84dfb625342c03945965e9e1e68afd9f7435a81282c4c47af"
+    },
+    "matches-0021.xml.adql": {
+      "bytes": 1924,
+      "sha256": "429a07c8163f82aa538d8a8b2ce3877e177273ec0123d8e53ab71dd29acb2e0f"
+    },
+    "matches-0022.xml": {
+      "bytes": 61861,
+      "sha256": "3ff784e9eb735a702ddece9e5db7ca65ab60f4e04ae3fbaaec90ecec641f0084"
+    },
+    "matches-0022.xml.adql": {
+      "bytes": 2057,
+      "sha256": "4671970c4a037abc82d5ec2bcbbd8cb24347131b3b07a6636ab01d00ed279774"
+    },
+    "matches-0023.xml": {
+      "bytes": 61123,
+      "sha256": "8ab3e35b882697f453d64fea30dc45e8eaf5ffa11b72a496f599c5c62980e822"
+    },
+    "matches-0023.xml.adql": {
+      "bytes": 2180,
+      "sha256": "742565322ead1975510d05f9eda1bbb63eb9b242ca3922ac0c7e25f04a4b00ed"
+    },
+    "matches-0024.xml": {
+      "bytes": 63723,
+      "sha256": "25c716031e35e028448b2771dc9fa0913b89f2ca1eff41fbebe68b816b63ab66"
+    },
+    "matches-0024.xml.adql": {
+      "bytes": 2180,
+      "sha256": "3968e24d441e55287e792de5ad0879e29e8190c4734c34de2f414c64825c6d9c"
+    },
+    "matches-0025.xml": {
+      "bytes": 60328,
+      "sha256": "c182b0197a6e1a1ada76866088e159dbf00dc3d0b91ac4b9ce38f4adad3e083c"
+    },
+    "matches-0025.xml.adql": {
+      "bytes": 2180,
+      "sha256": "69a3d1ad4c0d2df6771da6db73aeb78b27922bc1a24c7fe367cf299cf75315a5"
+    },
+    "matches-0026.xml": {
+      "bytes": 28836,
+      "sha256": "13e199feee474cbb65ff7e68e68e075853e243af808bdc858c432c5568bb36c1"
+    },
+    "matches-0026.xml.adql": {
+      "bytes": 1060,
+      "sha256": "edcdc9dcfa4725435a67db82d475dca416b99baceb0fcd6bf17ef51f64c7415e"
+    }
+  }
+}

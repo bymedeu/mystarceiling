@@ -4,6 +4,21 @@ Status: M2 RGB8 catalogue preparation and coloured viewing implemented on
 2026-10-25 under owner approval. Earlier dated sections below retain historical
 M1/version-2 decisions; this current contract supersedes their storage/epoch rules.
 
+## Bright-source selection repair — 2026-10-28
+
+The owner authorized replacing the observed minimum-G supplementation cutoff
+with an inclusive estimated-G<=6 default. Native bright candidates remain
+available until build time, when published Gaia preferences are resolved against
+the actual selected prefix. Incomplete, nonlocal, out-of-range or unselected
+counterparts cannot establish primary coverage. Explicit published out-of-range
+IDs are omitted from Gaia fill to avoid representing the association twice.
+See the canonical [policy, provenance and limits](../hipparcos2-datasets.md).
+Legacy 13-column supplements still load; new supplements add unsigned
+`gaia_source_id` and `excluded_gaia_source_id` columns (0 means none). Both cannot
+be nonzero on the same row. These are preparation evidence, never binary fields.
+Colour preparation, motion, schema 3, exact capacity, brightness ordering and
+Hipparcos-first priority remain unchanged. No rendering change is included.
+
 ## Current prepared catalogue — 2026-10-25
 
 Each source parser prepares complete `Star` baselines with observed linear-sRGB

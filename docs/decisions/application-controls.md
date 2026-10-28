@@ -91,6 +91,16 @@ Any future explicit `all` syntax remains undecided; missing quantity is not
 implicit `all`.
 Quantity bounds work, not the need for later measured scaling evidence.
 
+The bounded 2026-10-28 bright-source repair retains native fallbacks with
+published Gaia preference/exclusion evidence. Unconditional fallbacks reserve
+capacity first; preferences require inspection of a bounded Gaia prefix and are
+honoured only when the linked source survives the final selection. If
+unconditional fallbacks already fill capacity, Gaia is not opened. Otherwise,
+prefix/exclusion resolution can ultimately fill capacity entirely with native
+fallbacks. This extends the preparation boundary without changing view quantity,
+exact capacity or Hipparcos-first priority. See the canonical
+[bright-source policy](../hipparcos2-datasets.md#implemented-preparation-policy).
+
 The owner accepted prefix-only viewing validation: check the header, complete
 file length and requested count before allocating for and decoding only the
 requested records. The complete file must match the header's total count
