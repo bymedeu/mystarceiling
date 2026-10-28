@@ -10,9 +10,8 @@ layout(location=2) in vec3 catalogue_colour;
 layout(location=3) in uvec2 key;
 uniform vec2 framebuffer_size;
 uniform float support_radius, brightness, limiting_magnitude;
-uniform float strength, colour_variation, zenith_fraction, slow_weight;
-uniform uint slow_tick, fast_tick;
-uniform float slow_fraction, fast_fraction;
+uniform float strength, zenith_fraction, colour_delay;
+uniform vec3 bands[24];
 out vec2 pixel_offset;
 flat out vec3 star_light;
 uint mixed(uint v) {
@@ -20,25 +19,19 @@ uint mixed(uint v) {
     v=(v^(v>>15u))*0x735a2d97u;
     return v^(v>>15u);
 }
-float unit_noise(uvec2 k,uint n) {
-    return float(mixed(k.x^mixed(k.y)^(n*0x9e3779b9u)))/4294967295.0;
-}
-float noise(uvec2 k,uint tick,float fraction) {
-    float q=fraction+unit_noise(k,719u);
-    uint carry=uint(floor(q));
-    float u=fract(q);
-    return 2.0*mix(unit_noise(k,tick+carry),unit_noise(k,tick+carry+1u),
-                   u*u*(3.0-2.0*u))-1.0;
-}
 vec3 twinkle() {
     float h=1.0-clamp(enu.z,0.0,1.0);
     float factor=zenith_fraction+(1.0-zenith_fraction)*h*h;
-    float slow=noise(key,slow_tick,slow_fraction);
-    float fast=noise(uvec2(key.x^0x39ac17u,key.y),fast_tick,fast_fraction);
-    float light=1.0+strength*factor*mix(fast,slow,slow_weight);
-    float c=colour_variation*factor*
-        noise(uvec2(key.x^0x47a672b1u,key.y),fast_tick,fast_fraction);
-    return light*vec3(1.0+c,1.0-0.12*c,1.0-c);
+    vec3 signal=vec3(0.0);
+    for(int i=0;i<24;++i) {
+        uint n=mixed(key.x^mixed(key.y)^((uint(i)+719u)*0x9e3779b9u));
+        float offset=float(n>>8u)/16777216.0;
+        float phase=fract(bands[i].x+offset);
+        float delay=bands[i].z*colour_delay*h;
+        signal+=bands[i].y*cos(6.283185307179586*
+                    (vec3(phase)+vec3(-delay,0.0,delay)));
+    }
+    return vec3(1.0)+strength*factor*signal;
 }
 void main() {
     vec2 corner=vec2((gl_VertexID&1)==0 ? -1.0:1.0,

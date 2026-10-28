@@ -29,6 +29,26 @@ usage instructions continue to be maintained while M2 is implemented.
 The [accepted catalogue preparation decision](decisions/ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25)
 is the canonical record of the current approximations and remaining design details.
 
+## Animation validation and scaling
+
+- [ ] Review the revised [native scintillation trial](decisions/stellar-appearance-trial.md)
+  in MSC and settle the appearance before optimization.
+- [ ] After visual acceptance, profile increasingly large animated workloads,
+  including a million-source case where feasible. Measure frame time, memory,
+  visible/source counts and covered pixels; separate signal evaluation from
+  rasterization/blending costs. Current arithmetic and small-catalogue tests do
+  not establish million-source throughput.
+- [ ] Compare any selected optimization against the accepted reference, preserving
+  deterministic phase, frame averaging, colour, combined faint light and edge
+  contributions. No new culling, tier or caching strategy is selected here.
+
+- [ ] Retain a repeatable offscreen shader/core comparison, including signed
+  frame-averaging weights and freeze/resume; the existing GPU evidence came from
+  a temporary harness and is not covered by the checked-in CPU tests.
+- [ ] Revisit extreme-uptime phase/midpoint precision before claiming long-time
+  averaging accuracy. The independent review found midpoint rounding at 1e12
+  animation seconds; that is separate from astronomical epoch/time handling.
+
 ## Later customization
 
 - [ ] Discuss the owner's suggested JSON-based appearance/behaviour customization

@@ -25,14 +25,14 @@ namespace msc::render
         core::appearance::TwinkleSettings twinkle;
         double brightness{14};
         double limiting_magnitude{6};
-        double core_width{0.68};
-        double halo_width{2.5};
-        double halo_fraction{0.10};
-        double ray_fraction{0.25};
-        double ray_length{4};
+        double core_width{0.4};
+        double halo_width{1};
+        double halo_fraction{0.03};
+        double ray_fraction{0.04};
+        double ray_length{1.5};
         double ray_width{0.20};
         double support_sigma{4};
-        int ray_count{12};
+        int ray_count{4};
         int width{1280};
         int height{720};
         bool picture_mode{};
@@ -51,8 +51,6 @@ namespace msc::render
             std::array{value.ray_length, 0.5, 32.0},
             std::array{value.ray_width, 0.1, 3.0},
             std::array{value.support_sigma, 2.0, 6.0},
-            std::array{value.twinkle.slow_rate, 0.05, 60.0},
-            std::array{value.twinkle.fast_rate, 0.05, 60.0},
             std::array{double(value.ray_count), 3.0, 24.0},
             std::array{double(value.width), 64.0, 4096.0},
             std::array{double(value.height), 64.0, 2160.0}};

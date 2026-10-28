@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <numbers>
 
 namespace msc::render::trial
@@ -32,23 +33,18 @@ namespace msc::render::trial
             uniform(program, "support_radius", radius);
         }
 
-        void clocks(GLuint program, const State& state)
+        void animation(GLuint program, const State& state)
         {
-            const auto& s = state.settings.twinkle;
-            const auto slow = core::appearance::noise_clock(
-                state.clock.seconds(), s.slow_rate);
-            const auto fast = core::appearance::noise_clock(
-                state.clock.seconds(), s.fast_rate);
-            glUniform1ui(glGetUniformLocation(program, "slow_tick"),
-                         slow.interval);
-            glUniform1ui(glGetUniformLocation(program, "fast_tick"),
-                         fast.interval);
-            uniform(program, "slow_fraction", slow.fraction);
-            uniform(program, "fast_fraction", fast.fraction);
-            uniform(program, "strength", s.strength);
-            uniform(program, "colour_variation", s.colour_variation);
-            uniform(program, "zenith_fraction", s.zenith_fraction);
-            uniform(program, "slow_weight", s.slow_weight);
+            const auto& settings = state.settings.twinkle;
+            const auto frame = core::appearance::scintillation_frame(
+                state.clock.seconds(), state.clock.exposure());
+            static_assert(sizeof(frame) == frame.size() * 3 * sizeof(float));
+            glUniform3fv(glGetUniformLocation(program, "bands"),
+                         static_cast<GLsizei>(frame.size()),
+                         frame.front().data());
+            uniform(program, "strength", settings.strength);
+            uniform(program, "zenith_fraction", settings.zenith_fraction);
+            uniform(program, "colour_delay", settings.colour_delay);
         }
 
         void draw_stars(Resources& resources, const State& state)
@@ -65,7 +61,7 @@ namespace msc::render::trial
                 static_cast<float>(resources.width),
                 static_cast<float>(resources.height));
             set_profile(resources.stars, state.settings);
-            clocks(resources.stars, state);
+            animation(resources.stars, state);
             glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, resources.count);
         }
 

@@ -3,25 +3,61 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
+#include <numbers>
+#include <numeric>
 
 namespace msc::core::appearance
 {
     namespace
     {
-        constexpr double interval_period = 4294967296.0;
-        constexpr double hash_maximum = 4294967295.0;
+        constexpr double tau = 2 * std::numbers::pi;
+        using Spectrum =
+            std::array<std::array<double, 2>, scintillation_band_count>;
 
-        std::uint32_t mixed(std::uint32_t value) noexcept
+        const Spectrum& spectrum() noexcept
         {
-            value = (value ^ (value >> 16U)) * 0x21f0aaadU;
-            value = (value ^ (value >> 15U)) * 0x735a2d97U;
-            return value ^ (value >> 15U);
+            static const auto value = []
+            {
+                Spectrum result{};
+                double variance{};
+                const auto ratio = std::pow(256.0 / 0.5, 1.0 / result.size());
+                double lower = 0.5;
+                for (auto& band : result)
+                {
+                    const auto upper = lower * ratio;
+                    const auto frequency = std::sqrt(lower * upper);
+                    // Broad small-pupil surrogate; the 45 Hz knee is a trial
+                    // choice, not a measured wind/turbulence profile.
+                    const auto power =
+                        1 / (1 + std::pow(frequency / 45, 8.0 / 3));
+                    band = {frequency, std::sqrt(2 * power * (upper - lower))};
+                    variance += band[1] * band[1] / 2;
+                    lower = upper;
+                }
+                for (auto& band : result)
+                    band[1] /= std::sqrt(variance);
+                return result;
+            }();
+            return value;
         }
 
-        double unit_noise(AnimationKey key, std::uint32_t counter) noexcept
+        double peak_bound() noexcept
         {
-            return static_cast<double>(hash_noise(key, counter)) / hash_maximum;
+            return std::accumulate(spectrum().begin(), spectrum().end(), 0.0,
+                                   [](double sum, const auto& band)
+                                   { return sum + band[1]; });
+        }
+
+        double box_average(double frequency, double exposure) noexcept
+        {
+            const auto x = std::numbers::pi * frequency * exposure;
+            if (!std::isfinite(x))
+                return 0;
+            if (std::abs(x) < 1e-4)
+                return 1 - x * x / 6;
+            return std::sin(x) / x;
         }
 
         bool nonnegative_finite(double value) noexcept
@@ -29,47 +65,22 @@ namespace msc::core::appearance
             return std::isfinite(value) && value >= 0;
         }
 
-        bool unit_interval(double value) noexcept
+        std::uint32_t mixed(std::uint32_t value) noexcept
         {
-            return nonnegative_finite(value) && value <= 1;
-        }
-        bool open_unit_interval(double value) noexcept
-        {
-            return nonnegative_finite(value) && value < 1;
-        }
-
-        bool positive_finite(double value) noexcept
-        {
-            return std::isfinite(value) && value > 0;
+            value = (value ^ (value >> 16U)) * 0x21f0aaadU;
+            value = (value ^ (value >> 15U)) * 0x735a2d97U;
+            return value ^ (value >> 15U);
         }
     } // namespace
 
     bool valid_twinkle_settings(const TwinkleSettings& settings) noexcept
     {
-        return open_unit_interval(settings.strength) &&
-            open_unit_interval(settings.colour_variation) &&
-            unit_interval(settings.zenith_fraction) &&
-            unit_interval(settings.slow_weight) &&
-            positive_finite(settings.slow_rate) &&
-            positive_finite(settings.fast_rate);
-    }
-
-    NoiseClock noise_clock(double seconds, double rate) noexcept
-    {
-        auto ticks = seconds * rate;
-        if (!std::isfinite(ticks))
-            ticks = std::fmod(seconds, interval_period / rate) * rate;
-        ticks = std::fmod(ticks, interval_period);
-        const auto whole = std::floor(ticks);
-        auto interval = static_cast<std::uint32_t>(whole);
-        auto fraction = static_cast<float>(ticks - whole);
-        // Rounding the fraction to float can reach the next interval.
-        if (fraction == 1.0F)
-        {
-            ++interval;
-            fraction = 0;
-        }
-        return {interval, fraction};
+        return nonnegative_finite(settings.strength) &&
+            settings.strength * peak_bound() < 0.99 &&
+            nonnegative_finite(settings.zenith_fraction) &&
+            settings.zenith_fraction <= 1 &&
+            nonnegative_finite(settings.colour_delay) &&
+            settings.colour_delay <= 1;
     }
 
     std::uint32_t hash_noise(AnimationKey key, std::uint32_t counter) noexcept
@@ -77,52 +88,61 @@ namespace msc::core::appearance
         return mixed(key.low ^ mixed(key.high) ^ (counter * 0x9e3779b9U));
     }
 
-    double smooth_noise(AnimationKey key, NoiseClock clock) noexcept
+    ScintillationFrame scintillation_frame(double seconds,
+                                           double exposure) noexcept
     {
-        auto fraction =
-            static_cast<double>(clock.fraction) + unit_noise(key, 719);
-        if (fraction >= 1)
+        ScintillationFrame result{};
+        const auto duration = std::min(seconds, exposure);
+        const auto midpoint = seconds - duration / 2;
+        for (std::size_t index = 0; index < result.size(); ++index)
         {
-            ++clock.interval;
-            fraction -= 1;
+            const auto& band = spectrum()[index];
+            const auto phase = std::fmod(midpoint, 1 / band[0]) * band[0];
+            result[index] = {
+                static_cast<float>(phase),
+                static_cast<float>(band[1] * box_average(band[0], duration)),
+                static_cast<float>(band[0])};
         }
-        const auto blend = fraction * fraction * (3 - 2 * fraction);
-        const auto first = unit_noise(key, clock.interval);
-        const auto second = unit_noise(key, clock.interval + 1U);
-        return 2 * (first + blend * (second - first)) - 1;
+        return result;
     }
 
     std::array<double, 3>
-    sample_twinkle(AnimationKey key, double seconds, double sine_elevation,
+    sample_twinkle(AnimationKey key, const ScintillationFrame& frame,
+                   double sine_elevation,
                    const TwinkleSettings& settings) noexcept
     {
         const auto horizon = 1 - std::clamp(sine_elevation, 0.0, 1.0);
         const auto factor = settings.zenith_fraction +
             (1 - settings.zenith_fraction) * horizon * horizon;
-        const auto slow =
-            smooth_noise(key, noise_clock(seconds, settings.slow_rate));
-        const AnimationKey fast_key{key.low ^ 0x39ac17U, key.high};
-        const auto fast =
-            smooth_noise(fast_key, noise_clock(seconds, settings.fast_rate));
-        const auto light = 1 +
-            settings.strength * factor *
-                (settings.slow_weight * slow +
-                 (1 - settings.slow_weight) * fast);
-        const AnimationKey colour_key{key.low ^ 0x47a672b1U, key.high};
-        const auto chroma = settings.colour_variation * factor *
-            smooth_noise(colour_key, noise_clock(seconds, settings.fast_rate));
-        return {light * (1 + chroma), light * (1 - 0.12 * chroma),
-                light * (1 - chroma)};
+        std::array<double, 3> result{1, 1, 1};
+        for (std::size_t index = 0; index < frame.size(); ++index)
+        {
+            const auto& band = frame[index];
+            const auto offset =
+                static_cast<double>(
+                    hash_noise(key, static_cast<std::uint32_t>(index) + 719U) >>
+                    8U) /
+                16777216.0;
+            const auto phase = tau * (band[0] + offset);
+            const auto delay = tau * band[2] * settings.colour_delay * horizon;
+            for (std::size_t channel = 0; channel < result.size(); ++channel)
+                result[channel] += settings.strength * factor * band[1] *
+                    std::cos(phase +
+                             (static_cast<double>(channel) - 1) * delay);
+        }
+        return result;
     }
 
-    void AnimationClock::advance(double wall_delta, double speed) noexcept
+    void AnimationClock::advance(double wall_delta) noexcept
     {
-        if (picture_mode_ || !nonnegative_finite(wall_delta) ||
-            !nonnegative_finite(speed))
+        if (picture_mode_ || !std::isfinite(wall_delta) || wall_delta <= 0)
             return;
-        const auto updated = seconds_ + wall_delta * speed;
+        const auto updated = seconds_ + wall_delta;
         if (std::isfinite(updated))
+        {
             seconds_ = updated;
+            exposure_ = wall_delta;
+        }
     }
 
     void AnimationClock::set_picture_mode(bool enabled) noexcept
@@ -133,5 +153,10 @@ namespace msc::core::appearance
     double AnimationClock::seconds() const noexcept
     {
         return seconds_;
+    }
+
+    double AnimationClock::exposure() const noexcept
+    {
+        return exposure_;
     }
 } // namespace msc::core::appearance

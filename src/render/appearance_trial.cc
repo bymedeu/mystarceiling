@@ -19,7 +19,7 @@ namespace msc::render
             while (glfwWindowShouldClose(window.handle) == GLFW_FALSE)
             {
                 const auto current = glfwGetTime();
-                state.clock.advance(current - previous, 1);
+                state.clock.advance(current - previous);
                 previous = current;
                 int width{}, height{};
                 glfwGetFramebufferSize(window.handle, &width, &height);

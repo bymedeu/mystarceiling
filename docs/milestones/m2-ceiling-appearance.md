@@ -108,3 +108,9 @@ No configuration migration or derived-catalogue rebuild is needed.
 This is provisional appearance work, not M2 closeout or a large-source performance
 result. Native visual acceptance and the proposed zone/full/compact rendering
 strategy remain outstanding. See the [focused trial record](../decisions/stellar-appearance-trial.md).
+
+On 2026-10-27 the owner approved replacing the rejected slow pulsation with
+frame-averaged spectral variation and correlated colour, while restoring the
+quieter profile. The [trial record](../decisions/stellar-appearance-trial.md)
+is canonical for model details and verification. Optimize only after appearance
+review; simultaneous million-source animation remains an unmeasured target.

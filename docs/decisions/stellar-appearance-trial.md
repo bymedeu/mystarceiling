@@ -1,10 +1,9 @@
 # Native stellar appearance trial
 
-2026-10-26: the owner approved a provisional visual trial **inside the MSC
-executable**. Numerical agreement is not visual acceptance. The owner accepted
-the earlier catalogue colours and wants animated light with unequal tapered rays,
-rather than only a circular halo. The image references describe a visual target;
-their colours, particles and photographic processing are not reconstructed data.
+The owner approved a provisional trial inside the MSC executable on 2026-10-26.
+On 2026-10-27 they rejected the slow bright/dim animation and approved a revised
+statistical approximation informed by scintillation research. Visual acceptance
+remains open. The earlier catalogue colours were accepted separately.
 
 ## Run
 
@@ -12,123 +11,129 @@ their colours, particles and photographic processing are not reconstructed data.
 ./msc view --appearance-trial
 ```
 
-Existing catalogue/configuration/logging options still apply. No source data or
-binary rebuild is needed. Ordinary `msc view` remains the static viewer. The
-trial does not change the strict TOML schema or rewrite saved settings.
-
-On 2026-10-27 the owner requested removal of the extra appearance CLI options
-and tuning shortcuts added during the trial.
-The trial now uses its existing C++ model defaults. No animation/profile
-coefficients were changed as part of the control removal. There are no public
-appearance-tuning parameters, including window-size, seed or initial-picture
-options. The window can still be resized normally.
+Existing catalogue/configuration/logging options apply. No source or binary
+rebuild is needed. Ordinary `msc view` retains the static viewer. The trial adds
+no appearance settings to the CLI or strict saved TOML schema.
 
 | Key | Action |
 | --- | --- |
-| Space | Toggle picture mode, freezing/resuming the animation phase |
+| Space | Freeze/resume picture mode |
 | Escape | Close the window |
 
-The window title identifies animated or picture mode. Time pause and picture
-mode are different: astronomical time pause keeps atmospheric animation running,
-while picture mode freezes both. The fixed Toulouse/time geometry already has
-paused astronomical time. No new astronomical clock, observer controls or
-artificial sky drift is introduced. Time spent frozen is not accumulated on resume.
+The title identifies animated or picture mode. Astronomical time pause allows
+animation to continue; picture mode freezes it too. The fixed Toulouse/time
+geometry already has paused astronomical time. No sky drift or new observer/time
+controls are introduced. Window resizing remains available normally.
 
-## Current visual limitations
+## Revised animation — 2026-10-27
 
-The owner likes the sky appearance but reports that animation is not apparent
-and small sources look pixelated. The trial is provisional, not visually accepted.
-Ordinary `msc view` has no animation; the trial must be explicitly selected.
-In the trial, the zenith-facing view attenuates modulation by design, and the
-highlight-compression pass reduces visible bright-core variation further. Its
-animation changes intensity/colour, without moving the profile or source position.
-Pixel-footprint approximation and framebuffer sampling also limit the appearance
-of small stars; screen resolution alone does not explain away these limitations.
+Atmospheric turbulence changes the wavefront and received intensity. Wind moves
+these patterns across the observer's pupil. Scintillation has a range of temporal
+frequencies, and pupil/exposure averaging suppresses parts of the variation.
+Colour signals are related, with atmospheric dispersion affecting their temporal
+relationship away from the zenith. These mechanisms motivate the approximation;
+the trial does not reconstruct actual observing conditions.
 
-The owner's [video reference](https://www.youtube.com/shorts/m34BUDkIoDM) is a
-magnified telescope view. It is a qualitative motion/colour reference, not an
-approved angular scale, diffraction model or numerical calibration. Improving
-animation visibility and pixel sampling remains follow-up appearance work.
+The former cubic slow/fast noise generator and its clock/settings are removed.
+The replacement sums 24 sinusoidal components with independent deterministic
+phases from the full catalogue identity and catalogue salt. Band edges run from
+0.5 to 256 Hz logarithmically; representative frequencies are 0.569 to 224.8 Hz.
+Amplitudes include each band's width, using the surrogate power density
+`S(f) = 1 / (1 + (f / 45 Hz)^(8/3))`, normalized to unit instantaneous variance.
+This broad plateau and rolloff are a provisional small-pupil rendering choice,
+not a spectrum fitted to measured atmospheric data. The 45 Hz knee is selected
+for the trial; it is not inferred from catalogue data or a large-telescope law.
 
-An offscreen check on 2026-10-27 linked the actual compiled renderer and used the
-configured 4,096-source prefix at 1280x720 on Mesa llvmpipe. Advancing animation
-from 0 to 0.25 seconds changed 17,585 final RGB8 pixels, with a maximum channel
-difference of 11 levels. Picture mode ignored ten seconds of elapsed time and
-preserved the image exactly; resuming changed pixels again. This verifies
-variation in rendered output, not perceptual strength or native-window presentation.
+Default channel RMS is 0.12 at the horizon before exposure averaging. Its
+amplitude factor is `0.25 + 0.75*(1-sin(elevation))^2`. RGB channels share the same
+components, with adjacent-channel delays of `1.5 ms*(1-sin(elevation))` in opposite
+directions around green. Thus colour is correlated with the intensity signal,
+with no differential delay at zenith. The delay is an approximation of chromatic
+behaviour, not wavelength-resolved propagation. Catalogue colour and magnitude
+remain unchanged.
 
-## Model and boundaries
+For each frame, every component is averaged analytically over the trailing
+animation-time interval `[t-dt,t]`, clipped to the origin at startup. Its amplitude
+is multiplied by `sinc(pi*f*dt)` and its phase evaluated at the midpoint. The
+signed coefficients are retained without renormalization. This averages the final
+linear RGB gains directly; there is no multiplication of independently averaged
+brightness and colour. Zero exposure gives the instantaneous signal.
 
-The catalogue retains double-precision magnitude and compact linear RGB8. The
-application prepares local ENU directions and a deterministic animation key from
-both halves of the native uint64 identity and its catalogue. Projected order or
-screen position does not seed animation. Above-horizon sources remain available
-outside the viewport, letting their expanded light footprints reach screen edges.
-Projection uses the actual framebuffer aspect ratio and the existing 90-degree
-vertical field of view.
+The sum of absolute amplitudes bounds each gain. Validation keeps the worst
+possible deviation below 0.99, ensuring positive light without nonlinear clipping.
+The defaults have an instantaneous lower gain bound above 0.253. Reduced phases
+are calculated in double on the CPU before float uniform upload. Astronomical
+order and screen position do not seed animation.
 
-The core reference model interpolates hashed samples with cubic smoothstep.
-Slow and fast components drive brightness; a separately salted fast component
-drives opposing red/blue variations and a smaller green change. Horizon strength
-is `zenith_fraction + (1-zenith_fraction)*(1-sin(elevation))^2`, bounded without a
-horizon singularity. Strengths below one keep channel multipliers positive.
-This independent-source model does not reconstruct the spatial or temporal
-spectrum of real atmospheric turbulence. Colour fluctuations change instantaneous
-luminance as well as hue; only the catalogue baseline remains unchanged.
+Picture mode preserves both time and the exposure interval. Ignoring elapsed
+wall time while frozen prevents a changed exposure from altering a frozen image.
+Resume preserves phase and excludes time spent frozen.
 
-Split integer/fractional noise clocks avoid converting ever-growing elapsed
-seconds directly to a shader float. The shader reproduces the core's integer
-hash and interpolation; CPU/GPU floating results are compared with a numerical
-tolerance, not promised bit-identical across graphics implementations.
+## Spatial profile and limits
 
-The source is a point with no separately painted dot. Its spatial profile is a
-weighted narrow Gaussian, wider Gaussian and seeded unequal one-sided Gaussian
-rays. Ray orientation is common to the observer's trial profile. Profile weights
-redistribute light; their fractions sum to at most one. Brightness variation makes
-different parts of that distribution visible without a binary blinking state.
+The quieter earlier preview is restored: core sigma 0.4 framebuffer pixels,
+halo sigma 1 with 3% light, and four unequal one-sided rays with longest sigma
+1.5 and 4% light. The remaining light is in the core. These are internal trial
+coefficients. A star is a point source with no separately painted opaque dot.
+The stable light distribution changes intensity/colour rather than wobbling or
+rotating. Profiles redistribute linear light before display encoding.
 
-The profiles have unit continuous integrals before finite support cropping. A
-`1/12` pixel-footprint variance is added to Gaussian axis variances to reduce
-subpixel aliasing; this is an approximation, not exact pixel integration.
-Finite support, sampling, display compression and RGB8 limit numerical/visual
-accuracy. Very bright/faint display magnitudes are bounded to [-30,31] for upload;
-sources above the supported limiting magnitude of 30 remain excluded. Original
-catalogue magnitudes are unchanged. Profiles are not calibrated human-eye PSFs,
-measured diffraction or a full atmospheric/vision model.
+The pixel-footprint approximation adds variance `1/12` to Gaussian axes.
+This reduces aliasing but is not exact pixel integration. Small stars may still
+look pixelated. Finite support, pixel sampling and highlight compression limit
+appearance; monitor resolution alone does not explain these issues.
 
-## Rendering and scaling
+The owner's [video reference](https://www.youtube.com/shorts/m34BUDkIoDM) is highly
+magnified. It guides qualitative flickering, without supplying naked-eye angular
+scale or a calibrated diffraction model. This finite spectral sum can exhibit
+beating and does not model full turbulence, measured eye optics or spatial
+correlations between nearby stars. Frame averaging attenuates high frequencies
+but is not an ideal anti-alias filter. Visual realism still requires owner review.
 
-The trial uploads compact static instances with integer RGB and identity, then
-evaluates modulation in the vertex shader. Instanced quads distribute linear
-light additively into an RGBA32F framebuffer. A final pass compresses highlights
-with a common RGB scale and encodes sRGB once. There is no per-star halo image,
-per-frame source reupload or persistent expanded float RGB catalogue.
+## Rendering, verification and scaling
 
-Cost depends on source count, covered pixels and ray count. The floating colour
-attachment alone uses `width*height*16` bytes: about 14.1 MiB at 1280x720, excluding
-the window framebuffer, driver storage and source buffers. Resize reallocates it.
-No 500k-source frame-rate or memory benchmark is claimed by this visual trial.
+The catalogue retains double magnitude and RGB8. Static instances retain ENU,
+float display magnitude, RGB8 and their existing integer identity key. Their
+layout is unchanged; no per-star history or expanded RGB catalogue is added.
+Above-horizon sources outside the viewport remain available for edge footprints.
+Projection uses actual framebuffer aspect and the existing 90-degree vertical FOV.
 
-Software-OpenGL checks compiled/linked the actual shaders, checked additive
-overlap, off-screen contribution and output encoding, and matched GPU modulation
-to the double-precision core within 1.61e-7 absolute error in the sampled cases.
-An 8x8 subpixel-position sweep found 6.66% peak-to-peak integrated-flux variation
-for the default profile and 26.55% with rays alone. Thus the pixel approximation
-does not preserve sampled flux exactly; visual review and later rendering work
-must account for this. These checks do not establish native-window appearance
-acceptance or display calibration.
+The CPU prepares 24 shared three-float frequency records (288 bytes) per frame.
+The vertex shader evaluates the signal; instanced quads accumulate linear light
+in RGBA32F. A final pass compresses highlights and encodes sRGB once. The float
+attachment uses `width*height*16` bytes, about 14.1 MiB at 1280x720, excluding
+other buffers and driver allocations. Resize reallocates it.
 
-Zone-based contribution bounds and full/compact profiles with continuous sizes
-are approved design direction, not implemented optimizations. They must preserve
-combined faint-source light, flicker peaks, phase and contributions from outside
-the view. Thresholds, zone dimensions, tier transitions and any extra subtiers
-remain to be measured against this reference. A future Moon can share light
-accumulation/spreading, while retaining an extended shape and different animation
-response. Clouds and photographic modes are optional later work, not dependencies.
+Core tests compare analytic final-RGB averaging with numerical integration,
+check exposure partitioning, variance suppression, positive bounds, deterministic
+identity and freeze/resume. An offscreen Mesa llvmpipe check of the compiled
+renderer with the configured 4,096-source prefix matched CPU/GPU gains within
+7.1e-7 over sampled times including 1e12 seconds. Advancing by 1/60 second changed
+final pixels; picture mode ignored ten seconds and preserved them exactly.
+These checks establish implementation behaviour, not native-window perception.
 
-## References
+The independent dcodex review on 2026-10-28 found no blocker for native visual
+review. It identified two follow-ups: forming the midpoint before phase reduction
+loses precision at extreme elapsed times (about 32.55 microseconds at `t=1e12`,
+`dt=1/60`), and the temporary GPU harness is not retained in the repository.
+CPU/GPU agreement at that time does not establish accurate long-time averaging.
+No impact on ordinary viewing was demonstrated; these remain numerical and
+regression-coverage limits, not visual acceptance or scale evidence.
 
-- [NRAO: scintillation and elevation](https://www.gb.nrao.edu/GBTopsdocs/primer/scintillation.htm).
-- [NASA: stars that change colours](https://cosmicopia.gsfc.nasa.gov/qa_star.html).
-- [Psychophysical study of the optical origin of starbursts](https://doi.org/10.1364/JOSAA.36.000B97): perceived rays depend on the observer's optics.
-- [Khronos: linear framebuffer blending and sRGB conversion](https://wikis.khronos.org/opengl/Framebuffer).
+Work is bounded per source but repeats across quad vertices; cosine/hash work,
+covered pixels, blending and source count can dominate at scale. No million-source
+performance claim is made. The owner explicitly wants optimization after the
+appearance is accepted: measure identical workloads and preserve the agreed image
+and animation when comparing changes. See the [scaling follow-up](../todo.md#animation-validation-and-scaling).
+
+Zone contribution bounds and full/compact profiles remain approved design
+direction, not implemented optimizations. Combined faint light, flicker peaks,
+phase and offscreen contributions must survive any later selection. Moon/cloud
+and photographic models remain later work.
+
+## Scientific references
+
+- [Osborn et al. (2015): atmospheric scintillation, wind and exposure averaging](https://doi.org/10.1093/mnras/stv1400).
+- [Dravins, Lindegren & Mezey (1993): measured short-timescale intensity fluctuations](https://doi.org/10.1017/S0252921100007454).
+- [Kornilov (2011): correlation between spectral bands and atmospheric dispersion](https://doi.org/10.1111/j.1365-2966.2011.19329.x).
+- [JPL (2004): point-receiver spectral rolloff and aperture effects](https://tda.jpl.nasa.gov/2000-2009/progress_report/42-158/158F.pdf). The shared wave-propagation theory motivates the rolloff; its radio observing parameters are not used as optical calibration.

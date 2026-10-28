@@ -117,16 +117,21 @@ and [memory evidence](decisions/memory-accounting.md).
 
 ## Native appearance trial
 
-The owner accepted the current catalogue colour appearance on 2026-10-26 and
-approved a provisional animated trial in the executable. `msc view --appearance-trial`
-adds deterministic horizon-dependent brightness/colour variation, soft glow and
-unequal tapered rays, with Space for picture freeze/resume and Escape to close.
-On 2026-10-27 the owner requested removal of the extra CLI/keyboard tuning controls;
-these are removed, with no additions to saved configuration. Ordinary `msc view`
-remains static and astronomical geometry/time is still fixed. The owner likes the
-sky appearance but reports imperceptible animation and pixelation; native visual
-acceptance and zone/tier optimizations remain pending. See the
-[trial model and limits](decisions/stellar-appearance-trial.md).
+`msc view --appearance-trial` provides the provisional animated native viewer;
+ordinary `msc view` remains static. Catalogue colours were accepted separately.
+After rejecting the slow bright/dim effect, the owner approved a revised
+scintillation trial on 2026-10-27. It replaces the old slow/fast generator with
+24 deterministic frequency components, analytic frame averaging and correlated
+RGB delays, and restores the quieter compact spatial profile. Obsolete tuning
+plumbing and the old animation implementation are removed. Space freezes/resumes
+the picture, Escape closes it, and no appearance CLI/configuration keys are added.
+Astronomical geometry/time remains fixed.
+
+The [trial record](decisions/stellar-appearance-trial.md) documents coefficients,
+CPU/GPU verification and approximation limits. Native visual acceptance remains
+open. The owner wants optimization after appearance review, with million-source
+animation as a future measurement target; no such performance is established.
+Zone/tier strategies remain unimplemented.
 
 ## Future direction, not implemented
 

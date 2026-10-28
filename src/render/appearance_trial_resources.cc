@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <limits>
 #include <vector>
 
@@ -51,16 +52,18 @@ namespace msc::render::trial
         {
             std::vector<Instance> result;
             result.reserve(stars.size());
-            for (const auto& star : stars)
-            {
-                result.push_back({{static_cast<float>(star.enu.x()),
-                                   static_cast<float>(star.enu.y()),
-                                   static_cast<float>(star.enu.z())},
-                                  static_cast<float>(
-                                      std::clamp(star.magnitude, -30.0, 31.0)),
-                                  star.colour,
-                                  star.animation_key});
-            }
+            std::ranges::transform(stars, std::back_inserter(result),
+                                   [](const TrialStar& star)
+                                   {
+                                       return Instance{
+                                           {static_cast<float>(star.enu.x()),
+                                            static_cast<float>(star.enu.y()),
+                                            static_cast<float>(star.enu.z())},
+                                           static_cast<float>(std::clamp(
+                                               star.magnitude, -30.0, 31.0)),
+                                           star.colour,
+                                           star.animation_key};
+                                   });
             return result;
         }
 
