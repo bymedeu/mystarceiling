@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <filesystem>
 #include <iomanip>
-#include <iterator>
 #include <mystarceiling/catalogue/binary_catalogue.hh>
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/catalogue/gaia_csv.hh>
@@ -22,6 +21,7 @@
 #include <string_view>
 #include <system_error>
 #include <unistd.h>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -93,6 +93,29 @@ namespace msc::cli
                 spdlog::warn("{}: skipped {} unusable rows", source, rejected);
         }
 
+        std::vector<CatalogueStar>
+        load_gaia_records(const std::filesystem::path& path,
+                          std::size_t remaining,
+                          const std::unordered_set<std::uint64_t>& excluded)
+        {
+            if (remaining >
+                std::vector<CatalogueStar>{}.max_size() - excluded.size())
+                throw std::runtime_error(
+                    "Gaia prefix size exceeds vector capacity");
+            auto gaia = catalogue::load_gaia_csv_gzip(
+                path, remaining + excluded.size());
+            if (!gaia)
+                throw std::runtime_error("Gaia load failed: " +
+                                         gaia.error().detail);
+            warn_rejected("Gaia", gaia->statistics.rejected_total());
+            std::erase_if(gaia->stars, [&](const auto& star)
+                          { return excluded.contains(star.source_id()); });
+            if (gaia->stars.size() > remaining)
+                gaia->stars.erase(gaia->stars.begin() + remaining,
+                                  gaia->stars.end());
+            return std::move(gaia->stars);
+        }
+
         std::vector<CatalogueStar> select_records(const Settings& settings)
         {
             auto hipparcos =
@@ -101,25 +124,20 @@ namespace msc::cli
                 throw std::runtime_error("Hipparcos load failed: " +
                                          hipparcos.error().detail);
             warn_rejected("Hipparcos", hipparcos->statistics.rejected_total());
-            auto combined = catalogue::select_brightest(
-                std::move(hipparcos->stars), settings.capacity);
-            const auto remaining = settings.capacity - combined.size();
+            const auto required =
+                hipparcos->stars.size() - hipparcos->gaia_preferences.size();
+            const auto remaining =
+                settings.capacity - std::min(settings.capacity, required);
+            std::vector<CatalogueStar> gaia_records;
             if (remaining != 0)
-            {
-                auto gaia =
-                    catalogue::load_gaia_csv_gzip(settings.gaia, remaining);
-                if (!gaia)
-                    throw std::runtime_error("Gaia load failed: " +
-                                             gaia.error().detail);
-                warn_rejected("Gaia", gaia->statistics.rejected_total());
-                combined.insert(combined.end(),
-                                std::make_move_iterator(gaia->stars.begin()),
-                                std::make_move_iterator(gaia->stars.end()));
-            }
+                gaia_records = load_gaia_records(settings.gaia, remaining,
+                                                 hipparcos->excluded_gaia_ids);
+            auto combined = catalogue::resolve_hipparcos_first(
+                std::move(hipparcos->stars), hipparcos->gaia_preferences,
+                std::move(gaia_records), settings.capacity);
             if (combined.size() != settings.capacity)
                 throw InsufficientStars{settings.capacity, combined.size()};
-            return catalogue::select_brightest(std::move(combined),
-                                               settings.capacity);
+            return combined;
         }
 
         void verify_catalogue(const std::filesystem::path& path,

@@ -188,7 +188,7 @@ namespace msc::catalogue
             return *prepared;
         }
 
-        std::expected<void, HipparcosFileError>
+        std::expected<unsigned, HipparcosFileError>
         read_header(gzFile file, std::array<char, 4096>& buffer)
         {
             if (gzgets(file, buffer.data(), static_cast<int>(buffer.size())) ==
@@ -196,12 +196,17 @@ namespace msc::catalogue
                 return std::unexpected{
                     HipparcosFileError{HipparcosFileErrorCode::ReadFailed,
                                        "Could not read Hipparcos header"}};
-            if (strip_line_ending(buffer.data()) != expected_header)
+            const auto header = strip_line_ending(buffer.data());
+            if (header ==
+                std::string{expected_header} +
+                    ",gaia_source_id,excluded_gaia_source_id")
+                return 2;
+            if (header != expected_header)
                 return std::unexpected{
                     HipparcosFileError{HipparcosFileErrorCode::InvalidHeader,
                                        std::string{buffer.data()}}};
 
-            return {};
+            return 0;
         }
         std::expected<void, HipparcosFileError> gzip_status(gzFile file)
         {
@@ -213,10 +218,38 @@ namespace msc::catalogue
                     error_text == nullptr ? "gzip read failure" : error_text}};
             return {};
         }
-        void accept_row(std::string_view line, HipparcosLoadResult& result)
+        bool extract_preference(std::string_view& line, u64& gaia_id)
+        {
+            const auto comma = line.rfind(',');
+            if (comma == std::string_view::npos ||
+                !parse_number(line.substr(comma + 1), gaia_id))
+                return false;
+            line = line.substr(0, comma);
+            return true;
+        }
+
+        bool extract_links(std::string_view& line, unsigned columns,
+                           u64& gaia_id, u64& excluded_id)
+        {
+            if (columns == 2 && !extract_preference(line, excluded_id))
+                return false;
+            if (columns != 0 && !extract_preference(line, gaia_id))
+                return false;
+            return gaia_id == 0 || excluded_id == 0;
+        }
+
+        void accept_row(std::string_view line, HipparcosLoadResult& result,
+                        unsigned preference_columns)
         {
             ++result.statistics.rows_seen;
             const std::size_t row_number = result.statistics.rows_seen + 1;
+            u64 gaia_id{}, excluded_id{};
+            if (!extract_links(line, preference_columns, gaia_id, excluded_id))
+            {
+                reject(result.statistics, HipparcosRowError::InvalidSourceId,
+                       row_number);
+                return;
+            }
             const auto numbers = parse_row_numbers(line);
             const auto star = numbers
                 ? parse_star(*numbers)
@@ -228,6 +261,10 @@ namespace msc::catalogue
                 return;
             }
             result.stars.push_back(*star);
+            if (gaia_id != 0)
+                result.gaia_preferences.emplace(star->source_id(), gaia_id);
+            if (excluded_id != 0)
+                result.excluded_gaia_ids.insert(excluded_id);
             ++result.statistics.accepted;
         }
     } // namespace
@@ -249,7 +286,7 @@ namespace msc::catalogue
         while (gzgets(file.get(), buffer.data(),
                       static_cast<int>(buffer.size())) != nullptr)
         {
-            accept_row(strip_line_ending(buffer.data()), result);
+            accept_row(strip_line_ending(buffer.data()), result, *header);
         }
 
         const auto status = gzip_status(file.get());

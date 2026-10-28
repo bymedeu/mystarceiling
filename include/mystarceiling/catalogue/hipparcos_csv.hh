@@ -2,10 +2,13 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <expected>
 #include <filesystem>
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace msc::catalogue
@@ -40,6 +43,10 @@ namespace msc::catalogue
     {
         std::vector<CatalogueStar> stars;
         HipparcosLoadStatistics statistics;
+        // Optional published, complete local Gaia links; native fallbacks stay
+        // owned here.
+        std::unordered_map<std::uint64_t, std::uint64_t> gaia_preferences;
+        std::unordered_set<std::uint64_t> excluded_gaia_ids;
     };
 
     enum class HipparcosFileErrorCode

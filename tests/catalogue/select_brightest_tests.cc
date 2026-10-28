@@ -16,6 +16,7 @@
 #include <mystarceiling/core/maths/angle.hh>
 #include <mystarceiling/core/time/reference_epoch.hh>
 #include <optional>
+#include <unordered_map>
 #include <vector>
 
 using msc::catalogue::CatalogueSource;
@@ -91,4 +92,52 @@ TEST(SelectBrightestTest, RetainsAllBrighterSupplementRecordsWithin4096Cap)
         62);
     EXPECT_EQ(selected.back().source_id(), 4034);
     EXPECT_EQ(input.size(), 4158);
+}
+
+TEST(SelectBrightestTest,
+     ResolvesGaiaPreferenceAgainstFinalPrefixWithoutDuplicates)
+{
+    const std::vector hipparcos{star(14576, CatalogueSource::Hipparcos2, 2.07),
+                                star(25930, CatalogueSource::Hipparcos2, 2.18),
+                                star(58001, CatalogueSource::Hipparcos2, 2.39)};
+    const std::vector gaia{star(1, CatalogueSource::GaiaDr3, 1),
+                           star(2, CatalogueSource::GaiaDr3, 2),
+                           star(3, CatalogueSource::GaiaDr3, 3)};
+    // Rank 2 falls outside the two slots remaining after Algol's fallback.
+    // Its fallback then pushes rank 1 out too: both must survive as Hipparcos.
+    const std::unordered_map<std::uint64_t, std::uint64_t> links{{25930, 3},
+                                                                 {58001, 2}};
+    const auto small =
+        msc::catalogue::resolve_hipparcos_first(hipparcos, links, gaia, 3);
+    ASSERT_EQ(small.size(), 3);
+    for (const auto& record : small)
+        EXPECT_EQ(record.source_catalogue(), CatalogueSource::Hipparcos2);
+    const auto large =
+        msc::catalogue::resolve_hipparcos_first(hipparcos, links, gaia, 4);
+    ASSERT_EQ(large.size(), 4);
+    EXPECT_EQ(large.front().source_id(), 1);
+    EXPECT_EQ(std::ranges::count(large, CatalogueSource::Hipparcos2,
+                                 &CatalogueStar::source_catalogue),
+              1);
+    EXPECT_TRUE(std::ranges::is_sorted(large, msc::catalogue::brightness_less));
+}
+
+TEST(SelectBrightestTest,
+     MissingGaiaAndTinyCapacityRetainBrightestNativeFallbacks)
+{
+    std::vector input{star(58001, CatalogueSource::Hipparcos2, 2.39),
+                      star(25930, CatalogueSource::Hipparcos2, 2.18),
+                      star(14576, CatalogueSource::Hipparcos2, 2.07)};
+    const std::unordered_map<std::uint64_t, std::uint64_t> links{{25930, 99}};
+    const auto first =
+        msc::catalogue::resolve_hipparcos_first(input, links, {}, 2);
+    std::reverse(input.begin(), input.end());
+    const auto second =
+        msc::catalogue::resolve_hipparcos_first(input, links, {}, 2);
+    ASSERT_EQ(first.size(), 2);
+    ASSERT_EQ(second.size(), 2);
+    EXPECT_EQ(first[0].source_id(), 14576);
+    EXPECT_EQ(first[1].source_id(), 25930);
+    for (std::size_t i = 0; i < first.size(); ++i)
+        EXPECT_EQ(first[i].source_id(), second[i].source_id());
 }

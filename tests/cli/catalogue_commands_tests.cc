@@ -4,6 +4,7 @@
 #include "launch_test_support.hh"
 
 #include <algorithm>
+#include <array>
 #include <csignal>
 #include <cstddef>
 #include <cstdint>
@@ -16,6 +17,11 @@
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/core/astronomy/star.hh>
 #include <mystarceiling/core/astronomy/stellar_measurements.hh>
+#include <mystarceiling/core/coordinates/declination.hh>
+#include <mystarceiling/core/coordinates/icrs_direction.hh>
+#include <mystarceiling/core/coordinates/right_ascension.hh>
+#include <mystarceiling/core/maths/angle.hh>
+#include <mystarceiling/core/time/reference_epoch.hh>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -384,4 +390,128 @@ TEST_F(CatalogueCommandTest,
     EXPECT_EQ(read(root / "settings.toml"), saved);
     EXPECT_FALSE(std::filesystem::exists(root / "catalogue.bin"));
     no_temporary_files();
+}
+
+namespace
+{
+    struct Expected
+    {
+        std::uint64_t hip;
+        double ra, dec, g;
+    };
+    // First-order tangent propagation from the retained native fixture to
+    // J2016. 1 mas bounds its second-order difference (<0.7 mas here) from the
+    // vector model.
+    const std::array expected{
+        Expected{14576, 47.04223615245371, 40.95563929255805, 2.0742011124304},
+        Expected{25930, 83.00166990498822, -0.29909817807106526, 2.185029},
+        Expected{58001, 178.45850544156627, 53.694808663426066,
+                 2.3868610055232},
+        Expected{24608, 79.17280939143004, 45.99609417878517,
+                 -0.10273946410000001},
+        Expected{27989, 88.79306242071242, 7.407114219562891,
+                 -0.5850545279999999},
+        Expected{24436, 78.63447295373072, -8.201636146345413, 0.1813293414},
+        Expected{32349, 101.28462166488833, -16.721551668894765,
+                 -1.1151784320607998}};
+    void
+    expect_landmarks(const std::vector<msc::catalogue::CatalogueStar>& records)
+    {
+        for (const auto& e : expected)
+        {
+            const auto found =
+                std::ranges::find_if(records,
+                                     [&](const auto& r)
+                                     {
+                                         return r.source_catalogue() ==
+                                             CatalogueSource::Hipparcos2 &&
+                                             r.source_id() == e.hip;
+                                     });
+            ASSERT_NE(found, records.end()) << e.hip;
+            EXPECT_DOUBLE_EQ(found->star().magnitude().gaia_g(), e.g);
+            EXPECT_DOUBLE_EQ(found->star().reference_epoch().julian_year(),
+                             2016);
+            EXPECT_NEAR(found->star()
+                            .direction()
+                            .get_right_ascension()
+                            .get_angle()
+                            .to_degrees(),
+                        e.ra, 1.0 / 3600000);
+            EXPECT_NEAR(found->star()
+                            .direction()
+                            .get_declination()
+                            .get_angle()
+                            .to_degrees(),
+                        e.dec, 1.0 / 3600000);
+        }
+    }
+} // namespace
+
+TEST_F(CatalogueCommandTest, RealBrightHipparcosLandmarksReachPreparedBinary)
+{
+    sources(100, 0);
+    const auto fixture =
+        std::filesystem::path{__FILE__}.parent_path().parent_path() /
+        "fixtures/hipparcos2/prepared.csv.gz";
+    std::filesystem::copy_file(
+        fixture, root / "hipparcos.csv.gz",
+        std::filesystem::copy_options::overwrite_existing);
+    ASSERT_EQ(run({"catalogue", "build"}), 0) << errors.str();
+    const auto records = read_binary_catalogue(root / "catalogue.bin", 64);
+    ASSERT_TRUE(records);
+    ASSERT_EQ(records->size(), 64);
+    expect_landmarks(*records);
+    const auto bytes = read(root / "catalogue.bin");
+    ASSERT_EQ(run({"catalogue", "build", "--force"}), 0) << errors.str();
+    EXPECT_EQ(read(root / "catalogue.bin"), bytes);
+}
+
+TEST_F(CatalogueCommandTest,
+       PublishedGaiaPreferenceNeedsActualSelectedMembership)
+{
+    for (const auto link : {1, 99})
+    {
+        sources(100, 2);
+        gzip(root / "hipparcos.csv.gz",
+             "hip_id,ref_epoch,ra,dec,pmra,pmdec,parallax,hp_mag,b_v,v_i,"
+             "estimated_g,g_estimation_method,resolution_reason,gaia_source_id,"
+             "excluded_gaia_source_id\n"
+             "14576,1991.25,47,41,0,0,1,2,0,0,2.07,method,reason,0,0\n"
+             "58001,1991.25,178,54,0,0,1,2,0,0,2.39,method,reason," +
+                 std::to_string(link) + ",0\n");
+        ASSERT_EQ(run({"catalogue", "build", "--force"}), 0) << errors.str();
+        const auto records = read_binary_catalogue(root / "catalogue.bin");
+        ASSERT_TRUE(records);
+        ASSERT_EQ(records->size(), 64);
+        EXPECT_EQ(std::ranges::count(
+                      *records, CatalogueSource::Hipparcos2,
+                      &msc::catalogue::CatalogueStar::source_catalogue),
+                  link == 1 ? 1 : 2);
+        EXPECT_EQ(std::ranges::count(*records, static_cast<std::uint64_t>(link),
+                                     &msc::catalogue::CatalogueStar::source_id),
+                  link == 1 ? 1 : 0);
+    }
+}
+
+TEST_F(CatalogueCommandTest,
+       FaintPublishedNeighbourDoesNotReplaceOrDuplicatePrimary)
+{
+    sources(100, 0);
+    gzip(root / "hipparcos.csv.gz",
+         "hip_id,ref_epoch,ra,dec,pmra,pmdec,parallax,hp_mag,b_v,v_i,"
+         "estimated_g,g_estimation_method,resolution_reason,gaia_source_id,"
+         "excluded_gaia_source_id\n"
+         "25930,1991.25,83,-0.3,0,0,1,2.1,0,0,2.185029,method,published_gaia_"
+         "outside_bright_range,0,7\n");
+    ASSERT_EQ(run({"catalogue", "build"}), 0) << errors.str();
+    const auto records = read_binary_catalogue(root / "catalogue.bin");
+    ASSERT_TRUE(records);
+    ASSERT_EQ(records->size(), 64);
+    EXPECT_EQ(records->at(2).source_id(), 25930);
+    EXPECT_DOUBLE_EQ(records->at(2).star().magnitude().gaia_g(), 2.185029);
+    EXPECT_EQ(records->at(2).source_catalogue(), CatalogueSource::Hipparcos2);
+    EXPECT_EQ(records->back().source_id(), 64);
+    EXPECT_EQ(std::ranges::count(*records, 7,
+                                 &msc::catalogue::CatalogueStar::source_id),
+              0);
 }

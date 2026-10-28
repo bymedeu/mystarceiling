@@ -1,0 +1,1 @@
+SELECT COUNT(*) AS match_count FROM gaiadr3.hipparcos2_best_neighbour AS x WHERE x.original_ext_source_id IN (14576,24436,24608,25930,27989,32349,58001)

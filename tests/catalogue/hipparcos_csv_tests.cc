@@ -120,3 +120,21 @@ TEST(HipparcosCatalogueTest, RejectsGaiaHeader)
     EXPECT_EQ(result.error().code,
               msc::catalogue::HipparcosFileErrorCode::InvalidHeader);
 }
+
+TEST(HipparcosCatalogueTest,
+     RetainsNativeFallbackAndStrictOptionalGaiaPreference)
+{
+    auto columns = std::string{header};
+    columns.pop_back();
+    columns += ",gaia_source_id,excluded_gaia_source_id\n";
+    auto row = std::string{known_row};
+    row.pop_back();
+    const TemporaryGzip fixture{columns + row + ",3220756843825383936,0\n" +
+                                row + ",-1,0\n" + row + ",,0\n"};
+    const auto result = load_hipparcos_csv_gzip(fixture.filename());
+    ASSERT_TRUE(result);
+    ASSERT_EQ(result->stars.size(), 1);
+    EXPECT_EQ(result->stars.front().source_id(), 32349);
+    EXPECT_EQ(result->gaia_preferences.at(32349), 3220756843825383936ULL);
+    EXPECT_EQ(result->statistics.rejected_total(), 2);
+}
