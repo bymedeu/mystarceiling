@@ -1,6 +1,6 @@
 # Star ceiling, product uses and output boundaries
 
-Status: owner clarifications updated on 2026-10-25; documentation only
+Status: owner clarifications updated on 2026-10-28; documentation only
 (MODE GREEN). Requirements below describe direction, not implementation approval.
 The [catalogue understanding checkpoint](../project-state.md#required-understanding-checkpoint)
 remains open.
@@ -15,8 +15,9 @@ is secondary. Screenshot export is only an idea, not required scope.
 Catalogue building now uses the implemented Hipparcos-first capacity policy,
 then stores the selection in brightness order. View quantity controls the loaded
 prefix; neither policy mandates spatial selection. Camera exploration is secondary.
-Full M2 scope and ordering remain to be agreed, including its camera scope. The revised 2026-10-18 dates are
-planning estimates; astronomical time remains M3 in the current
+Remaining M2 appearance/control scope stays open; camera movement and zoom are
+assigned to M3 alongside observer/time validation. Existing dated estimates have
+not been recalculated for the owner's 2026-10-28 scope revision; see the current
 [roadmap](../../README.md#milestones).
 
 LED hardware is illustrative only, not a required product target.

@@ -80,9 +80,10 @@ implementation-status statements below are dated history; use
 - Prefer short aliases for fixed-width integer types in .cc files. Avoid defining
   these aliases in public headers by default. This is the owner's style preference.
 - When requesting permission, show the exact command to be run each time.
-- Benchmark subsets are nested brightness-ordered prefixes of 4,096, 65,536,
-  262,144, and 1,048,576 records. The target application catalogue is the
-  134,217,728-record prefix subject to the 10 GB acquisition cap.
+- Retained acquisition/reference prefixes include 4,096, 65,536, 262,144 and
+  1,048,576 records. The 134,217,728-record acquisition fits the 10 GB source cap;
+  it is not a simultaneous-runtime commitment. M2.5/M4 select measured workloads
+  without a mandatory 1M gate; see the [current roadmap](../README.md#milestones).
 - The owner directs requirements and important engineering decisions, and wants
   the assistant to teach, explain alternatives, and disagree when warranted.
 

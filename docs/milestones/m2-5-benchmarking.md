@@ -90,8 +90,11 @@ viewer behavior and keep benchmark controls in the developer executable.
 
 ## Proposed implementation slices
 
-1. Case/metadata/result format and standalone executable; baseline CPU operation
-   and pipeline measurements, including output-consumption checks.
+1. Standalone CPU developer executable and case/result metadata: shared-band
+   preparation, batched reference gains, prepared-prefix loading and existing
+   scene construction. Start with identified approximately 1k/4k prefixes,
+   observable varied outputs, repeated timings, counts and fresh-process RSS.
+   Broader conversion/build cases follow without extracting internals just for timing.
 2. GPU startup/pass timings and retained offscreen CPU/shader/image checks.
 3. Workload sweeps and controlled GPU isolation experiments, memory accounting
    and before/after comparison reports; document sampling noise and interpretation.

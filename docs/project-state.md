@@ -197,7 +197,7 @@ remains open.
 - conflict reporting for otherwise usable source records;
 - whether magnitude layers first appear during M1 binary preparation or after
   measuring the existing 4,096-row baseline;
-- remaining M2 detail, including camera scope; approved sequence is in the M2 plan;
+- remaining M2 appearance/control scope; camera movement/zoom belongs to M3;
 - output geometry/projection, fixture mapping, transport and controller contract;
 - remaining appearance/brightness controls and visual acceptance; future-date
   motion handling remains M3 work.
