@@ -17,7 +17,8 @@ be used together. Full coverage of every possible interaction is not an achievab
 acceptance criterion; use a maintained matrix of representative and stress cases.
 
 M6 applies and extends this suite for high usage, including the historical
-large-catalogue milestone's memory and scaling concerns. No mandatory 1M count, streaming strategy or workload
+large-catalogue milestone's (formerly M7) memory and scaling concerns.
+No mandatory 1M count, streaming strategy or workload
 ceiling is selected. M3 does not implement all M6 optimizations in advance.
 
 ## Proposed measurement layers
@@ -32,8 +33,11 @@ ceiling is selected. M3 does not implement all M6 optimizations in advance.
 
 The CPU scintillation reference is not the actual GPU workload. Isolated GPU
 signal tests and actual star-pass measurements are both needed to attribute costs.
-Picture freeze alone does not eliminate shader signal evaluation; it is a
-correctness case, not an animation-off performance control.
+CPU reference and GPU shader arithmetic may use different precision and operation
+ordering; compare their results with justified tolerances, not assumed bitwise
+identity, and keep their timings separately labelled. Picture freeze alone does
+not eliminate shader signal evaluation; it is a correctness case, not an
+animation-off performance control.
 
 ## Workload dimensions
 
@@ -64,21 +68,62 @@ Avoid forcing completion after every draw merely to simplify timing. Measure
 CPU submission, GPU execution and presentation waits separately; they overlap
 and cannot generally be added as sequential frame costs.
 
-Each case gets warm-up, repeated samples and repeated fresh-process runs where
-needed for startup/peak-memory isolation. Report sample counts, median, tail
-percentiles and variability; do not treat tiny differences as improvements without
-stable repeated evidence. Keep laptop power/thermal state and competing activity
-in the run context. The initial sample schedule remains to select and validate.
+Each case gets warm-up and repeated samples. Batch short operations so timer
+resolution and call overhead do not dominate; record actual batch iteration counts
+and elapsed batch timings before deriving per-operation estimates. Repeated
+fresh-process runs are needed where process startup, peak memory or run-to-run
+variation matters; within-process repeats alone do not establish that variation.
+Report sample counts, median, tail percentiles and variability; timer noise,
+scheduling, cache state, power and thermal changes can hide small differences.
+Do not treat tiny differences as improvements without stable repeated evidence.
+Keep those conditions and competing activity in the run context. The initial
+sample schedule remains to select and validate.
 
 Record process peak resident memory, allocations/capacities where attributable,
 known CPU/GPU buffer bytes, and transfer volume. Driver-managed/shared GPU memory
 is not completely measured by CPU RSS; avoid double-counting shared memory or
 calling differences between RSS peaks per-stage allocation costs.
 
-Provide a concise terminal summary and machine-readable samples/metadata, with
-commit/build/toolchain, hardware/driver/backend, dataset identity, count, scene,
-resolution, exposure step, frame limit, warm-up and repeat settings. Keep bulky
-raw results outside tracked source. Retain a small reproducible baseline/report.
+### One result artifact per invocation
+
+Owner output requirement: each benchmark invocation, including a suite invocation,
+produces **exactly one machine-parseable result artifact** containing all cases,
+repeats, raw timing samples and metadata. Child-process repeats contribute to that
+same artifact. The recommended encoding is one structured JSON document; its schema
+and library remain to select. Terminal progress or a summary may go to stderr.
+CSV, Markdown reports and per-case sidecars are not required outputs.
+
+The proposed artifact contents are:
+
+- Invocation and case IDs, effective configuration and its identity, dataset
+  version/checksum or fixture identity, seed where applicable, scene, resolution,
+  exposure step and frame limit. Record commit identity, the dirty-state flag and
+  a reproducible fingerprint of build inputs, including relevant changed/untracked
+  inputs; a commit ID alone does not identify an uncommitted build.
+- Build type, compiler/toolchain and relevant flags; CPU/GPU, hardware, OS,
+  driver/backend identity and run conditions. Associate each sample with its case,
+  repeat and process run so within-process and process-level variation remain
+  distinguishable.
+- Actual decoded, above-horizon, submitted, magnitude-eligible and candidate
+  counts; actual warm-up, sample and batch iteration counts. Keep requested counts
+  separate from observed counts. Include raw timings and derived summaries with
+  explicit units, plus attributable memory and transfer measurements.
+- Handled errors and skipped/unsupported cases in the same artifact, including
+  invocation failures before any case completes when the destination is writable.
+  Use nullable unavailable metrics
+  with reasons, rather than zeros or silently missing evidence. A failed run must
+  remain distinguishable from a successful measurement. Failures preventing
+  artifact creation must exit unsuccessfully and explain the failure on stderr.
+- Optional image/reference comparison metrics, tolerances and outcomes in this
+  same artifact. Do not embed huge images or millions of per-particle values by
+  default. Debug images and profiler traces are opt-in diagnostic extras outside
+  the one-required-result contract.
+
+Write the artifact after timed regions; result formatting and file I/O must not
+pollute operation, pipeline or rendering timings. Measure serialization only as
+an explicitly separate case if it is of interest. Keep bulky raw results outside
+tracked source; retain a small reproducible baseline. Comparison tools may derive
+views from the single artifact without making additional reports mandatory.
 A comparison reports absolute and relative changes and uncertainty; automatic
 performance gates need a stable runner and justified thresholds, not arbitrary
 fixed percentages on shared CI.
@@ -90,14 +135,15 @@ viewer behavior and keep benchmark controls in the developer executable.
 
 ## Proposed implementation slices
 
-1. Standalone CPU developer executable and case/result metadata: shared-band
-   preparation, batched reference gains, prepared-prefix loading and existing
-   scene construction. Start with identified approximately 1k/4k prefixes,
+1. Standalone CPU developer executable and single-artifact case/result metadata:
+   shared-band preparation, batched reference gains, prepared-prefix loading and
+   existing scene construction. Start with identified approximately 1k/4k prefixes,
    observable varied outputs, repeated timings, counts and fresh-process RSS.
-   Broader conversion/build cases follow without extracting internals just for timing.
+   Broader conversion/build cases follow without extracting internals just for
+   timing.
 2. GPU startup/pass timings and retained offscreen CPU/shader/image checks.
 3. Workload sweeps and controlled GPU isolation experiments, memory accounting
-   and before/after comparison reports; document sampling noise and interpretation.
+   and before/after comparison results; document sampling noise and interpretation.
 
 Each slice requires its own reviewable implementation plan and atomic commits.
 No new benchmark framework, timer-query buffering architecture, JSON library,
