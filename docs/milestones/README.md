@@ -10,11 +10,13 @@ work starts.
 | M1 — Fixed Toulouse sky | Complete on 2026-09-13 | [M1 record](m1-fixed-toulouse-sky.md) |
 
 M2 remains active: [appearance/data plan](m2-ceiling-appearance.md).
-[M2.5 benchmarking](m2-5-benchmarking.md) follows, then M2.6 documentation before
-M3. Camera movement/zoom belongs to M3. M4 is high-usage measurement/optimization,
-including former M7; 1M is not a required gate. M6/M8/M9 remain conditional
-optional scope. See the canonical roadmap for existing estimates, which have not
-been recalculated for the owner's 2026-10-28 scope revision. No new architecture
+[M3 benchmarking](m3-benchmarking.md) follows, then M4 documentation before
+M5. Camera movement/zoom belongs to M5. M6 is high-usage measurement/optimization,
+including the historical large-catalogue milestone (formerly M7); 1M is not a
+required gate. Current M7 covers profile-guided work, the output boundary and
+consolidation. M8–M13 remain conditional optional scope. See the canonical roadmap
+for existing estimates, which have not been recalculated for the owner's
+2026-10-28 scope revision. No new architecture
 or implementation approval follows from milestone placement.
 
 The public [README roadmap](../../README.md#milestones) remains the canonical

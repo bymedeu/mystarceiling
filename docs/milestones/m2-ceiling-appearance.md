@@ -1,10 +1,9 @@
 # M2 — Ceiling appearance and data controls
 
-Planning note, 2026-10-19, MODE GREEN. **Estimate: 13 December 2026; scope to
-discuss**, not implementation approval. The primary assistant proposed this
-date from the owner’s capacity constraints, lower availability starting
-January–February 2027 and September release goal; the owner did not choose
-the intermediate milestone dates. See the
+Planning note, 2026-10-19. **Estimate: 13 December 2026; scope to discuss**, not
+implementation approval. The primary assistant proposed this date; the owner
+did not choose the intermediate milestone dates. The estimate has not been
+recalculated for the 2026-10-28 roadmap revision and renumbering. See the
 [roadmap](../../README.md#milestones). The
 [owner-understanding checkpoint](../project-state.md#required-understanding-checkpoint)
 remains open before substantial implementation.
@@ -42,20 +41,21 @@ filtering, as specified in application controls. It bounds
 workload size, without solving scaling or establishing that a million sources
 have been processed efficiently. Nested 4096, 65536, 262144 and 1048576
 sizes are examples, not mandatory gates or a requirement to show every star.
-M2.5 establishes the benchmarking suite; M4 applies it to high-usage workloads and
-bounded-memory preparation/runtime, including former M7's larger-catalogue scope.
+M3 establishes the benchmarking suite; M6 applies it to high-usage workloads and
+bounded-memory preparation/runtime, including the historical large-catalogue
+milestone (formerly M7).
 
-Owner revision, 2026-10-28: camera movement and zoom belong to M3 alongside
+Owner revision, 2026-10-28: camera movement and zoom belong to M5 alongside
 validated observer/time controls. Click-to-inspect and screenshot export remain
 optional and unimplemented. Camera orientation and astronomical time are
 independent. The current constellation crop does not authorize changing geometry
-within M2. M2.5 benchmarking follows M2, then M2.6 documentation before M3.
+within M2. M3 benchmarking follows M2, then M4 documentation before M5.
 
 ## Current part-1 implementation
 
 Part 1 includes build/info and the configured viewer. Its existing catalogue
 controls remain unchanged by the initial part-2 colour path below. Camera work
-is assigned to M3; later acceptance evidence stays for its own discussion.
+is assigned to M5; later acceptance evidence stays for its own discussion.
 
 `msc view` now consumes an existing binary through the quantity-aware reader,
 using complete TOML configuration, temporary CLI overrides and scoped spdlog

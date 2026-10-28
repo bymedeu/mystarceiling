@@ -1,9 +1,9 @@
-# M2.5 — Benchmarking and regression evidence
+# M3 — Benchmarking and regression evidence
 
 Owner requirements, 2026-10-28. Milestone placement and a separate developer
 executable are accepted. Measurement mechanisms and implementation slices below
 are proposed for discussion, not implemented or a selected optimization strategy.
-M2.6 documentation follows this milestone, before M3 observer/time/camera work.
+M4 documentation follows this milestone, before M5 observer/time/camera work.
 
 ## Objective and completion evidence
 
@@ -16,9 +16,9 @@ Correctness tests, benchmarks and profiling answer different questions and shoul
 be used together. Full coverage of every possible interaction is not an achievable
 acceptance criterion; use a maintained matrix of representative and stress cases.
 
-M4 applies and extends this suite for high usage, including former M7's memory
-and larger-catalogue concerns. No mandatory 1M count, streaming strategy or workload
-ceiling is selected. M2.5 does not implement all M4 optimizations in advance.
+M6 applies and extends this suite for high usage, including the historical
+large-catalogue milestone's memory and scaling concerns. No mandatory 1M count, streaming strategy or workload
+ceiling is selected. M3 does not implement all M6 optimizations in advance.
 
 ## Proposed measurement layers
 

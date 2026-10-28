@@ -4,16 +4,17 @@ Owner decisions recorded on 2026-10-25 and updated on 2026-10-28. This list
 records completed bounded work and planned follow-up. Open tasks do not select
 implementation tooling.
 
-## Documentation phase between M2 and M3
+## M4 Project documentation
 
-- [ ] Complete M2.6 project documentation after M2.5 benchmarking and before M3.
+- [ ] Complete M4 project documentation after M3 benchmarking and before M5
+  observer/time/camera work.
   Consolidate the working setup/build instructions, CLI/configuration usage,
   catalogue preparation and data conventions, core/rendering boundaries, and
   accepted approximation limits. Use the implemented M2 behaviour as the baseline.
 - [ ] Agree the documentation structure and publishing/tooling approach during
   that phase. No Doxygen, MkDocs, hosting or other framework is selected yet.
 
-This is M2.6, a dedicated documentation pass without a separately assigned date.
+This is M4, a dedicated documentation pass without a separately assigned date.
 The revised scope has not been used to recalculate the existing dated estimates.
 Focused decision records and basic
 usage instructions continue to be maintained while M2 is implemented.
@@ -24,7 +25,7 @@ usage instructions continue to be maintained while M2 is implemented.
   after M2, if their visible benefit justifies the effort. No calibration campaign
   or richer-spectra acquisition is required to finish M2.
 - [ ] Revisit the [motion model and supported date range](decisions/stellar-motion.md#accepted-m2-preparation-direction--2026-10-25)
-  during M3 observer/time planning. More complete astrometry remains a scoped
+  during M5 observer/time planning. More complete astrometry remains a scoped
   future choice, not an implied requirement to implement every physical effect.
 
 The [accepted catalogue preparation decision](decisions/ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25)
@@ -38,12 +39,13 @@ is the canonical record of the current approximations and remaining design detai
 - [x] Adopt the owner-approved stronger native comparison as the ×1 baseline,
   with a bounded visual response and 30 fps ceiling. Remove temporary comparison
   controls and guides; see the [current model](decisions/stellar-appearance-trial.md).
-- [ ] Build the accepted separate developer executable in [M2.5](milestones/m2-5-benchmarking.md),
+- [ ] Build the accepted separate developer executable in [M3](milestones/m3-benchmarking.md),
   with operation, pipeline, memory and rendering measurements, scaling curves and
   reproducible comparisons. Measure loaded/submitted/visible counts separately.
-- [ ] Use and extend that suite in M4 for high usage and measured optimization.
-  Workload size is not fixed at 1M; former M7 is folded into M4. Preserve bounded
-  memory and the accepted appearance when increasing workload.
+- [ ] Use and extend that suite in M6 for high usage and measured optimization.
+  Workload size is not fixed at 1M; former M7 (superseded numbering) is folded
+  into current M6. Preserve bounded memory and the accepted appearance when
+  increasing workload.
 - [ ] Compare any selected optimization against the accepted reference, preserving
   deterministic phase, frame averaging, colour, combined faint light and edge
   contributions. No new culling, tier or caching strategy is selected here.
@@ -77,16 +79,17 @@ is the canonical record of the current approximations and remaining design detai
 
 ## Camera and perceived colour
 
-- [ ] Implement camera movement and zoom during M3, with declared projection and
+- [ ] Implement camera movement and zoom during M5, with declared projection and
   orientation; keep camera motion independent of astronomical time.
-- [ ] Discuss magnitude-dependent perceived-colour reduction for the naked-eye
-  view. Preserve baseline catalogue RGB; avoid baking observer perception into
-  the binary. Thresholds/model are not selected and implementation is not approved.
+- [ ] Discuss the proposed [perceived-colour reduction](decisions/ceiling-product-output.md#proposed-perceived-colour)
+  toward grey as visibility decreases. Preserve original catalogue RGB. No
+  visibility algorithm, threshold or implementation is selected or approved.
 
 ## Optional extensions
 
-M8 and M9 are now scoped in the [canonical roadmap](../README.md#milestones).
-M9.1 covers deterministic synthetic JSON and a separate behavior/settings JSON
-contract, M9.2 long exposure, M9.3 strongly affecting illumination, and M9.4 clouds.
-M8 covers planets, satellites and ordinary meteors/shooting stars. JSON schemas,
-data providers, illumination models and optional scheduling remain to discuss.
+M8–M13 remain conditional in the [canonical roadmap](../README.md#milestones).
+M8 covers a justified CUDA comparison; M9 covers planets, satellites and ordinary
+meteors/shooting stars. M10 covers deterministic synthetic JSON and a separate
+behavior/settings JSON contract, M11 long exposure, M12 strongly affecting
+illumination, and M13 clouds. JSON schemas, data providers, illumination models
+and optional scheduling remain to discuss; these are not delivery promises.

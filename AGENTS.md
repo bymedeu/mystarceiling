@@ -302,8 +302,9 @@ express one reviewable reason.
 
 ## Documentation discipline
 
-Plan M2.5 for benchmarking, followed by M2.6 project documentation before M3,
-as revised by the owner on 2026-10-28. Keep the actionable record in [the project todo list](docs/todo.md#documentation-phase-between-m2-and-m3).
+Plan M3 for benchmarking, followed by M4 project documentation before M5
+observer/time/camera work, as renumbered by the owner on 2026-10-28. Keep the
+actionable record in [the project todo list](docs/todo.md#m4-project-documentation).
 Documentation tooling and publishing format remain to be selected during that
 phase; continue maintaining focused decisions and usage notes during M2.
 

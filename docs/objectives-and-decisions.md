@@ -82,7 +82,7 @@ implementation-status statements below are dated history; use
 - When requesting permission, show the exact command to be run each time.
 - Retained acquisition/reference prefixes include 4,096, 65,536, 262,144 and
   1,048,576 records. The 134,217,728-record acquisition fits the 10 GB source cap;
-  it is not a simultaneous-runtime commitment. M2.5/M4 select measured workloads
+  it is not a simultaneous-runtime commitment. M3/M6 select measured workloads
   without a mandatory 1M gate; see the [current roadmap](../README.md#milestones).
 - The owner directs requirements and important engineering decisions, and wants
   the assistant to teach, explain alternatives, and disagree when warranted.
@@ -90,16 +90,22 @@ implementation-status statements below are dated history; use
 ## Current planning baseline — revised 2026-10-28
 
 The [README roadmap](../README.md#milestones) is the canonical current scope and
-planning table. The owner added M2.5 benchmarking and M2.6 documentation, moved
-camera movement/zoom to M3, expanded M4 to high-usage measurement/optimization
-without a mandatory 1M gate and folded former M7 into it. M8 covers discrete
-objects; M9 is split into customization, long exposure, strong-source illumination
-and clouds. Optional work remains conditional, with no newly assigned dates.
+planning table. M3 benchmarking precedes M4 documentation and M5 observer, time
+and camera work, including movement and zoom. M6 covers high-usage measurement
+and optimization without a mandatory 1M gate, including former M7's
+larger-catalogue scope under the old numbering. M7 retains profile-guided work,
+the output boundary and consolidation. Optional M8 covers CUDA comparison and
+optional M9 covers discrete objects. Conditional M10–M13 cover synthetic skies
+and customization, long exposure, strong-source illumination and clouds,
+respectively. Optional work remains conditional, with no newly assigned dates.
 Existing dated estimates have not been recalculated for the changed scope.
-See the [M2.5 design](milestones/m2-5-benchmarking.md), [M2 planning](milestones/m2-ceiling-appearance.md)
+See the [M3 design](milestones/m3-benchmarking.md), [M2 planning](milestones/m2-ceiling-appearance.md)
 and [memory accounting](decisions/memory-accounting.md).
 
 ## Historical milestone schedule — approved 2026-09-11 (superseded)
+
+This section retains the original milestone numbering and dates. Its labels
+describe the superseded schedule, not the current roadmap above.
 
 The owner approved a performance-first ten-milestone sequence and asked for
 dated objectives. The public README contains each milestone's objective, newly
@@ -121,10 +127,12 @@ than promises; scope should contract before correctness or evidence is weakened.
 | M8 — Solar-system geometry | 2028-02-27 | Physical objects and eclipse behavior |
 | M9 — Dynamic and synthetic skies | 2028-06-28 | Procedural and atmospheric stress workloads |
 
-M5 is the preferred June portfolio target because it demonstrates an end-to-end
-product, real scientific data, numerical validation, profiling, and measured CPU
-improvements. M6 strengthens the optimization story because it adds a defensible
-heterogeneous-computing comparison. CUDA precedes synthetic skies.
+Under that superseded numbering, M5 was the preferred June portfolio target
+because it would demonstrate an end-to-end product, real scientific data,
+numerical validation, profiling, and measured CPU
+improvements. M6 was intended to strengthen the optimization story with a
+defensible heterogeneous-computing comparison. That schedule placed CUDA before
+synthetic skies; current optional delivery remains conditional.
 
 ### M1 decisions
 

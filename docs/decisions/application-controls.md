@@ -218,10 +218,12 @@ scene already has paused time.
 ## Milestone boundary
 
 The [revised roadmap](../../README.md#milestones) estimates M2 at 2026-12-13
-and M3 at 2027-02-28; scope remains to discuss. Camera exploration is secondary
-and is assigned to M3 by the owner on 2026-10-28, including movement and zoom.
+and M5 at 2027-02-28; scope remains to discuss. These existing date estimates
+have not been recalculated for the 2026-10-28 scope revision. Camera exploration
+is secondary and is assigned to M5 by the owner on 2026-10-28, including movement
+and zoom.
 Location, full date/time input and astronomical time progression also remain
-M3 work. Camera orientation and astronomical time are
+M5 work. Camera orientation and astronomical time are
 independent; share appropriate coordinate mathematics where justified without
 forcing a universal implementation.
 
@@ -229,7 +231,7 @@ M2 follows the owner-approved [four-part sequence](../milestones/m2-ceiling-appe
 Useful bounded inspection/projection remains to agree. Screenshot
 export is optional. A brightness slider is not exposure integration.
 
-Long-exposure simulation remains an ambition in conditional M9 backlog, without
+Long-exposure simulation remains an ambition in conditional M11 backlog, without
 a mandatory date or full-model release promise. A bounded visible-light prototype
 could be the single optional September–December 2027 extension. It should integrate
 over time mathematically and be physically motivated and validated for its

@@ -44,6 +44,11 @@ precise photometric colour calibration and actual perceived night-vision colour
 are not reconstructed by this model. More expensive preparation could replace
 the model later without changing the RGB consumer boundary.
 
+The owner's [proposed perceived-colour treatment](ceiling-product-output.md#proposed-perceived-colour)
+would reduce saturation toward grey as visibility decreases while preserving
+original catalogue RGB. No visibility algorithm, threshold or implementation is
+selected.
+
 ## References
 
 - [Jordi et al., Gaia broad band photometry (equation 2)](https://doi.org/10.1051/0004-6361/201015441).

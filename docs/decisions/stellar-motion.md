@@ -84,7 +84,7 @@ The complete suite passed 106 of 106 tests on 2026-09-13.
   dynamics, precession-nutation, aberration, refraction, and other
   observed-place effects.
 - Passing numerical tests does not establish accuracy over arbitrary historical
-  or future intervals. A supported date range and tolerance remain an M3
+  or future intervals. A supported date range and tolerance remain an M5
   decision.
 - M1 leaves Gaia J2016 directions unchanged and propagates Hipparcos J1991.25
   directions to J2016 before local transformation. Source measurements remain
@@ -101,7 +101,7 @@ state. The fixed viewer consumes the prepared direction without another
 propagation. Failed preparation is rejected during loading and included in the
 build warning. Binary version 3 requires J2016 on writing and reading.
 A more accurate propagation model is deferred; supported-date validation and
-future-date motion handling belong to M3. See the [accepted appearance/preparation limits](ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25).
+future-date motion handling belong to M5. See the [accepted appearance/preparation limits](ceiling-product-output.md#accepted-catalogue-preparation--2026-10-25).
 
 ## Reference behavior
 

@@ -20,18 +20,20 @@ the pre-refactor writer.
 ## Current planning baseline
 
 The [README roadmap](../README.md#milestones) is canonical. Owner revision,
-2026-10-28: M2.5 benchmarking precedes M2.6 documentation; camera movement/zoom
-belongs to M3. M4 now covers high-usage measurement and optimization without a
-mandatory million-source gate, including former M7's larger-catalogue concerns.
-M8 is discrete objects; M9 has four optional parts for JSON-driven synthetic skies
-and customization, long exposure, illumination, and clouds. Optional extensions
-remain conditional; the changed scope has no recalculated schedule.
-The [M2.5 record](milestones/m2-5-benchmarking.md) distinguishes accepted goals
+2026-10-28: M3 benchmarking precedes M4 documentation; camera movement/zoom
+belongs to M5. M6 now covers high-usage measurement and optimization without a
+mandatory million-source gate, including the historical large-catalogue
+milestone (formerly M7). M7 now covers profile-guided work, the output boundary
+and consolidation. M8 is optional CUDA; M9 is discrete objects; M10–M13 cover
+JSON-driven synthetic skies and customization, long exposure, illumination,
+and clouds. Optional extensions remain conditional; the changed scope has no
+recalculated schedule.
+The [M3 record](milestones/m3-benchmarking.md) distinguishes accepted goals
 from the proposed measurement design. The standalone developer executable is
 accepted; it is not implemented. The [M2 sequence](milestones/m2-ceiling-appearance.md#approved-sequence)
 and [existing controls](decisions/application-controls.md) remain in effect.
-[M2.6 documentation](todo.md#documentation-phase-between-m2-and-m3) follows
-benchmarking and precedes M3; tooling remains to choose.
+[M4 documentation](todo.md#m4-project-documentation) follows
+benchmarking and precedes M5; tooling remains to choose.
 Part 1 catalogue
 build/info and configured viewing are implemented; the broader understanding
 checkpoint remains open.
@@ -197,10 +199,10 @@ remains open.
 - conflict reporting for otherwise usable source records;
 - whether magnitude layers first appear during M1 binary preparation or after
   measuring the existing 4,096-row baseline;
-- remaining M2 appearance/control scope; camera movement/zoom belongs to M3;
+- remaining M2 appearance/control scope; camera movement/zoom belongs to M5;
 - output geometry/projection, fixture mapping, transport and controller contract;
 - remaining appearance/brightness controls and visual acceptance; future-date
-  motion handling remains M3 work.
+  motion handling remains M5 work.
 
 Owner requirements and proposals are distinguished from agent explanations and
 implementation state in the [ceiling/output decision note](decisions/ceiling-product-output.md).

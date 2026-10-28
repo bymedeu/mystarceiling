@@ -112,8 +112,10 @@ The existing Earth-rotation function therefore asks for UT1. M1 will use the
 explicit approximation `UT1 = UTC` and the existing simplified rotation/local
 frame path. This is adequate for the first visual baseline, but it introduces a
 small rotation error and omits parts of a complete high-accuracy observed-place
-calculation. M1 must state that limitation. M3 will select and validate the full
-time/frame model rather than silently extending this approximation.
+calculation. M1 must state that limitation. The then-planned M3 (historical
+numbering; now M5 in the [current roadmap](../../README.md#milestones)) would
+select and validate the full time/frame model rather than silently extending
+this approximation.
 
 ### Why the binary format specifies little-endian values
 

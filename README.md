@@ -260,31 +260,30 @@ scaling remain future work.
 
 ## Milestones
 
-Dates below are **planning estimates**, revised on 2026-10-18 from owner
-capacity constraints: roughly alternating project weeks now, with significantly
-lower availability starting January–February 2027. They are capacity assumptions,
+Dates below are **planning estimates** retained from the 2026-10-18 schedule,
 not hourly estimates. Detailed scope remains **to discuss**, not implementation
 approval. Reduce optional scope before correctness or reproducible evidence.
 
-The owner revised milestone scope on 2026-10-28. The existing dated estimates
-below have not been recalculated for that revision; M2.5 and M2.6 have no assigned
-dates. Scope and acceptance criteria still need their focused discussions.
+The owner revised milestone scope and numbering on 2026-10-28. The existing
+dated estimates below remain attached to their corresponding scope and have not
+been recalculated for that revision; M3 and M4 have no assigned dates. Scope and
+acceptance criteria still need their focused discussions.
 
 | Stage | Planning estimate | Intended evidence / scope to discuss |
 | --- | --- | --- |
 | M0 — Typed astronomy foundations | Existing foundations retained | Working typed path supporting M1; no new accuracy claim |
 | M1 — Fixed Toulouse sky | Completed 2026-09-13 | Working 4096-source catalogue-to-screen baseline |
 | M2 — Ceiling appearance and data controls | 2026-12-13 | Prepared RGB8/J2016 data, Hipparcos-first catalogue workflow, magnitude-driven light, accepted glow/scintillation and remaining bounded closeout |
-| M2.5 — Benchmarking and regression evidence | After M2; date unassigned | Separate developer executable; operation, pipeline and rendering costs, memory/scaling curves, reproducible before/after comparisons and image correctness |
-| M2.6 — Project documentation | After M2.5, before M3; date unassigned | Consolidated usage, development, data/model conventions and benchmark methodology |
-| M3 — Observer, time and camera | 2027-02-28 | Validated observer/time behavior, astronomical progression, camera movement and zoom with declared projection/orientation |
-| M4 — High-usage measurement and optimization | 2027-04-25 | Increasing real and controlled stress workloads, bounded-memory preparation/runtime, profiles and measured improvements; no mandatory 1M target |
-| M5 — Profile-guided work and output boundary | 2027-06-27 | Reusable consumer boundary and consolidation; remaining optimization scope to agree after M4 |
+| M3 — Benchmarking and regression evidence | After M2; date unassigned | Separate developer executable; operation, pipeline and rendering costs, memory/scaling curves, reproducible before/after comparisons and image correctness |
+| M4 — Project documentation | After M3, before M5; date unassigned | Consolidated usage, development, data/model conventions and benchmark methodology |
+| M5 — Observer, time and camera | 2027-02-28 | Validated observer/time behavior, astronomical progression, camera movement and zoom with declared projection/orientation |
+| M6 — High-usage measurement and optimization | 2027-04-25 | Increasing real and controlled stress workloads, bounded-memory preparation/runtime, profiles and measured improvements; no mandatory 1M target |
+| M7 — Profile-guided work, output boundary and consolidation | 2027-06-27 | Reusable consumer boundary and consolidation; remaining optimization scope to agree after M6 |
 | Clean release gate | 2027-08-31 | Demonstrable, documented, tested portable CPU release; July–August buffer and hardening |
 
 The clean project must be demonstrable by September 2027. July–August is reserved
 for validation, documentation, usability, reproducibility and scope recovery,
-without new mandatory features. M2.5 establishes the measurement tools; M4 uses
+without new mandatory features. M3 establishes the measurement tools; M6 uses
 and extends them to investigate high usage and optimize measured bottlenecks.
 One million stars is a useful possible case, not a minimum, maximum or milestone
 gate. Dataset size, visibility, overlap, resolution, frame rate and memory budget
@@ -295,33 +294,35 @@ The RTX 3060 belongs to a **separate Windows desktop**; Linux there is only a
 future possibility. CUDA must not block portable CPU delivery. No desktop access,
 CUDA installation or system change is assumed.
 
-**Former M7 is folded into M4**: larger-catalogue and bounded-memory questions
-belong to the same high-usage investigation. Chunking, mapping, indexing and
-streaming are possible responses to measured limits, not selected architecture
+**The historical large-catalogue milestone (formerly M7) is folded into current
+M6**: larger-catalogue and bounded-memory questions belong to the same high-usage
+investigation. Chunking, mapping, indexing and streaming are possible responses
+to measured limits, not selected architecture
 or mandatory features. Acquiring 134,217,728 rows does not demonstrate their
 simultaneous loading/rendering.
 
-M6, M8 and the four M9 parts remain a **conditional optional backlog**, with no
-mandatory dates. At most one bounded extension may be selected for
-September–December 2027 according to evidence, capacity and owner priority;
-selecting none is valid. Splitting M9 describes scope, not four delivery promises.
+M8–M13 remain a **conditional optional backlog**, with no mandatory dates. At
+most one bounded extension may be selected for September–December 2027 according
+to evidence, capacity and owner priority;
+selecting none is valid. Separate milestone numbers describe scope, not a
+commitment to deliver every extension.
 
 | Optional stage | Intended scope |
 | --- | --- |
-| M6 — CUDA comparison | Justified workload on available hardware, including transfers/synchronization and agreement with CPU results |
-| M8 — Discrete sky objects | Planets, ordinary meteors/shooting stars and satellites; optional explicitly refreshed tracking data, with provider/model still to choose |
-| M9.1 — Synthetic skies and customization | Deterministic skies from a documented custom JSON description; a distinct behavior/settings JSON contract for flicker, frame rate and other selected appearance controls |
-| M9.2 — Long exposure and photographic generation | Time-integrated light, camera/optics assumptions and bounded capture/generation modes; a brightness multiplier alone is not long exposure |
-| M9.3 — Illumination and strongly affecting objects | Moon and other strong sources whose light changes surrounding visibility; background/light-pollution and any solar scope still to agree |
-| M9.4 — Clouds | Cloud appearance and its effects on transmitted/received light, with bounded model and cost |
+| M8 — CUDA comparison | Justified workload on available hardware, including transfers/synchronization and agreement with CPU results |
+| M9 — Discrete sky objects | Planets, ordinary meteors/shooting stars and satellites; optional explicitly refreshed tracking data, with provider/model still to choose |
+| M10 — Synthetic skies and customization | Deterministic skies from a documented custom JSON description; a distinct behavior/settings JSON contract for flicker, frame rate and other selected appearance controls |
+| M11 — Long exposure and photographic generation | Time-integrated light, camera/optics assumptions and bounded capture/generation modes; a brightness multiplier alone is not long exposure |
+| M12 — Illumination and strongly affecting objects | Moon and other strong sources whose light changes surrounding visibility; background/light-pollution and any solar scope still to agree |
+| M13 — Clouds | Cloud appearance and its effects on transmitted/received light, with bounded model and cost |
 
 Meteors and shooting stars name the same phenomenon. Ordinary trails belong to
-M8; unusually bright fireballs may need the illumination behavior in M9.3.
+M9; unusually bright fireballs may need the illumination behavior in M12.
 The eventual coupling should depend on brightness and conditions, not a promise
 that every object of one kind has negligible effects. No coupling algorithm,
 JSON schema, ephemeris or satellite-data provider is selected here.
 
-Camera movement and zoom now belong to M3, alongside observer/time validation;
+Camera movement and zoom now belong to M5, alongside observer/time validation;
 camera orientation and astronomical time remain independent. Accepted model
 approximations continue to apply. Full infrared/spectral realism is not promised
 by the current catalogue or optional photographic scope.

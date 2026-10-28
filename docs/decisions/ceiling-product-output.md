@@ -16,7 +16,7 @@ Catalogue building now uses the implemented Hipparcos-first capacity policy,
 then stores the selection in brightness order. View quantity controls the loaded
 prefix; neither policy mandates spatial selection. Camera exploration is secondary.
 Remaining M2 appearance/control scope stays open; camera movement and zoom are
-assigned to M3 alongside observer/time validation. Existing dated estimates have
+assigned to M5 alongside observer/time validation. Existing dated estimates have
 not been recalculated for the owner's 2026-10-28 scope revision; see the current
 [roadmap](../../README.md#milestones).
 
@@ -86,8 +86,16 @@ release promises:
   photometry/spectra if justified. More storage bits alone cannot improve a
   conversion model; retained CSVs permit rebuilding after model improvements.
 - Revisit consistent motion-state propagation, radial velocity and perspective
-  effects with M3 observer/time planning. Declare the supported model/date range
+  effects with M5 observer/time planning. Declare the supported model/date range
   and limitations there; full astrometric accuracy is not promised.
+
+## Proposed perceived colour
+
+The owner proposes reducing saturation toward grey as visibility decreases in
+the naked-eye view. This follows perceived visibility rather than catalogue
+magnitude alone. Preserve original catalogue RGB as the baseline and keep any
+perceptual treatment separate. No visibility algorithm, threshold or
+implementation is selected or approved.
 
 ## Appearance, exposure and data limits
 
