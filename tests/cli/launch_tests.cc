@@ -68,9 +68,11 @@ TEST_F(LaunchTest, SmallPreparedBinaryBuildsUnchangedSceneWithoutRawSources)
         msc::catalogue::read_binary_catalogue(settings.catalogue, 64);
     ASSERT_TRUE(stars);
     const auto expected = msc::cli::make_m1_scene(*stars);
-    EXPECT_EQ(scene.propagation_failures, expected.propagation_failures);
-    EXPECT_EQ(scene.magnitude_excluded, expected.magnitude_excluded);
-    EXPECT_EQ(scene.points.size(), expected.points.size());
+    ASSERT_EQ(scene.stars.size(), expected.stars.size());
+    ASSERT_EQ(scene.stars.size(), 64);
+    EXPECT_DOUBLE_EQ(scene.stars.front().magnitude, 3);
+    EXPECT_EQ(scene.stars.front().colour, stars->front().star().colour());
+    EXPECT_DOUBLE_EQ(scene.settings.limiting_magnitude, 6);
     EXPECT_FALSE(std::filesystem::exists(root / "sources"));
 }
 
@@ -108,13 +110,10 @@ TEST_F(LaunchTest, SceneSummaryIsLoggedToFileAtInfoLevelWithoutStdoutOutput)
                   args.size(), args.data(), output, errors,
                   [&](const msc::cli::M1Scene& scene)
                   {
-                      summary = "Propagation failures: " +
-                          std::to_string(scene.propagation_failures) +
-                          "; visible records excluded by temporary G<=4 "
-                          "cutoff: " +
-                          std::to_string(scene.magnitude_excluded) +
-                          "; projected " + std::to_string(scene.points.size()) +
-                          " stars.\n";
+                      summary =
+                          "MSC viewer: " + std::to_string(scene.stars.size()) +
+                          " above-horizon sources; G-like limit 6 applied by "
+                          "the renderer.\n";
                   }),
               0);
     EXPECT_TRUE(output.str().empty());
@@ -185,6 +184,8 @@ TEST_F(LaunchTest, UnsupportedCommandsAndSourceOptionsFailBeforeConfigCreation)
     const std::vector<std::vector<const char*>> cases{
         {"msc", "catalogue", "unknown"},
         {"msc", "old.csv", "old2.csv", "out.bin"},
+        {"msc", "view", "--appearance-trial"},
+        {"msc", "view", "--animation-trial"},
         {"msc", "view", "--gaia", "source.csv"},
         {"msc", "view", "--hipparcos", "source.csv"}};
     for (const auto& args : cases)
@@ -238,38 +239,76 @@ TEST_F(LaunchTest, FirstLaunchUsesCliOverridesButPersistsOnlyInitialDefaults)
     EXPECT_EQ(saved.catalogue, root / "data/mystarceiling/catalogue.bin");
 }
 
-TEST_F(LaunchTest, NativeAppearanceTrialReachesViewerWithoutEditingConfig)
+TEST_F(LaunchTest, PlainViewReachesAnimatedViewerWithoutEditingConfig)
 {
-    write(config(), valid_config());
-    write_catalogue(root / "catalogue.bin");
-    const std::array args{"msc",         "view",          "--appearance-trial",
-                          "--catalogue", "catalogue.bin", "--quantity",
-                          "64"};
+    auto saved = valid_config();
+    const std::string quantity = "quantity = 4096";
+    saved.replace(saved.find(quantity), quantity.size(), "quantity = 64");
+    write(config(), saved);
+    write_catalogue(config().parent_path() / "catalogue.bin");
+    const std::array args{"msc", "view"};
     std::ostringstream output, errors;
     bool shown = false;
     EXPECT_EQ(msc::cli::run_cli(args.size(), args.data(), output, errors,
                                 [&](const msc::cli::M1Scene& scene)
                                 {
                                     shown = true;
-                                    ASSERT_TRUE(scene.trial);
-                                    EXPECT_FALSE(scene.trial->picture_mode);
-                                    EXPECT_TRUE(scene.points.empty());
+                                    EXPECT_FALSE(scene.settings.picture_mode);
+                                    EXPECT_DOUBLE_EQ(
+                                        scene.settings.limiting_magnitude, 6);
+                                    ASSERT_EQ(scene.stars.size(), 64);
+                                    EXPECT_GT(scene.stars.front().enu.z(), 0);
                                 }),
               0);
     EXPECT_TRUE(shown);
     EXPECT_TRUE(errors.str().empty());
-    EXPECT_EQ(read(config()), valid_config());
+    EXPECT_EQ(read(config()), saved);
 }
 
-TEST_F(LaunchTest, RemovedTrialOptionsFailBeforeLaunchSideEffects)
+TEST_F(LaunchTest, RemovedViewerFlagsFailBeforeConfigAndLaunchSideEffects)
+{
+    const auto bad = root / "bad.toml";
+    const auto log = root / "keep.log";
+    const auto binary = root / "keep.bin";
+    write(bad, "invalid TOML");
+    write(log, "keep log");
+    write(binary, "keep catalogue");
+    const auto bad_string = bad.string();
+    const auto log_string = log.string();
+    const auto binary_string = binary.string();
+    for (const auto* flag : {"--appearance-trial", "--animation-trial"})
+    {
+        const std::array args{"msc",
+                              "view",
+                              flag,
+                              "--config",
+                              bad_string.c_str(),
+                              "--log-file",
+                              log_string.c_str(),
+                              "--catalogue",
+                              binary_string.c_str()};
+        std::ostringstream output, errors;
+        EXPECT_NE(msc::cli::run_cli(args.size(), args.data(), output, errors,
+                                    [](const msc::cli::M1Scene&) { FAIL(); }),
+                  0);
+        EXPECT_NE(errors.str().find(flag), std::string::npos);
+        EXPECT_TRUE(output.str().empty());
+        EXPECT_FALSE(std::filesystem::exists(config()));
+        EXPECT_EQ(read(bad), "invalid TOML");
+        EXPECT_EQ(read(log), "keep log");
+        EXPECT_EQ(read(binary), "keep catalogue");
+    }
+}
+
+TEST_F(LaunchTest, RemovedTuningOptionsFailIndividuallyBeforeLaunchSideEffects)
 {
     const std::vector<std::vector<const char*>> cases{
-        {"msc", "view", "--appearance-trial", "--brightness", "25"},
-        {"msc", "view", "--appearance-trial", "--ray-fraction", "0.4"},
-        {"msc", "view", "--appearance-trial", "--twinkle-strength", "0.5"},
-        {"msc", "view", "--appearance-trial", "--width", "1280"},
-        {"msc", "view", "--appearance-trial", "--seed", "123"},
-        {"msc", "view", "--appearance-trial", "--picture-mode"}};
+        {"msc", "view", "--brightness", "25"},
+        {"msc", "view", "--ray-fraction", "0.4"},
+        {"msc", "view", "--twinkle-strength", "0.5"},
+        {"msc", "view", "--width", "1280"},
+        {"msc", "view", "--seed", "123"},
+        {"msc", "view", "--picture-mode"}};
     for (const auto& args : cases)
     {
         std::ostringstream output, errors;

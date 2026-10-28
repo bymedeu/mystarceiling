@@ -45,7 +45,7 @@ namespace msc::render
                           TrialSettings settings)
     {
         if (!valid_trial_settings(settings))
-            return std::unexpected{"Invalid appearance trial settings"};
+            return std::unexpected{"Invalid MSC viewer settings"};
         trial::Window window;
         if (auto result = trial::initialize(window, settings); !result)
             return result;
@@ -59,7 +59,7 @@ namespace msc::render
         }
         catch (const std::exception& error)
         {
-            return std::unexpected{"Appearance trial failed: " +
+            return std::unexpected{"MSC viewer failed: " +
                                    std::string(error.what())};
         }
     }

@@ -159,11 +159,11 @@ namespace msc::render::trial
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        window.handle = glfwCreateWindow(settings.width, settings.height,
-                                         "MyStarCeiling appearance trial",
-                                         nullptr, nullptr);
+        window.handle =
+            glfwCreateWindow(settings.width, settings.height,
+                             "MyStarCeiling viewer", nullptr, nullptr);
         if (window.handle == nullptr)
-            return std::unexpected{"Could not create appearance trial window"};
+            return std::unexpected{"Could not create MSC viewer window"};
         glfwMakeContextCurrent(window.handle);
         glfwSwapInterval(1);
         if (gladLoadGL(glfwGetProcAddress) == 0)
@@ -178,7 +178,7 @@ namespace msc::render::trial
         if (stars.size() >
                 static_cast<std::size_t>(std::numeric_limits<GLsizei>::max()) ||
             !std::ranges::all_of(stars, valid_star))
-            return std::unexpected{"Invalid appearance trial stars"};
+            return std::unexpected{"Invalid MSC viewer stars"};
         std::string error;
         resources.stars = compile_program(star_vertex, star_fragment, error);
         if (resources.stars == 0)
@@ -193,7 +193,7 @@ namespace msc::render::trial
         glGenTextures(1, &resources.texture);
         glDisable(GL_FRAMEBUFFER_SRGB);
         if (glGetError() != GL_NO_ERROR)
-            return std::unexpected{"OpenGL appearance trial allocation failed"};
+            return std::unexpected{"OpenGL MSC viewer allocation failed"};
         return {};
     }
 

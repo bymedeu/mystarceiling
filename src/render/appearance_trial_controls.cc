@@ -9,8 +9,8 @@ namespace msc::render::trial
             glfwSetWindowTitle(
                 window,
                 state.settings.picture_mode
-                    ? "MSC appearance trial | picture | Space resume, Esc close"
-                    : "MSC appearance trial | animated | Space freeze, Esc "
+                    ? "MSC viewer | picture | Space resume, Esc close"
+                    : "MSC viewer | animated | Space freeze, Esc "
                       "close");
         }
         void key_event(GLFWwindow* window, int key, int, int action, int)

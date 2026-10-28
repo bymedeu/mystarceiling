@@ -71,9 +71,10 @@ These relative links are ignored by Git and are not created automatically on
 fresh clones. The viewer link uses the `build/quality` build.
 
 `msc view` loads only the requested prefix of an existing brightness-ordered
-binary catalogue. It uses the fixed Toulouse M1 geometry with prepared stellar
-colour and the **temporary G<=4 display filter**, then opens a graphical window. Launching does
-not read raw sources or rebuild the binary. Use the separate catalogue commands:
+binary catalogue. It opens the animated viewer with fixed Toulouse/time geometry,
+prepared RGB8 stellar colour and a **G-like limiting magnitude of 6**.
+Launching does not read raw sources or rebuild the binary. Use the separate
+catalogue commands:
 
 ```sh
 build/src/cli/msc catalogue build
@@ -93,17 +94,16 @@ both complete sources. A completed temporary binary is checked before publicatio
 failed builds preserve the existing catalogue. Source files cannot be overwritten.
 See the [build contract](docs/decisions/application-controls.md#catalogue-controls).
 
-An opt-in native appearance trial adds animated brightness/colour, horizon-dependent
-twinkling, soft glow and tapered rays:
-
-```sh
-./msc view --appearance-trial
-```
-
-Space freezes/resumes picture mode; Escape closes the window. The trial keeps
-the fixed sky geometry and existing configuration intact. Ordinary `msc view`
-uses the static viewer. There are no appearance-tuning CLI options or shortcuts.
-See the [trial model and limits](docs/decisions/stellar-appearance-trial.md).
+Plain `msc view` always shows animated brightness/colour, horizon-dependent
+scintillation, soft glow and tapered rays. Space freezes/resumes picture mode;
+Escape closes the window, and resizing remains available. There are no
+appearance-tuning CLI options or settings. Both `--appearance-trial` and
+`--animation-trial` flags are rejected before configuration or launch side effects.
+The owner provisionally accepted the algorithm as good for now; the preferred
+4–6× amplified preview remains a separate, unimplemented numerical choice.
+See the [viewer model and limits](docs/decisions/stellar-appearance-trial.md).
+The former static M1 rendering is
+[historical evidence](docs/milestones/m1-fixed-toulouse-sky.md).
 
 `catalogue info` reads the header and checks total file length, without decoding
 records or reading either source. Example output:
@@ -246,7 +246,11 @@ The public technical contract lives in [AGENTS.md](AGENTS.md).
 
 ## Status
 
-MyStarCeiling is in early development. The fixed M1 Toulouse path now loads real catalogue data, transforms it, and renders a zenith view. Owner visual acceptance is recorded; configurable observer/time controls and measured scaling remain future work.
+MyStarCeiling is in early development. The configured viewer renders an animated
+zenith view from prepared catalogue data with fixed Toulouse/time geometry.
+Historical M1 acceptance and current provisional animation acceptance are recorded
+separately. Configurable observer/time controls and measured million-source
+scaling remain future work.
 
 ## Milestones
 

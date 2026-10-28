@@ -60,8 +60,9 @@ and later acceptance evidence stay for their respective discussions.
 `msc view` now consumes an existing binary through the quantity-aware reader,
 using complete TOML configuration, temporary CLI overrides and scoped spdlog
 logging. The owner accepted removing the former positional source-building
-launcher during this transition. Scene mathematics and display remain the M1
-baseline. The [reader policy](../decisions/application-controls.md#catalogue-controls)
+launcher during this transition. At that stage scene mathematics and display
+remained the M1 baseline; the current animated viewer is recorded below. The
+[reader policy](../decisions/application-controls.md#catalogue-controls)
 checks file structure and the selected prefix. Building must check its completed
 temporary binary before publication; catalogue info reports path, stored star
 count and bytes with decimal GB. Build capacity is exact; Hipparcos fills it
@@ -78,8 +79,9 @@ Both parsers now prepare temperature-based linear-sRGB colour in three uint8
 channels, keep magnitude as double, and move source positions to J2016 during
 building. Binary version 3 uses 68-byte records with mandatory RGB. The renderer
 uploads compact RGB bytes directly, scales linear light, and performs one sRGB
-output encoding. The prior white-star display curve, fixed geometry, cutoff and
-point size remain. See the [colour model](../decisions/stellar-colour.md) and
+output encoding. At that stage the prior white-star display curve, fixed
+geometry, cutoff and point size remained; the animated viewer below supersedes
+the static display. See the [colour model](../decisions/stellar-colour.md) and
 [prepared catalogue contract](../decisions/catalogue-integration.md#current-prepared-catalogue--2026-10-25).
 
 All 189 C++ tests pass in ordinary and ASan/UBSan/leak builds. An independent
@@ -95,22 +97,23 @@ and acceptance discussions. See [appearance/output boundaries](../decisions/ceil
 [application controls](../decisions/application-controls.md) and
 [updated record sizes](../decisions/memory-accounting.md).
 
-## Native animated trial — 2026-10-26
+## Animated viewer — promoted 2026-10-28
 
-The owner accepted the catalogue colour appearance and wants the next visual
-review through the MSC executable. The opt-in `view --appearance-trial` adds
-deterministic horizon-dependent brightness and colour animation, unequal tapered
-rays and soft glow. Extra appearance-tuning options and shortcuts were removed
-on owner request on 2026-10-27. Picture mode freezes the animation without
-resetting phase. The fixed astronomical time is independent and remains paused.
-No configuration migration or derived-catalogue rebuild is needed.
+The native viewer began as an opt-in trial on 2026-10-26. On 2026-10-27 the owner
+rejected slow pulsation and approved frame-averaged spectral variation with
+correlated colour and the quieter profile. Extra tuning options and shortcuts
+were removed at their request.
 
-This is provisional appearance work, not M2 closeout or a large-source performance
-result. Native visual acceptance and the proposed zone/full/compact rendering
-strategy remain outstanding. See the [focused trial record](../decisions/stellar-appearance-trial.md).
+On 2026-10-28 the owner provisionally accepted the algorithm as good for now and
+requested that plain `msc view` always show it. The experimental flag and static
+renderer are removed. Existing coefficients, limiting magnitude 6, RGB8 and
+fixed Toulouse/time geometry are preserved. Space freezes/resumes the picture,
+Escape closes it, and resize remains available. No configuration migration or
+catalogue rebuild is needed. The preferred 4–6× amplified preview remains a
+separate, unimplemented numerical choice.
 
-On 2026-10-27 the owner approved replacing the rejected slow pulsation with
-frame-averaged spectral variation and correlated colour, while restoring the
-quieter profile. The [trial record](../decisions/stellar-appearance-trial.md)
-is canonical for model details and verification. Optimize only after appearance
-review; simultaneous million-source animation remains an unmeasured target.
+This is provisional acceptance, not M2 closeout or a million-source performance
+result. See the [viewer record](../decisions/stellar-appearance-trial.md) for
+model details, verification and limits, and the [follow-up list](../todo.md#animation-validation-and-scaling)
+for later measurement and review. Proposed zone/full/compact strategies remain
+unimplemented.

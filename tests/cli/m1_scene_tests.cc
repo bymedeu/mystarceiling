@@ -4,7 +4,6 @@
 
 #include <array>
 #include <cstdint>
-#include <limits>
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/core/astronomy/linear_rgb8.hh>
 #include <mystarceiling/core/astronomy/star.hh>
@@ -14,12 +13,11 @@
 #include <mystarceiling/core/coordinates/proper_motion.hh>
 #include <mystarceiling/core/coordinates/right_ascension.hh>
 #include <mystarceiling/core/maths/angle.hh>
+#include <mystarceiling/core/projection/zenith_perspective.hh>
 #include <mystarceiling/core/time/reference_epoch.hh>
-#include <optional>
 
 using msc::catalogue::CatalogueSource;
 using msc::catalogue::CatalogueStar;
-using msc::cli::m1_display_intensity;
 using msc::cli::make_m1_scene;
 using msc::core::astronomy::ApparentMagnitude;
 using msc::core::astronomy::Parallax;
@@ -54,16 +52,19 @@ namespace
     }
 } // namespace
 
-TEST(M1SceneTest, MagnitudeBoundaryIsInclusiveAndCountFollowsVisibility)
+TEST(M1SceneTest, RetainsAboveHorizonSourcesWithFixedDirection)
 {
     const auto scene =
         make_m1_scene(std::array{star(4.0), star(4.000001), star(5, -80)});
-    ASSERT_EQ(scene.points.size(), 1);
-    EXPECT_EQ(scene.magnitude_excluded, 1);
-    EXPECT_EQ(scene.propagation_failures, 0);
+    ASSERT_EQ(scene.stars.size(), 2);
+    EXPECT_DOUBLE_EQ(scene.stars[0].magnitude, 4.0);
+    EXPECT_DOUBLE_EQ(scene.stars[1].magnitude, 4.000001);
     // Known Gaia direction, unchanged by the application scene builder.
-    EXPECT_NEAR(scene.points[0].x, -0.23376923971854943, 2e-8);
-    EXPECT_NEAR(scene.points[0].y, -0.12855289148878088, 2e-8);
+    const auto projected = msc::core::projection::project_zenith_perspective(
+        scene.stars[0].enu, 1280.0 / 720.0);
+    ASSERT_TRUE(projected);
+    EXPECT_NEAR(projected->x, -0.23376923971854943, 1e-12);
+    EXPECT_NEAR(projected->y, -0.12855289148878088, 1e-12);
 }
 
 TEST(M1SceneTest, DoesNotRepeatMotionForEitherPreparedSource)
@@ -71,28 +72,18 @@ TEST(M1SceneTest, DoesNotRepeatMotionForEitherPreparedSource)
     const auto scene = make_m1_scene(std::array{
         star(2, 33, CatalogueSource::Hipparcos2, 2016, 3600000),
         star(2, 33, CatalogueSource::GaiaDr3, 2016, 3600000), star(2, 33)});
-    ASSERT_EQ(scene.points.size(), 3);
-    for (const auto& point : scene.points)
+    ASSERT_EQ(scene.stars.size(), 3);
+    for (const auto& star : scene.stars)
     {
-        EXPECT_EQ(point.x, scene.points.front().x);
-        EXPECT_EQ(point.y, scene.points.front().y);
+        EXPECT_EQ(star.enu.x(), scene.stars.front().enu.x());
+        EXPECT_EQ(star.enu.y(), scene.stars.front().enu.y());
+        EXPECT_EQ(star.enu.z(), scene.stars.front().enu.z());
     }
-    EXPECT_EQ(scene.propagation_failures, 0);
 }
 
-TEST(M1SceneTest, BrightnessHasContrastThroughoutTemporaryVisibleRange)
+TEST(M1SceneTest, PreservesPreparedPackedColourAndMagnitude)
 {
-    EXPECT_FLOAT_EQ(m1_display_intensity(-1.5), 1);
-    EXPECT_GT(m1_display_intensity(-1), 8 * m1_display_intensity(4));
-    EXPECT_GT(m1_display_intensity(2), m1_display_intensity(3));
-    EXPECT_GT(m1_display_intensity(3), m1_display_intensity(4));
-    EXPECT_GT(m1_display_intensity(4), 0.05F);
-    EXPECT_FLOAT_EQ(m1_display_intensity(-10), 1);
-}
-
-TEST(M1SceneTest, CarriesPackedColourAndLinearBrightnessToPresentation)
-{
-    auto white = star(2);
+    const auto white = star(2.1975422);
     const auto& baseline = white.star();
     const CatalogueStar coloured{
         2, CatalogueSource::GaiaDr3,
@@ -101,24 +92,21 @@ TEST(M1SceneTest, CarriesPackedColourAndLinearBrightnessToPresentation)
              baseline.magnitude(),
              msc::core::astronomy::LinearRgb8{255, 17, 0}}};
     const auto scene = make_m1_scene(std::array{white, coloured});
-    ASSERT_EQ(scene.points.size(), 2);
-    EXPECT_EQ(scene.points[1].colour,
+    ASSERT_EQ(scene.stars.size(), 2);
+    EXPECT_EQ(scene.stars[1].colour,
               (msc::core::astronomy::LinearRgb8{255, 17, 0}));
-    EXPECT_EQ(scene.points[0].intensity, scene.points[1].intensity);
-    // Independent decode of the legacy G=2 white-star display value.
-    EXPECT_NEAR(scene.points[0].intensity, 0.032957344424256865, 1e-8);
+    EXPECT_DOUBLE_EQ(scene.stars[0].magnitude, baseline.magnitude().gaia_g());
+    EXPECT_DOUBLE_EQ(scene.stars[1].magnitude, baseline.magnitude().gaia_g());
 }
 
-TEST(M1SceneTest, AppearanceTrialRetainsFaintSourcesForRendererSelection)
+TEST(M1SceneTest, RetainsFaintSourcesForRendererSelection)
 {
-    const auto scene = msc::cli::make_appearance_scene(
-        std::array{star(2), star(9)}, msc::render::TrialSettings{});
-    ASSERT_TRUE(scene.trial);
-    ASSERT_EQ(scene.trial_stars.size(), 2);
-    EXPECT_EQ(scene.trial_stars[0].magnitude, 2);
-    EXPECT_EQ(scene.trial_stars[1].magnitude, 9);
-    EXPECT_GT(scene.trial_stars[0].enu.z(), 0);
-    EXPECT_TRUE(scene.points.empty());
+    const auto scene = make_m1_scene(std::array{star(2), star(9)});
+    ASSERT_EQ(scene.stars.size(), 2);
+    EXPECT_EQ(scene.stars[0].magnitude, 2);
+    EXPECT_EQ(scene.stars[1].magnitude, 9);
+    EXPECT_GT(scene.stars[0].enu.z(), 0);
+    EXPECT_DOUBLE_EQ(scene.settings.limiting_magnitude, 6);
 }
 
 TEST(M1SceneTest, AppearanceKeysRetainHighIdBitsAndCatalogueIdentity)
@@ -129,10 +117,10 @@ TEST(M1SceneTest, AppearanceKeysRetainHighIdBitsAndCatalogueIdentity)
         CatalogueStar{(std::uint64_t{1} << 32) | 1, CatalogueSource::GaiaDr3,
                       base.star()},
         CatalogueStar{1, CatalogueSource::Hipparcos2, base.star()}};
-    const auto scene = msc::cli::make_appearance_scene(stars, {});
-    ASSERT_EQ(scene.trial_stars.size(), 3);
-    const auto first = scene.trial_stars[0].animation_key;
-    EXPECT_EQ(first.low, scene.trial_stars[1].animation_key.low);
-    EXPECT_NE(first.high, scene.trial_stars[1].animation_key.high);
-    EXPECT_NE(first.high, scene.trial_stars[2].animation_key.high);
+    const auto scene = make_m1_scene(stars);
+    ASSERT_EQ(scene.stars.size(), 3);
+    const auto first = scene.stars[0].animation_key;
+    EXPECT_EQ(first.low, scene.stars[1].animation_key.low);
+    EXPECT_NE(first.high, scene.stars[1].animation_key.high);
+    EXPECT_NE(first.high, scene.stars[2].animation_key.high);
 }

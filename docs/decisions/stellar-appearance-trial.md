@@ -1,19 +1,24 @@
-# Native stellar appearance trial
+# Animated stellar viewer
 
-The owner approved a provisional trial inside the MSC executable on 2026-10-26.
-On 2026-10-27 they rejected the slow bright/dim animation and approved a revised
-statistical approximation informed by scintillation research. Visual acceptance
-remains open. The earlier catalogue colours were accepted separately.
+The owner requested an in-executable trial on 2026-10-26 and approved replacing
+its slow pulsation with the current scintillation approximation on 2026-10-27.
+On 2026-10-28 they provisionally accepted the algorithm as good for now and
+requested promotion to the real viewer. The preferred 4–6× amplified preview was
+post-processing; it remains a separate, unimplemented numerical choice. Catalogue
+colours were accepted separately. This is not final M2 closeout or physical
+calibration. The historical filename is retained for existing links.
 
 ## Run
 
 ```sh
-./msc view --appearance-trial
+./msc view
 ```
 
 Existing catalogue/configuration/logging options apply. No source or binary
-rebuild is needed. Ordinary `msc view` retains the static viewer. The trial adds
-no appearance settings to the CLI or strict saved TOML schema.
+rebuild is needed. Plain `msc view` always uses this animated scene; the static
+renderer is removed. Both `--appearance-trial` and `--animation-trial` reject
+before configuration or launch side effects. No appearance toggle, CLI tuning
+option or saved TOML setting is added.
 
 | Key | Action |
 | --- | --- |
@@ -32,7 +37,7 @@ these patterns across the observer's pupil. Scintillation has a range of tempora
 frequencies, and pupil/exposure averaging suppresses parts of the variation.
 Colour signals are related, with atmospheric dispersion affecting their temporal
 relationship away from the zenith. These mechanisms motivate the approximation;
-the trial does not reconstruct actual observing conditions.
+the viewer does not reconstruct actual observing conditions.
 
 The former cubic slow/fast noise generator and its clock/settings are removed.
 The replacement sums 24 sinusoidal components with independent deterministic
@@ -73,8 +78,8 @@ Resume preserves phase and excludes time spent frozen.
 
 The quieter earlier preview is restored: core sigma 0.4 framebuffer pixels,
 halo sigma 1 with 3% light, and four unequal one-sided rays with longest sigma
-1.5 and 4% light. The remaining light is in the core. These are internal trial
-coefficients. A star is a point source with no separately painted opaque dot.
+1.5 and 4% light. The remaining light is in the core. These remain the current
+internal viewer coefficients. A star is a point source with no separately painted opaque dot.
 The stable light distribution changes intensity/colour rather than wobbling or
 rotating. Profiles redistribute linear light before display encoding.
 
@@ -88,7 +93,8 @@ magnified. It guides qualitative flickering, without supplying naked-eye angular
 scale or a calibrated diffraction model. This finite spectral sum can exhibit
 beating and does not model full turbulence, measured eye optics or spatial
 correlations between nearby stars. Frame averaging attenuates high frequencies
-but is not an ideal anti-alias filter. Visual realism still requires owner review.
+but is not an ideal anti-alias filter. Provisional owner acceptance does not
+establish calibrated visual realism.
 
 ## Rendering, verification and scaling
 
@@ -118,13 +124,13 @@ loses precision at extreme elapsed times (about 32.55 microseconds at `t=1e12`,
 `dt=1/60`), and the temporary GPU harness is not retained in the repository.
 CPU/GPU agreement at that time does not establish accurate long-time averaging.
 No impact on ordinary viewing was demonstrated; these remain numerical and
-regression-coverage limits, not visual acceptance or scale evidence.
+regression-coverage limits, not calibration or scale evidence.
 
 Work is bounded per source but repeats across quad vertices; cosine/hash work,
 covered pixels, blending and source count can dominate at scale. No million-source
-performance claim is made. The owner explicitly wants optimization after the
-appearance is accepted: measure identical workloads and preserve the agreed image
-and animation when comparing changes. See the [scaling follow-up](../todo.md#animation-validation-and-scaling).
+performance claim is made. The owner explicitly wants optimization after
+appearance review; the algorithm is now provisionally accepted. Measure identical
+workloads and preserve the agreed image and animation when comparing changes. See the [scaling follow-up](../todo.md#animation-validation-and-scaling).
 
 Zone contribution bounds and full/compact profiles remain approved design
 direction, not implemented optimizations. Combined faint light, flicker peaks,

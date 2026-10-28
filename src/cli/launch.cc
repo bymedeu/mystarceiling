@@ -5,7 +5,6 @@
 #include <exception>
 #include <functional>
 #include <mystarceiling/catalogue/binary_catalogue.hh>
-#include <optional>
 #include <ostream>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
@@ -18,16 +17,14 @@
 
 namespace msc::cli
 {
-    M1Scene prepare_view(const Settings& settings,
-                         const std::optional<render::TrialSettings>& trial)
+    M1Scene prepare_view(const Settings& settings)
     {
         const auto stars = catalogue::read_binary_catalogue(settings.catalogue,
                                                             settings.quantity);
         if (!stars)
             throw std::runtime_error("Binary catalogue read failed: " +
                                      stars.error().detail);
-        return trial ? make_appearance_scene(*stars, *trial)
-                     : make_m1_scene(*stars);
+        return make_m1_scene(*stars);
     }
 
     namespace
@@ -37,7 +34,6 @@ namespace msc::cli
             CLI::App* build{};
             CLI::App* info{};
             bool force{};
-            bool appearance_trial{};
         };
 
         void add_options(CLI::App& app, CLI::App& view, Overrides& overrides,
@@ -53,8 +49,6 @@ namespace msc::cli
                             "Prepared binary catalogue");
             view.add_option("--quantity", overrides.quantity,
                             "Catalogue prefix quantity (64..count)");
-            view.add_flag("--appearance-trial", commands.appearance_trial,
-                          "Preview animated stellar light and rays");
             auto* catalogue = app.add_subcommand(
                 "catalogue", "Prepare or inspect a catalogue");
             catalogue->require_subcommand(1);
@@ -83,19 +77,9 @@ namespace msc::cli
 
         void report_scene(const M1Scene& scene)
         {
-            if (scene.trial)
-            {
-                spdlog::info("Appearance trial: {} above-horizon sources; "
-                             "G-like limit {} applied by the renderer.",
-                             scene.trial_stars.size(),
-                             scene.trial->limiting_magnitude);
-                return;
-            }
-            spdlog::info(
-                "Propagation failures: {}; visible records excluded by "
-                "temporary G<=4 cutoff: {}; projected {} stars.",
-                scene.propagation_failures, scene.magnitude_excluded,
-                scene.points.size());
+            spdlog::info("MSC viewer: {} above-horizon sources; "
+                         "G-like limit {} applied by the renderer.",
+                         scene.stars.size(), scene.settings.limiting_magnitude);
         }
     } // namespace
 
@@ -115,11 +99,7 @@ namespace msc::cli
                 catalogue_info(settings, output);
             else
             {
-                const auto scene =
-                    prepare_view(settings,
-                                 commands.appearance_trial
-                                     ? std::optional{render::TrialSettings{}}
-                                     : std::nullopt);
+                const auto scene = prepare_view(settings);
                 report_scene(scene);
                 show(scene);
             }
@@ -133,7 +113,8 @@ namespace msc::cli
         CLI::App app{"MyStarCeiling catalogue tools and viewer", "msc"};
         app.set_version_flag("--version", MSC_PROJECT_VERSION);
         app.require_subcommand(1);
-        auto* view = app.add_subcommand("view", "Display the star ceiling");
+        auto* view =
+            app.add_subcommand("view", "Display the animated star ceiling");
         view->fallthrough();
         Overrides overrides;
         Commands commands{};

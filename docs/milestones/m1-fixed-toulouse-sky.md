@@ -1,6 +1,9 @@
 # M1 — Fixed Toulouse sky
 
-Status: complete on 2026-09-13. M2 is the next planning target.
+Status: complete on 2026-09-13. This is historical M1 evidence. The static
+renderer and temporary G<=4 display path described below were removed on
+2026-10-28; see the [current animated viewer](../decisions/stellar-appearance-trial.md)
+and [project state](../project-state.md) for current behavior.
 
 Target: 29 November 2026.
 

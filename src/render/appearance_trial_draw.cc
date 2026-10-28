@@ -115,7 +115,7 @@ namespace msc::render::trial
         draw_stars(resources, state);
         display(resources);
         if (glGetError() != GL_NO_ERROR)
-            return std::unexpected{"OpenGL appearance trial draw failed"};
+            return std::unexpected{"OpenGL MSC viewer draw failed"};
         return {};
     }
 } // namespace msc::render::trial

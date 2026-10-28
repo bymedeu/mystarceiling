@@ -1,7 +1,7 @@
 # Project todo list
 
-Owner decisions recorded on 2026-10-25 and updated on 2026-10-27. These tasks
-describe planned follow-up; they do not claim completed work or select
+Owner decisions recorded on 2026-10-25 and updated on 2026-10-28. This list
+records completed bounded work and planned follow-up. Open tasks do not select
 implementation tooling.
 
 ## Documentation phase between M2 and M3
@@ -31,9 +31,13 @@ is the canonical record of the current approximations and remaining design detai
 
 ## Animation validation and scaling
 
-- [ ] Review the revised [native scintillation trial](decisions/stellar-appearance-trial.md)
-  in MSC and settle the appearance before optimization.
-- [ ] After visual acceptance, profile increasingly large animated workloads,
+- [x] Promote the [animated viewer](decisions/stellar-appearance-trial.md) to plain
+  `msc view`, removing the experimental flag and static alternative. The owner
+  provisionally accepted the algorithm as good for now on 2026-10-28.
+- [ ] Discuss the preferred 4–6× amplified preview as a separate numerical choice;
+  it was post-processing and is not implemented. Current coefficients stay fixed.
+- [ ] With the provisional reference recorded, profile increasingly large animated
+  workloads,
   including a million-source case where feasible. Measure frame time, memory,
   visible/source counts and covered pixels; separate signal evaluation from
   rasterization/blending costs. Current arithmetic and small-catalogue tests do
@@ -54,4 +58,5 @@ is the canonical record of the current approximations and remaining design detai
 - [ ] Discuss the owner's suggested JSON-based appearance/behaviour customization
   after the current visual behaviour is settled. This is a possible later option;
   no schema, parser, persistence mechanism or implementation is selected. Do not
-  add appearance-tuning keys to the current configuration as part of the trial.
+  add appearance-tuning keys to the current configuration as part of the viewer
+  promotion.

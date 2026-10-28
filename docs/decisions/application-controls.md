@@ -1,6 +1,6 @@
 # Application controls and interface direction
 
-Status: requirements clarified through 2026-10-24. The bounded reader,
+Status: requirements clarified through 2026-10-28. The bounded reader,
 configured viewer, logging and catalogue build/info commands are implemented.
 The [ceiling/output note](ceiling-product-output.md) records current
 owner priorities, proposals and open decisions; it does not approve implementation.
@@ -166,7 +166,7 @@ Logging means spdlog messages only; command results (including help, version,
 build completion and catalogue info) keep their normal terminal output. The owner requires
 a configurable destination and level, with the initial level `warning` mapped
 to `spdlog::level::warn` (warnings, errors and critical messages).
-The viewer's propagation, magnitude-cutoff and projected-star summary is an
+The viewer's above-horizon source count and renderer magnitude-limit summary is an
 `info` log, hidden at the default level and sent to the configured destination
 when enabled.
 
@@ -191,10 +191,14 @@ Visual controls such as magnitude/exposure and camera movement can update live;
 astronomical or catalogue changes can use Apply. Exact behavior remains
 context-dependent rather than one universal rule.
 
-The opt-in [native appearance trial](stellar-appearance-trial.md) is activated
-with `--appearance-trial`. On 2026-10-27 the owner rejected the extra appearance
-options and tuning shortcuts added during the trial. Only Space for picture
-freeze/resume and Escape to close remain; model coefficients have C++ defaults
+Plain `msc view` always opens the [animated viewer](stellar-appearance-trial.md),
+as requested by the owner on 2026-10-28. Both `--appearance-trial` and
+`--animation-trial` reject during CLI parsing, before configuration creation or
+reading, logging setup, catalogue reading or window launch. No alias, toggle or
+replacement setting exists. The former static renderer is removed.
+On 2026-10-27 the owner rejected extra appearance options and tuning shortcuts.
+Space freezes/resumes picture mode, Escape closes the window and resizing remains
+available. Limiting magnitude stays 6; model coefficients remain C++ defaults
 and are not user settings. The strict saved TOML schema is unchanged. A possible
 later JSON customization mechanism is [deferred for discussion](../todo.md#later-customization).
 The owner clarified two pause meanings: astronomical time pause allows effects

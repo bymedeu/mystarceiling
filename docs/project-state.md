@@ -1,6 +1,6 @@
 # Current project state
 
-Last updated: 2026-10-26.
+Last updated: 2026-10-28.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
@@ -41,8 +41,9 @@ CPU-first portable delivery targets a 16 GB Linux laptop without an NVIDIA GPU.
 The RTX 3060 is on a separate Windows desktop; Linux there is a future possibility.
 CUDA is conditional on setup/access and a justified measured workload.
 [Size accounting](decisions/memory-accounting.md) measured Star/CatalogueStar/
-ScreenPoint at 64/80/16 bytes after RGB8 integration, alignments 8/8/4; this is
-not peak RSS or a benchmark.
+TrialStar at 64/80/48 bytes on 2026-10-28, all aligned to 8 bytes. ScreenPoint
+and the static renderer have been removed; these sizes are not peak RSS or a
+benchmark.
 Completed 134m acquisition does not demonstrate full-catalogue runtime capability.
 
 ## Required understanding checkpoint
@@ -109,36 +110,43 @@ available for rebuilding; diagnostic metadata stays outside the binary.
 
 All 189 C++ tests pass in ordinary and ASan/UBSan/leak builds. Software-OpenGL pixel
 checks and a real 4096-record build pass, retaining all 62 Hipparcos supplement
-stars and exact source magnitude values. The record sizes are now 64/80/16 bytes
-for Star/CatalogueStar/ScreenPoint. No physical-display review or full-size runtime
-claim follows. See the [colour model](decisions/stellar-colour.md),
+stars and exact source magnitude values. At that stage, record sizes were
+64/80/16 bytes for Star/CatalogueStar/ScreenPoint; the last type has since been
+removed. No physical-display review or full-size runtime claim follows. See the [colour model](decisions/stellar-colour.md),
 [prepared catalogue contract](decisions/catalogue-integration.md#current-prepared-catalogue--2026-10-25)
 and [memory evidence](decisions/memory-accounting.md).
 
-## Native appearance trial
+## Current animated viewer
 
-`msc view --appearance-trial` provides the provisional animated native viewer;
-ordinary `msc view` remains static. Catalogue colours were accepted separately.
-After rejecting the slow bright/dim effect, the owner approved a revised
-scintillation trial on 2026-10-27. It replaces the old slow/fast generator with
-24 deterministic frequency components, analytic frame averaging and correlated
-RGB delays, and restores the quieter compact spatial profile. Obsolete tuning
-plumbing and the old animation implementation are removed. Space freezes/resumes
-the picture, Escape closes it, and no appearance CLI/configuration keys are added.
-Astronomical geometry/time remains fixed.
+Plain `msc view` always prepares and shows the animated scene. On 2026-10-28 the
+owner requested promotion of the existing animation and removal of the static
+alternative. Both `--appearance-trial` and `--animation-trial` reject before
+configuration/logging/catalogue side effects; no replacement setting is added.
+The renderer keeps limiting magnitude 6, RGB8, fixed Toulouse/time geometry,
+Space picture freeze/resume, Escape close and resize behavior.
 
-The [trial record](decisions/stellar-appearance-trial.md) documents coefficients,
-CPU/GPU verification and approximation limits. Native visual acceptance remains
-open. The owner wants optimization after appearance review, with million-source
-animation as a future measurement target; no such performance is established.
-Zone/tier strategies remain unimplemented.
+The owner provisionally accepted the algorithm as good for now. The preferred
+4–6× amplified preview was post-processing and is not implemented in the viewer;
+its numerical choice remains separate. Current coefficients, correlated colour
+scintillation and frame averaging are unchanged. See the
+[viewer model](decisions/stellar-appearance-trial.md) for verification and limits.
+Optimization and million-source animation remain future measured work;
+zone/tier strategies are unimplemented. This promotion does not close M2 or the
+broader understanding checkpoint.
+
+Promotion validation: all 211 C++ tests pass in the ordinary build and with
+ASan, UBSan and leak detection enabled; all 30 Python tests and the cppcheck,
+Lizard and clang-format checks pass. The leak-enabled suite was rerun outside
+sandbox tracing after LeakSanitizer rejected that environment. The rebuilt
+native viewer was launched using plain `msc view`; owner review of this launch
+remains separate from automated checks.
 
 ## Future direction, not implemented
 
 Automatic visibility and future CLI/GUI controls remain future work. Current
 local time is the approved future time default; the default observer and
 place-name resolution remain open. The viewer still uses fixed Toulouse/time.
-The opt-in appearance trial does not implement camera controls, physical exposure
+The current viewer does not implement camera controls, physical exposure
 integration, Moon/cloud models, zone selection or rendering tiers.
 
 ## Acquisition status

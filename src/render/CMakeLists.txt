@@ -26,7 +26,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glad)
 glad_add_library(msc_glad STATIC REPRODUCIBLE API gl:core=3.3 EXTENSIONS NONE)
 
-add_library(mystarceiling_renderer_gl opengl_renderer.cc
+add_library(mystarceiling_renderer_gl
     appearance_trial.cc appearance_trial_resources.cc
     appearance_trial_controls.cc appearance_trial_draw.cc)
 
