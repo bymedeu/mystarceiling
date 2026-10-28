@@ -125,7 +125,7 @@ The renderer keeps limiting magnitude 6, RGB8, fixed Toulouse/time geometry,
 Space picture freeze/resume, Escape close and resize behavior.
 
 The owner accepted the stronger native comparison as the default on 2026-10-28.
-Its bounded visual response is now the ×1 baseline, with a 60 fps ceiling.
+Its bounded visual response is now the ×1 baseline, with a 30 fps ceiling.
 Temporary comparison controls and constellation guides are removed. The shared
 spectral signal, correlated colour delays and spatial profile are preserved;
 the bounded response follows linear signal averaging. See the

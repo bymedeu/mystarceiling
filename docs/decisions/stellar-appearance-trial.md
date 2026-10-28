@@ -30,8 +30,13 @@ The title identifies animated or picture mode. Astronomical time pause allows
 animation to continue; picture mode freezes it too. The fixed Toulouse/time
 geometry already has paused astronomical time. No sky drift or new observer/time
 controls are introduced. Window resizing remains available normally. The viewer
-retains VSync and waits when needed to cap rendering at 60 fps, matching the
-accepted comparison; this ceiling is not a guaranteed frame rate.
+retains VSync and waits when needed to cap rendering at 30 fps, as subsequently
+requested by the owner on 2026-10-28; this is not a guaranteed frame rate.
+The approved response remains the ×1 baseline. Longer frame intervals suppress
+more high-frequency variation, so 30 fps need not look identical to 60 fps; no
+compensating strength or speed change is applied. The animation clock's initial
+exposure is also 1/30 second. Historical 60 fps comparisons below retain their
+original sampling conditions.
 
 ## Revised animation — 2026-10-27
 

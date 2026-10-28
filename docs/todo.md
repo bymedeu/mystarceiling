@@ -36,7 +36,7 @@ is the canonical record of the current approximations and remaining design detai
   `msc view`, removing the experimental flag and static alternative. The owner
   provisionally accepted the algorithm as good for now on 2026-10-28.
 - [x] Adopt the owner-approved stronger native comparison as the ×1 baseline,
-  with a bounded visual response and 60 fps ceiling. Remove temporary comparison
+  with a bounded visual response and 30 fps ceiling. Remove temporary comparison
   controls and guides; see the [current model](decisions/stellar-appearance-trial.md).
 - [ ] Build the accepted separate developer executable in [M2.5](milestones/m2-5-benchmarking.md),
   with operation, pipeline, memory and rendering measurements, scaling curves and

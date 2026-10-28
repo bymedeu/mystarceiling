@@ -37,7 +37,7 @@ namespace msc::render
                     return result;
                 glfwSwapBuffers(window.handle);
                 glfwPollEvents();
-                const auto spare = 1.0 / 60 - (glfwGetTime() - current);
+                const auto spare = 1.0 / 30 - (glfwGetTime() - current);
                 if (spare > 0)
                     std::this_thread::sleep_for(
                         std::chrono::duration<double>(spare));

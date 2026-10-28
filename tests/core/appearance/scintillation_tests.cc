@@ -89,15 +89,14 @@ TEST(ScintillationTest, SpectralVarianceIsNormalizedWithoutSlowBandDominance)
 
 TEST(ScintillationTest, ExposureReducesVarianceWithoutRenormalizingIt)
 {
-    std::array<double, 4> variance{};
-    const std::array exposures{0.0, 1.0 / 60, 0.1, 0.5};
+    std::array<double, 5> variance{};
+    const std::array exposures{0.0, 1.0 / 60, 1.0 / 30, 0.1, 0.5};
     for (std::size_t i = 0; i < exposures.size(); ++i)
         for (const auto& band : scintillation_frame(10, exposures[i]))
             variance[i] += double(band[1]) * band[1] / 2;
-    EXPECT_GT(variance[0], variance[1]);
-    EXPECT_GT(variance[1], variance[2]);
-    EXPECT_GT(variance[2], variance[3]);
-    EXPECT_LT(variance[3], 0.02 * variance[0]);
+    for (std::size_t i = 1; i < variance.size(); ++i)
+        EXPECT_GT(variance[i - 1], variance[i]);
+    EXPECT_LT(variance.back(), 0.02 * variance[0]);
 }
 
 TEST(ScintillationTest,

@@ -111,7 +111,7 @@ fixed Toulouse/time geometry are preserved. Space freezes/resumes the picture,
 Escape closes it, and resize remains available. No configuration migration or
 catalogue rebuild is needed. Later that day the owner accepted the stronger
 native comparison as the default: it is now the ×1 baseline, with a bounded
-response after signal averaging and a 60 fps ceiling. Temporary comparison
+response after signal averaging and a 30 fps ceiling. Temporary comparison
 controls and guides are removed.
 
 This is provisional acceptance, not M2 closeout or a million-source performance

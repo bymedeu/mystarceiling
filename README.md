@@ -105,7 +105,7 @@ Escape closes the window, and resizing remains available. There are no
 appearance-tuning CLI options or settings. Both `--appearance-trial` and
 `--animation-trial` flags are rejected before configuration or launch side effects.
 The owner accepted the stronger native comparison as the default on 2026-10-28.
-It is now the ×1 baseline, with a 60 fps ceiling; comparison controls and guides
+It is now the ×1 baseline, with a 30 fps ceiling; comparison controls and guides
 are removed.
 See the [viewer model and limits](docs/decisions/stellar-appearance-trial.md).
 The former static M1 rendering is

@@ -55,7 +55,7 @@ namespace msc::core::appearance
 
     private:
         double seconds_{};
-        double exposure_{1.0 / 60};
+        double exposure_{1.0 / 30};
         bool picture_mode_{};
     };
 } // namespace msc::core::appearance

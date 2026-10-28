@@ -157,7 +157,7 @@ selected. Device output remains direction for design discussion.
 The ordinary viewer uses the fixed Toulouse/time geometry with prepared
 RGB8 colour, limiting magnitude 6, scintillation, glow and unequal rays.
 The owner requested promotion to plain `msc view` and subsequently accepted
-the stronger native comparison as the new ×1 baseline, with a 60 fps ceiling.
+the stronger native comparison as the new ×1 baseline, with a 30 fps ceiling.
 Temporary comparison controls and guides are removed. See the
 [viewer model and acceptance](stellar-appearance-trial.md). Events, camera/time
 controls and hardware output remain future work. See [project state](../project-state.md) and
