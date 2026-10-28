@@ -3,8 +3,9 @@
 The owner requested an in-executable trial on 2026-10-26 and approved replacing
 its slow pulsation with the current scintillation approximation on 2026-10-27.
 On 2026-10-28 they provisionally accepted the algorithm as good for now and
-requested promotion to the real viewer. The preferred 4–6× amplified preview was
-post-processing; it remains a separate, unimplemented numerical choice. Catalogue
+requested promotion to the real viewer. Later that day the owner accepted the
+stronger native comparison as the default and renamed it the **×1 baseline**.
+Temporary comparison selectors, guides and magnifiers are removed. Catalogue
 colours were accepted separately. This is not final M2 closeout or physical
 calibration. The historical filename is retained for existing links.
 
@@ -28,7 +29,9 @@ option or saved TOML setting is added.
 The title identifies animated or picture mode. Astronomical time pause allows
 animation to continue; picture mode freezes it too. The fixed Toulouse/time
 geometry already has paused astronomical time. No sky drift or new observer/time
-controls are introduced. Window resizing remains available normally.
+controls are introduced. Window resizing remains available normally. The viewer
+retains VSync and waits when needed to cap rendering at 60 fps, matching the
+accepted comparison; this ceiling is not a guaranteed frame rate.
 
 ## Revised animation — 2026-10-27
 
@@ -49,7 +52,8 @@ This broad plateau and rolloff are a provisional small-pupil rendering choice,
 not a spectrum fitted to measured atmospheric data. The 45 Hz knee is selected
 for the trial; it is not inferred from catalogue data or a large-telescope law.
 
-Default channel RMS is 0.12 at the horizon before exposure averaging. Its
+The underlying linear signal has a 0.12 channel RMS scale at the horizon before
+exposure averaging and the bounded visual response. Its
 amplitude factor is `0.25 + 0.75*(1-sin(elevation))^2`. RGB channels share the same
 components, with adjacent-channel delays of `1.5 ms*(1-sin(elevation))` in opposite
 directions around green. Thus colour is correlated with the intensity signal,
@@ -60,15 +64,24 @@ remain unchanged.
 For each frame, every component is averaged analytically over the trailing
 animation-time interval `[t-dt,t]`, clipped to the origin at startup. Its amplitude
 is multiplied by `sinc(pi*f*dt)` and its phase evaluated at the midpoint. The
-signed coefficients are retained without renormalization. This averages the final
-linear RGB gains directly; there is no multiplication of independently averaged
-brightness and colour. Zero exposure gives the instantaneous signal.
+signed coefficients are retained without renormalization. Brightness and colour
+share the averaged signal, rather than multiplying independently averaged signals.
+Zero exposure gives the instantaneous signal.
 
-The sum of absolute amplitudes bounds each gain. Validation keeps the worst
-possible deviation below 0.99, ensuring positive light without nonlinear clipping.
-The defaults have an instantaneous lower gain bound above 0.253. Reduced phases
-are calculated in double on the CPU before float uniform upload. Astronomical
-order and screen position do not seed animation.
+The approved visual response is applied **after** this averaging. With `d` the
+averaged linear deviation of a channel, the gain is
+`1 + 0.9*tanh(10*d/0.9)`. This is the exact response selected in the native
+comparison, now called ×1; the historical 10 in the formula is not a user-facing
+multiplier or an extra setting. It keeps gains between 0.1 and 1.9, up to
+rounding, while preserving a smooth response. The obsolete linear positivity
+bound is removed; internal signal scales are finite values in [0,1].
+
+This nonlinear step is a visual approximation, not the exposure average of a
+physical amplified light signal. Linear signal averages compose across exposure
+partitions; final gains generally do not. It also does not guarantee an exact
+unit average for each finite source/time sample. Reduced phases are calculated
+in double on the CPU before float uniform upload. Astronomical order and screen
+position do not seed animation.
 
 Picture mode preserves both time and the exposure interval. Ignoring elapsed
 wall time while frozen prevents a changed exposure from altering a frozen image.
@@ -110,13 +123,23 @@ in RGBA32F. A final pass compresses highlights and encodes sRGB once. The float
 attachment uses `width*height*16` bytes, about 14.1 MiB at 1280x720, excluding
 other buffers and driver allocations. Resize reallocates it.
 
-Core tests compare analytic final-RGB averaging with numerical integration,
-check exposure partitioning, variance suppression, positive bounds, deterministic
-identity and freeze/resume. An offscreen Mesa llvmpipe check of the compiled
+Core tests compare analytic linear-signal averaging with numerical integration,
+check linear exposure partitioning, variance suppression, bounded gains,
+deterministic identity, the approved response and freeze/resume. Before the
+stronger response was selected, an offscreen Mesa llvmpipe check of the compiled
 renderer with the configured 4,096-source prefix matched CPU/GPU gains within
 7.1e-7 over sampled times including 1e12 seconds. Advancing by 1/60 second changed
 final pixels; picture mode ignored ten seconds and preserved them exactly.
 These checks establish implementation behaviour, not native-window perception.
+
+Promotion of the stronger baseline passed all 218 C++ tests in ordinary and
+ASan/UBSan/leak-enabled builds, plus formatting, cppcheck and Lizard checks.
+A capture linked to the production renderer matched all 100 frames of the
+accepted native-comparison response byte-for-byte at a fixed 1/60-second step
+(Mesa llvmpipe, 1280x720, a 16x16-pixel bright-star crop from the configured
+4,096-source scene). Picture mode preserved the pixels after ten seconds and
+animation resumed correctly. This establishes that promotion preserved the
+approved response in that workload; it is not a performance measurement.
 
 The independent dcodex review on 2026-10-28 found no blocker for native visual
 review. It identified two follow-ups: forming the midpoint before phase reduction

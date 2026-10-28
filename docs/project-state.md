@@ -125,16 +125,21 @@ configuration/logging/catalogue side effects; no replacement setting is added.
 The renderer keeps limiting magnitude 6, RGB8, fixed Toulouse/time geometry,
 Space picture freeze/resume, Escape close and resize behavior.
 
-The owner provisionally accepted the algorithm as good for now. The preferred
-4–6× amplified preview was post-processing and is not implemented in the viewer;
-its numerical choice remains separate. Current coefficients, correlated colour
-scintillation and frame averaging are unchanged. See the
+The owner accepted the stronger native comparison as the default on 2026-10-28.
+Its bounded visual response is now the ×1 baseline, with a 60 fps ceiling.
+Temporary comparison controls and constellation guides are removed. The shared
+spectral signal, correlated colour delays and spatial profile are preserved;
+the bounded response follows linear signal averaging. See the
 [viewer model](decisions/stellar-appearance-trial.md) for verification and limits.
 Optimization and million-source animation remain future measured work;
 zone/tier strategies are unimplemented. This promotion does not close M2 or the
 broader understanding checkpoint.
 
-Promotion validation: all 211 C++ tests pass in the ordinary build and with
+The stronger ×1 baseline passes 218 C++ tests in ordinary and leak-enabled
+ASan/UBSan builds, formatting, cppcheck and Lizard. Its 100-frame offscreen crop
+is byte-identical to the accepted comparison; picture freeze/resume passes.
+
+Earlier promotion validation: all 211 C++ tests pass in the ordinary build and with
 ASan, UBSan and leak detection enabled; all 30 Python tests and the cppcheck,
 Lizard and clang-format checks pass. The leak-enabled suite was rerun outside
 sandbox tracing after LeakSanitizer rejected that environment. The rebuilt

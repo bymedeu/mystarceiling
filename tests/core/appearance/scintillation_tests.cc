@@ -8,7 +8,6 @@
 #include <initializer_list>
 #include <limits>
 #include <mystarceiling/core/appearance/scintillation.hh>
-#include <numeric>
 
 using msc::core::appearance::AnimationClock;
 using msc::core::appearance::AnimationKey;
@@ -17,6 +16,17 @@ using msc::core::appearance::sample_twinkle;
 using msc::core::appearance::scintillation_frame;
 using msc::core::appearance::TwinkleSettings;
 using msc::core::appearance::valid_twinkle_settings;
+
+namespace
+{
+    // Recover the averaged linear deviation for exposure/horizon tests.
+    // The final bounded visual response is intentionally nonlinear.
+    double linear_deviation(double gain)
+    {
+        return 0.9 * std::atanh((gain - 1) / 0.9) / 10;
+    }
+} // namespace
+
 
 TEST(ScintillationTest, HashMatchesIndependentUnsignedReferenceVectors)
 {
@@ -90,7 +100,8 @@ TEST(ScintillationTest, ExposureReducesVarianceWithoutRenormalizingIt)
     EXPECT_LT(variance[3], 0.02 * variance[0]);
 }
 
-TEST(ScintillationTest, AnalyticExposureMatchesNumericalIntegrationOfFinalRgb)
+TEST(ScintillationTest,
+     AnalyticExposureMatchesNumericalIntegrationBeforeVisualResponse)
 {
     const AnimationKey key{81, 9};
     constexpr double end = 1.25, exposure = 0.031;
@@ -104,21 +115,23 @@ TEST(ScintillationTest, AnalyticExposureMatchesNumericalIntegrationOfFinalRgb)
         const auto instant =
             sample_twinkle(key, scintillation_frame(t, 0), 0.2);
         for (std::size_t c = 0; c < numerical.size(); ++c)
-            numerical[c] += instant[c] / samples;
+            numerical[c] += linear_deviation(instant[c]) / samples;
     }
     // Midpoint quadrature plus float phase/amplitude upload rounding.
     for (std::size_t c = 0; c < numerical.size(); ++c)
-        EXPECT_NEAR(integrated[c], numerical[c], 2e-6);
+        EXPECT_NEAR(linear_deviation(integrated[c]), numerical[c], 2e-6);
 }
 
-TEST(ScintillationTest, ExposurePartitionsHaveTheSameTimeWeightedAverage)
+TEST(ScintillationTest, ExposurePartitionsPreserveTheLinearSignalAverage)
 {
     const AnimationKey key{819, 1};
     const auto whole = sample_twinkle(key, scintillation_frame(2, 0.05), 0);
     const auto left = sample_twinkle(key, scintillation_frame(1.975, 0.025), 0);
     const auto right = sample_twinkle(key, scintillation_frame(2, 0.025), 0);
     for (std::size_t c = 0; c < whole.size(); ++c)
-        EXPECT_NEAR(whole[c], (left[c] + right[c]) / 2, 2e-7);
+        EXPECT_NEAR(
+            linear_deviation(whole[c]),
+            (linear_deviation(left[c]) + linear_deviation(right[c])) / 2, 2e-7);
 }
 
 TEST(ScintillationTest, StartupExposureIsClippedToAnimationOrigin)
@@ -132,16 +145,11 @@ TEST(ScintillationTest, StartupExposureIsClippedToAnimationOrigin)
         EXPECT_NEAR(instant[c], tiny[c], 1e-7);
 }
 
-TEST(ScintillationTest, FinitePositiveMultipliersRespectAbsoluteAmplitudeBound)
+TEST(ScintillationTest, FinitePositiveMultipliersRespectTheBoundedResponse)
 {
-    const TwinkleSettings settings;
     for (double seconds : {0.0, 0.125, 7.75, 4096.5, 1e12})
     {
         const auto frame = scintillation_frame(seconds, 1.0 / 60);
-        const auto bound = settings.strength *
-            std::accumulate(frame.begin(), frame.end(), 0.0,
-                            [](double sum, const auto& band)
-                            { return sum + std::abs(band[1]); });
         for (std::uint32_t id = 0; id < 64; ++id)
             for (double elevation : {0.0, 0.5, 1.0})
                 for (double multiplier :
@@ -149,8 +157,8 @@ TEST(ScintillationTest, FinitePositiveMultipliersRespectAbsoluteAmplitudeBound)
                 {
                     EXPECT_TRUE(std::isfinite(multiplier));
                     EXPECT_GT(multiplier, 0);
-                    EXPECT_GE(multiplier, 1 - bound);
-                    EXPECT_LE(multiplier, 1 + bound);
+                    EXPECT_GE(multiplier, 1 - 0.9);
+                    EXPECT_LE(multiplier, 1 + 0.9);
                 }
     }
 }
@@ -164,7 +172,8 @@ TEST(ScintillationTest, CommonSignalRetainsHorizonDependence)
     const auto zenith = sample_twinkle({81, 9}, frame, 1, settings);
     EXPECT_NE(horizon[0], 1);
     for (std::size_t c = 0; c < horizon.size(); ++c)
-        EXPECT_NEAR(zenith[c] - 1, settings.zenith_fraction * (horizon[c] - 1),
+        EXPECT_NEAR(linear_deviation(zenith[c]),
+                    settings.zenith_fraction * linear_deviation(horizon[c]),
                     1e-15);
     settings.zenith_fraction = 0;
     EXPECT_EQ(sample_twinkle({81, 9}, frame, 1, settings),
@@ -209,8 +218,8 @@ TEST(ScintillationTest,
             EXPECT_FALSE(valid_twinkle_settings(settings));
         }
     settings = {};
-    settings.strength = 0.5; // L1 positivity bound rejects even sub-unit RMS.
-    EXPECT_FALSE(valid_twinkle_settings(settings));
+    settings.strength = 1; // The bounded response guarantees positive light.
+    EXPECT_TRUE(valid_twinkle_settings(settings));
 }
 
 TEST(AnimationClockTest, PictureModeFreezesTimeAndExposureWithoutRestarting)
@@ -275,4 +284,20 @@ TEST(AnimationClockTest, LargeTimeStillAdvancesAndProducesFiniteReducedPhases)
         EXPECT_TRUE(std::isfinite(band[1]));
         EXPECT_TRUE(std::isfinite(band[2]));
     }
+}
+
+TEST(ScintillationTest, ApprovedBaselineUsesTheSelectedBoundedResponse)
+{
+    msc::core::appearance::ScintillationFrame frame{};
+    constexpr AnimationKey key{0, 0};
+    const auto offset = double(hash_noise(key, 719) >> 8U) / 16777216.0;
+    frame[0] = {static_cast<float>(-offset), 0.25F, 0};
+    const auto gain = sample_twinkle(key, frame, 0);
+    // A known 0.03 deviation maps to the approved baseline response.
+    for (const auto value : gain)
+        EXPECT_NEAR(value, 1 + 0.9 * std::tanh(1.0 / 3), 1e-12);
+    frame[0][1] = 1000;
+    const auto saturated = sample_twinkle(key, frame, 0);
+    for (const auto value : saturated)
+        EXPECT_DOUBLE_EQ(value, 1.9);
 }

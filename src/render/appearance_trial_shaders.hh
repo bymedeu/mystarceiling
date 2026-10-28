@@ -31,7 +31,9 @@ vec3 twinkle() {
         signal+=bands[i].y*cos(6.283185307179586*
                     (vec3(phase)+vec3(-delay,0.0,delay)));
     }
-    return vec3(1.0)+strength*factor*signal;
+    vec3 deviation=strength*factor*signal;
+    // Approved baseline response; not an exposure-integrated physical model.
+    return vec3(1.0)+0.9*tanh(10.0*deviation/0.9);
 }
 void main() {
     vec2 corner=vec2((gl_VertexID&1)==0 ? -1.0:1.0,

@@ -29,6 +29,6 @@ TEST(AppearanceSettingsTest, RejectsNonfiniteAndUnsupportedAllocationSizes)
     settings.width = 8192;
     EXPECT_FALSE(valid_trial_settings(settings));
     settings = {};
-    settings.twinkle.strength = 1;
+    settings.twinkle.strength = 1.01;
     EXPECT_FALSE(valid_trial_settings(settings));
 }

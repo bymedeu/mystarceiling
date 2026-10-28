@@ -15,7 +15,8 @@ namespace msc::core::appearance
     // Internal visual-trial coefficients, not calibrated observing conditions.
     struct TwinkleSettings
     {
-        double strength{0.12}; // Unaveraged horizon RMS of each channel.
+        double strength{
+            0.12}; // Linear signal scale before the bounded response.
         double zenith_fraction{0.25};
         double colour_delay{
             0.0015}; // Adjacent-channel delay at horizon, seconds.
@@ -36,7 +37,8 @@ namespace msc::core::appearance
     [[nodiscard]] ScintillationFrame
     scintillation_frame(double seconds, double exposure) noexcept;
     // Pure CPU reference for the shader. Requires valid settings, a frame made
-    // above, and a finite elevation sine. Returns positive, mean-one gains.
+    // above, and a finite elevation sine. Applies the approved bounded visual
+    // response after signal averaging; gains stay between 0.1 and 1.9.
     [[nodiscard]] std::array<double, 3>
     sample_twinkle(AnimationKey, const ScintillationFrame&,
                    double sine_elevation, const TwinkleSettings& = {}) noexcept;

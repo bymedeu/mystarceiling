@@ -2,7 +2,9 @@
 
 #include "appearance_trial_private.hh"
 
+#include <chrono>
 #include <exception>
+#include <thread>
 #include <utility>
 
 namespace msc::render
@@ -35,6 +37,10 @@ namespace msc::render
                     return result;
                 glfwSwapBuffers(window.handle);
                 glfwPollEvents();
+                const auto spare = 1.0 / 60 - (glfwGetTime() - current);
+                if (spare > 0)
+                    std::this_thread::sleep_for(
+                        std::chrono::duration<double>(spare));
             }
             return {};
         }

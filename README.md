@@ -104,8 +104,9 @@ scintillation, soft glow and tapered rays. Space freezes/resumes picture mode;
 Escape closes the window, and resizing remains available. There are no
 appearance-tuning CLI options or settings. Both `--appearance-trial` and
 `--animation-trial` flags are rejected before configuration or launch side effects.
-The owner provisionally accepted the algorithm as good for now; the preferred
-4–6× amplified preview remains a separate, unimplemented numerical choice.
+The owner accepted the stronger native comparison as the default on 2026-10-28.
+It is now the ×1 baseline, with a 60 fps ceiling; comparison controls and guides
+are removed.
 See the [viewer model and limits](docs/decisions/stellar-appearance-trial.md).
 The former static M1 rendering is
 [historical evidence](docs/milestones/m1-fixed-toulouse-sky.md).

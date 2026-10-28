@@ -155,9 +155,9 @@ selected. Device output remains direction for design discussion.
 
 The ordinary viewer uses the fixed Toulouse/time geometry with prepared
 RGB8 colour, limiting magnitude 6, scintillation, glow and unequal rays.
-The owner provisionally accepted the animation algorithm as good for now and
-requested its promotion to plain `msc view`; the preferred 4–6× preview
-amplification remains unimplemented. See the
+The owner requested promotion to plain `msc view` and subsequently accepted
+the stronger native comparison as the new ×1 baseline, with a 60 fps ceiling.
+Temporary comparison controls and guides are removed. See the
 [viewer model and acceptance](stellar-appearance-trial.md). Events, camera/time
 controls and hardware output remain future work. See [project state](../project-state.md) and
 [application controls](application-controls.md) for existing behavior and plans.

@@ -34,8 +34,9 @@ is the canonical record of the current approximations and remaining design detai
 - [x] Promote the [animated viewer](decisions/stellar-appearance-trial.md) to plain
   `msc view`, removing the experimental flag and static alternative. The owner
   provisionally accepted the algorithm as good for now on 2026-10-28.
-- [ ] Discuss the preferred 4–6× amplified preview as a separate numerical choice;
-  it was post-processing and is not implemented. Current coefficients stay fixed.
+- [x] Adopt the owner-approved stronger native comparison as the ×1 baseline,
+  with a bounded visual response and 60 fps ceiling. Remove temporary comparison
+  controls and guides; see the [current model](decisions/stellar-appearance-trial.md).
 - [ ] With the provisional reference recorded, profile increasingly large animated
   workloads,
   including a million-source case where feasible. Measure frame time, memory,

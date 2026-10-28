@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <numbers>
-#include <numeric>
 
 namespace msc::core::appearance
 {
@@ -43,13 +42,6 @@ namespace msc::core::appearance
             return value;
         }
 
-        double peak_bound() noexcept
-        {
-            return std::accumulate(spectrum().begin(), spectrum().end(), 0.0,
-                                   [](double sum, const auto& band)
-                                   { return sum + band[1]; });
-        }
-
         double box_average(double frequency, double exposure) noexcept
         {
             const auto x = std::numbers::pi * frequency * exposure;
@@ -76,7 +68,7 @@ namespace msc::core::appearance
     bool valid_twinkle_settings(const TwinkleSettings& settings) noexcept
     {
         return nonnegative_finite(settings.strength) &&
-            settings.strength * peak_bound() < 0.99 &&
+            settings.strength <= 1 &&
             nonnegative_finite(settings.zenith_fraction) &&
             settings.zenith_fraction <= 1 &&
             nonnegative_finite(settings.colour_delay) &&
@@ -114,7 +106,7 @@ namespace msc::core::appearance
         const auto horizon = 1 - std::clamp(sine_elevation, 0.0, 1.0);
         const auto factor = settings.zenith_fraction +
             (1 - settings.zenith_fraction) * horizon * horizon;
-        std::array<double, 3> result{1, 1, 1};
+        std::array<double, 3> result{};
         for (std::size_t index = 0; index < frame.size(); ++index)
         {
             const auto& band = frame[index];
@@ -126,9 +118,14 @@ namespace msc::core::appearance
             const auto phase = tau * (band[0] + offset);
             const auto delay = tau * band[2] * settings.colour_delay * horizon;
             for (std::size_t channel = 0; channel < result.size(); ++channel)
-                result[channel] += settings.strength * factor * band[1] *
+                result[channel] += band[1] *
                     std::cos(phase +
                              (static_cast<double>(channel) - 1) * delay);
+        }
+        for (auto& signal : result)
+        {
+            const auto deviation = settings.strength * factor * signal;
+            signal = 1 + 0.9 * std::tanh(10 * deviation / 0.9);
         }
         return result;
     }

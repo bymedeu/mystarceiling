@@ -109,8 +109,10 @@ requested that plain `msc view` always show it. The experimental flag and static
 renderer are removed. Existing coefficients, limiting magnitude 6, RGB8 and
 fixed Toulouse/time geometry are preserved. Space freezes/resumes the picture,
 Escape closes it, and resize remains available. No configuration migration or
-catalogue rebuild is needed. The preferred 4–6× amplified preview remains a
-separate, unimplemented numerical choice.
+catalogue rebuild is needed. Later that day the owner accepted the stronger
+native comparison as the default: it is now the ×1 baseline, with a bounded
+response after signal averaging and a 60 fps ceiling. Temporary comparison
+controls and guides are removed.
 
 This is provisional acceptance, not M2 closeout or a million-source performance
 result. See the [viewer record](../decisions/stellar-appearance-trial.md) for
