@@ -41,21 +41,21 @@ in brightness order; quantity caps loaded records before visibility and display
 filtering, as specified in application controls. It bounds
 workload size, without solving scaling or establishing that a million sources
 have been processed efficiently. Nested 4096, 65536, 262144 and 1048576
-sizes are measurement cases, not a requirement to show every star. M4 must still
-measure the actual million-source CPU pipeline and bounded preparation.
+sizes are examples, not mandatory gates or a requirement to show every star.
+M2.5 establishes the benchmarking suite; M4 applies it to high-usage workloads and
+bounded-memory preparation/runtime, including former M7's larger-catalogue scope.
 
-Basic useful inspection/projection may be included where agreed. Click-to-inspect
-and screenshot export are optional; camera exploration is secondary and its
-extent remains open. Camera and astronomical time are independent; M3 supplies
-validated observer/time behavior. Reuse appropriate coordinate math only where
-justified. The M1 pattern mismatch is low priority per owner; no new comparison
-or accuracy claim was made.
+Owner revision, 2026-10-28: camera movement and zoom belong to M3 alongside
+validated observer/time controls. Click-to-inspect and screenshot export remain
+optional and unimplemented. Camera orientation and astronomical time are
+independent. The current constellation crop does not authorize changing geometry
+within M2. M2.5 benchmarking follows M2, then M2.6 documentation before M3.
 
 ## Current part-1 implementation
 
 Part 1 includes build/info and the configured viewer. Its existing catalogue
-controls remain unchanged by the initial part-2 colour path below. Camera extent
-and later acceptance evidence stay for their respective discussions.
+controls remain unchanged by the initial part-2 colour path below. Camera work
+is assigned to M3; later acceptance evidence stays for its own discussion.
 
 `msc view` now consumes an existing binary through the quantity-aware reader,
 using complete TOML configuration, temporary CLI overrides and scoped spdlog

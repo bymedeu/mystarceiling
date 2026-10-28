@@ -219,8 +219,9 @@ scene already has paused time.
 
 The [revised roadmap](../../README.md#milestones) estimates M2 at 2026-12-13
 and M3 at 2027-02-28; scope remains to discuss. Camera exploration is secondary
-and its M2 extent remains open. Location, full date/time input and astronomical
-time progression remain M3 work. Camera orientation and astronomical time are
+and is assigned to M3 by the owner on 2026-10-28, including movement and zoom.
+Location, full date/time input and astronomical time progression also remain
+M3 work. Camera orientation and astronomical time are
 independent; share appropriate coordinate mathematics where justified without
 forcing a universal implementation.
 

@@ -19,20 +19,19 @@ the pre-refactor writer.
 
 ## Current planning baseline
 
-Owner-constrained planning estimates, revised 2026-10-18: M2 2026-12-13;
-M3 validated observer/time 2027-02-28; M4 measured million-source CPU and
-bounded-memory preparation baseline 2027-04-25; M5 profile-guided CPU work,
-output boundary and evidence 2027-06-27; clean release gate 2027-08-31.
-Availability decreases January–February 2027; July–August is buffer/hardening.
-Reduce optional scope before correctness/evidence. M6–M9 are conditional backlog:
-at most one optional extension September–December 2027, no mandatory 2028 dates.
-These capacity assumptions approve documentation only; full scope remains to discuss.
-See the [canonical roadmap](../README.md#milestones) and
-[approved M2 sequence](milestones/m2-ceiling-appearance.md#approved-sequence) and
-[part-1 controls/configuration](decisions/application-controls.md). Implementation
-of later parts remains subject to their own design discussion. A dedicated
-[project-documentation phase](todo.md#documentation-phase-between-m2-and-m3) is
-planned after M2 and before M3; no tooling or separate date is selected.
+The [README roadmap](../README.md#milestones) is canonical. Owner revision,
+2026-10-28: M2.5 benchmarking precedes M2.6 documentation; camera movement/zoom
+belongs to M3. M4 now covers high-usage measurement and optimization without a
+mandatory million-source gate, including former M7's larger-catalogue concerns.
+M8 is discrete objects; M9 has four optional parts for JSON-driven synthetic skies
+and customization, long exposure, illumination, and clouds. Optional extensions
+remain conditional; the changed scope has no recalculated schedule.
+The [M2.5 record](milestones/m2-5-benchmarking.md) distinguishes accepted goals
+from the proposed measurement design. The standalone developer executable is
+accepted; it is not implemented. The [M2 sequence](milestones/m2-ceiling-appearance.md#approved-sequence)
+and [existing controls](decisions/application-controls.md) remain in effect.
+[M2.6 documentation](todo.md#documentation-phase-between-m2-and-m3) follows
+benchmarking and precedes M3; tooling remains to choose.
 Part 1 catalogue
 build/info and configured viewing are implemented; the broader understanding
 checkpoint remains open.

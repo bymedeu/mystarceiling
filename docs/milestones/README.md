@@ -9,13 +9,13 @@ work starts.
 | --- | --- | --- |
 | M1 — Fixed Toulouse sky | Complete on 2026-09-13 | [M1 record](m1-fixed-toulouse-sky.md) |
 
-M2 is the active planning target: [focused plan](m2-ceiling-appearance.md),
-estimate 2026-12-13, scope to discuss. M3 2027-02-28, M4 2027-04-25,
-M5 2027-06-27 and clean release 2027-08-31 are capacity-based estimates.
-July–August is buffer/hardening; M6–M9 are conditional backlog, with at most
-one optional extension September–December 2027 and no mandatory 2028 dates.
-Lower availability starts January–February 2027. No scope or implementation
-approval follows from this planning summary.
+M2 remains active: [appearance/data plan](m2-ceiling-appearance.md).
+[M2.5 benchmarking](m2-5-benchmarking.md) follows, then M2.6 documentation before
+M3. Camera movement/zoom belongs to M3. M4 is high-usage measurement/optimization,
+including former M7; 1M is not a required gate. M6/M8/M9 remain conditional
+optional scope. See the canonical roadmap for existing estimates, which have not
+been recalculated for the owner's 2026-10-28 scope revision. No new architecture
+or implementation approval follows from milestone placement.
 
 The public [README roadmap](../../README.md#milestones) remains the canonical
 schedule. Project-wide policies and dated history remain in

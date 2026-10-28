@@ -86,62 +86,17 @@ implementation-status statements below are dated history; use
 - The owner directs requirements and important engineering decisions, and wants
   the assistant to teach, explain alternatives, and disagree when warranted.
 
-## Current planning baseline — revised 2026-10-18
+## Current planning baseline — revised 2026-10-28
 
-Dates below are **planning estimates**, revised on 2026-10-18 from owner
-capacity constraints: roughly alternating project weeks now, with significantly
-lower availability starting January–February 2027. They are capacity assumptions,
-not hourly estimates. Detailed scope remains **to discuss**, not implementation
-approval. Reduce optional scope before correctness or reproducible evidence.
-
-| Stage | Planning estimate | Intended evidence / scope to discuss |
-| --- | --- | --- |
-| M0 — Typed astronomy foundations | Existing foundations retained | Working typed path supporting M1; no new accuracy claim |
-| M1 — Fixed Toulouse sky | Completed 2026-09-13 | Working 4096-source catalogue-to-screen baseline |
-| M2 — Ceiling appearance and data controls | 2026-12-13 | Realistic-looking colour/brightness, modest glow, magnitude-first selection, proposed optional quantity cap, useful bounded inspection/projection |
-| M3 — Validated observer and time | 2027-02-28 | Declared model/range, independent validation, controlled astronomical progression |
-| M4 — Million-source CPU baseline | 2027-04-25 | Actually measured 1,048,576-source pipeline and bounded-memory preparation baseline |
-| M5 — Profile-guided CPU work and output boundary | 2027-06-27 | Justified improvements, explicit consumer boundary, reproducible before/after evidence |
-| Clean release gate | 2027-08-31 | Demonstrable, documented, tested portable CPU release; July–August buffer and hardening |
-
-The clean project must be demonstrable by September 2027. July–August is reserved
-for validation, documentation, usability, reproducibility and scope recovery,
-without new mandatory features. A quantity control bounds selected work; it does
-not eliminate measured million-source scaling work. Larger nested workloads are
-measurement cases, not a requirement to display every source.
-
-The **16 GB Linux laptop has no NVIDIA GPU** and is the core delivery target.
-The RTX 3060 belongs to a **separate Windows desktop**; Linux there is only a
-future possibility. CUDA must not block portable CPU delivery. No desktop access,
-CUDA installation or system change is assumed.
-
-M6–M9 retain ambitions as a **conditional optional backlog**, with no mandatory
-2028 dates and no committed milestones after December 2027. At most **one**
-extension may be selected for September–December 2027, according to evidence,
-capacity and owner priority; selecting none is valid:
-
-- **M6 — CUDA comparison:** only for a justified measured workload and available
-  separate desktop/setup; include transfer/synchronization costs and CPU agreement.
-- **M7 — Large-catalogue runtime:** measured out-of-core processing within bounded
-  RAM; acquisition of 134,217,728 rows is already complete, but loading/rendering
-  them simultaneously is not demonstrated. Chunking, mapping, indexing or streaming
-  remain candidates requiring approval, not selected architecture.
-- **M8 — Physical bodies:** Sun/Moon/planet geometry, illumination and validated
-  events, with declared ephemerides/range; independent optional scope.
-- **M9 — Advanced physical, procedural and photographic appearance:** deterministic
-  synthetic skies, meteors/Perseids, clouds and bounded exposure experiments remain
-  ambitions, not a mandatory feature count. A bounded visible-light long-exposure
-  prototype could be the single extension. Full infrared/spectral realism is not
-  promised by release or by current catalogue data.
-
-Camera orientation and astronomical time remain independent. Share appropriate
-coordinate mathematics where justified, without forcing one universal implementation.
-M2 camera extent remains open; observer/time validation belongs to M3. See the
-focused M2 plan and appearance/output decisions before discussing implementation.
-
-See [M2 planning](milestones/m2-ceiling-appearance.md) and
-[memory accounting](decisions/memory-accounting.md). The following original
-schedule is dated history and is superseded in its dates and mandatory scope.
+The [README roadmap](../README.md#milestones) is the canonical current scope and
+planning table. The owner added M2.5 benchmarking and M2.6 documentation, moved
+camera movement/zoom to M3, expanded M4 to high-usage measurement/optimization
+without a mandatory 1M gate and folded former M7 into it. M8 covers discrete
+objects; M9 is split into customization, long exposure, strong-source illumination
+and clouds. Optional work remains conditional, with no newly assigned dates.
+Existing dated estimates have not been recalculated for the changed scope.
+See the [M2.5 design](milestones/m2-5-benchmarking.md), [M2 planning](milestones/m2-ceiling-appearance.md)
+and [memory accounting](decisions/memory-accounting.md).
 
 ## Historical milestone schedule — approved 2026-09-11 (superseded)
 

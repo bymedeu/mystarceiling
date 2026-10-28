@@ -64,9 +64,10 @@ have not been measured here. See the [viewer model](stellar-appearance-trial.md)
 
 Framebuffer storage scales with pixel count; source records scale with catalogue
 count and simultaneous representations. Neither acquisition nor this arithmetic
-establishes that a 16 GB laptop can display the full catalogue. M4 still requires
-measured million-source CPU and memory evidence. Out-of-core processing remains
-later conditional scope.
+establishes that a 16 GB laptop can display the full catalogue. M2.5 establishes
+repeatable measurement; M4 investigates high usage and bounded memory without a
+fixed million-source gate. Former M7's larger-catalogue concerns now belong to
+M4; out-of-core techniques remain conditional responses to measured limits.
 
 The owner accepted compact prepared colour with source CSVs retained offline.
 See [colour assumptions](stellar-colour.md),

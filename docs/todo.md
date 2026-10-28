@@ -6,15 +6,16 @@ implementation tooling.
 
 ## Documentation phase between M2 and M3
 
-- [ ] Create coherent project documentation after M2 and before beginning M3.
+- [ ] Complete M2.6 project documentation after M2.5 benchmarking and before M3.
   Consolidate the working setup/build instructions, CLI/configuration usage,
   catalogue preparation and data conventions, core/rendering boundaries, and
   accepted approximation limits. Use the implemented M2 behaviour as the baseline.
 - [ ] Agree the documentation structure and publishing/tooling approach during
   that phase. No Doxygen, MkDocs, hosting or other framework is selected yet.
 
-This is a dedicated documentation pass, without a separate assigned date or
-changes to the existing milestone estimates. Focused decision records and basic
+This is M2.6, a dedicated documentation pass without a separately assigned date.
+The revised scope has not been used to recalculate the existing dated estimates.
+Focused decision records and basic
 usage instructions continue to be maintained while M2 is implemented.
 
 ## Later accuracy work
@@ -37,12 +38,12 @@ is the canonical record of the current approximations and remaining design detai
 - [x] Adopt the owner-approved stronger native comparison as the ×1 baseline,
   with a bounded visual response and 60 fps ceiling. Remove temporary comparison
   controls and guides; see the [current model](decisions/stellar-appearance-trial.md).
-- [ ] With the provisional reference recorded, profile increasingly large animated
-  workloads,
-  including a million-source case where feasible. Measure frame time, memory,
-  visible/source counts and covered pixels; separate signal evaluation from
-  rasterization/blending costs. Current arithmetic and small-catalogue tests do
-  not establish million-source throughput.
+- [ ] Build the accepted separate developer executable in [M2.5](milestones/m2-5-benchmarking.md),
+  with operation, pipeline, memory and rendering measurements, scaling curves and
+  reproducible comparisons. Measure loaded/submitted/visible counts separately.
+- [ ] Use and extend that suite in M4 for high usage and measured optimization.
+  Workload size is not fixed at 1M; former M7 is folded into M4. Preserve bounded
+  memory and the accepted appearance when increasing workload.
 - [ ] Compare any selected optimization against the accepted reference, preserving
   deterministic phase, frame averaging, colour, combined faint light and edge
   contributions. No new culling, tier or caching strategy is selected here.
@@ -73,3 +74,19 @@ is the canonical record of the current approximations and remaining design detai
   within a separately agreed accuracy scope. Current fit limits, probabilistic
   matches and normal capacity truncation remain explicit limitations. This repair
   does not close the catalogue-understanding checkpoint or M2.
+
+## Camera and perceived colour
+
+- [ ] Implement camera movement and zoom during M3, with declared projection and
+  orientation; keep camera motion independent of astronomical time.
+- [ ] Discuss magnitude-dependent perceived-colour reduction for the naked-eye
+  view. Preserve baseline catalogue RGB; avoid baking observer perception into
+  the binary. Thresholds/model are not selected and implementation is not approved.
+
+## Optional extensions
+
+M8 and M9 are now scoped in the [canonical roadmap](../README.md#milestones).
+M9.1 covers deterministic synthetic JSON and a separate behavior/settings JSON
+contract, M9.2 long exposure, M9.3 strongly affecting illumination, and M9.4 clouds.
+M8 covers planets, satellites and ordinary meteors/shooting stars. JSON schemas,
+data providers, illumination models and optional scheduling remain to discuss.

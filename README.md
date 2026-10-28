@@ -266,51 +266,65 @@ lower availability starting January–February 2027. They are capacity assumptio
 not hourly estimates. Detailed scope remains **to discuss**, not implementation
 approval. Reduce optional scope before correctness or reproducible evidence.
 
+The owner revised milestone scope on 2026-10-28. The existing dated estimates
+below have not been recalculated for that revision; M2.5 and M2.6 have no assigned
+dates. Scope and acceptance criteria still need their focused discussions.
+
 | Stage | Planning estimate | Intended evidence / scope to discuss |
 | --- | --- | --- |
 | M0 — Typed astronomy foundations | Existing foundations retained | Working typed path supporting M1; no new accuracy claim |
 | M1 — Fixed Toulouse sky | Completed 2026-09-13 | Working 4096-source catalogue-to-screen baseline |
-| M2 — Ceiling appearance and data controls | 2026-12-13 | Realistic-looking colour/brightness, modest glow, Hipparcos-first catalogue preparation, quantity control, useful bounded inspection/projection |
-| Project documentation | After M2, before M3; no separate date assigned | Consolidated usage, development and model-limit documentation; [todo list](docs/todo.md#documentation-phase-between-m2-and-m3) |
-| M3 — Validated observer and time | 2027-02-28 | Declared model/range, independent validation, controlled astronomical progression |
-| M4 — Million-source CPU baseline | 2027-04-25 | Actually measured 1,048,576-source pipeline and bounded-memory preparation baseline |
-| M5 — Profile-guided CPU work and output boundary | 2027-06-27 | Justified improvements, explicit consumer boundary, reproducible before/after evidence |
+| M2 — Ceiling appearance and data controls | 2026-12-13 | Prepared RGB8/J2016 data, Hipparcos-first catalogue workflow, magnitude-driven light, accepted glow/scintillation and remaining bounded closeout |
+| M2.5 — Benchmarking and regression evidence | After M2; date unassigned | Separate developer executable; operation, pipeline and rendering costs, memory/scaling curves, reproducible before/after comparisons and image correctness |
+| M2.6 — Project documentation | After M2.5, before M3; date unassigned | Consolidated usage, development, data/model conventions and benchmark methodology |
+| M3 — Observer, time and camera | 2027-02-28 | Validated observer/time behavior, astronomical progression, camera movement and zoom with declared projection/orientation |
+| M4 — High-usage measurement and optimization | 2027-04-25 | Increasing real and controlled stress workloads, bounded-memory preparation/runtime, profiles and measured improvements; no mandatory 1M target |
+| M5 — Profile-guided work and output boundary | 2027-06-27 | Reusable consumer boundary and consolidation; remaining optimization scope to agree after M4 |
 | Clean release gate | 2027-08-31 | Demonstrable, documented, tested portable CPU release; July–August buffer and hardening |
 
 The clean project must be demonstrable by September 2027. July–August is reserved
 for validation, documentation, usability, reproducibility and scope recovery,
-without new mandatory features. A quantity control bounds selected work; it does
-not eliminate measured million-source scaling work. Larger nested workloads are
-measurement cases, not a requirement to display every source.
+without new mandatory features. M2.5 establishes the measurement tools; M4 uses
+and extends them to investigate high usage and optimize measured bottlenecks.
+One million stars is a useful possible case, not a minimum, maximum or milestone
+gate. Dataset size, visibility, overlap, resolution, frame rate and memory budget
+all define workload difficulty. Exact workload ceilings remain to be measured.
 
 The **16 GB Linux laptop has no NVIDIA GPU** and is the core delivery target.
 The RTX 3060 belongs to a **separate Windows desktop**; Linux there is only a
 future possibility. CUDA must not block portable CPU delivery. No desktop access,
 CUDA installation or system change is assumed.
 
-M6–M9 retain ambitions as a **conditional optional backlog**, with no mandatory
-2028 dates and no committed milestones after December 2027. At most **one**
-extension may be selected for September–December 2027, according to evidence,
-capacity and owner priority; selecting none is valid:
+**Former M7 is folded into M4**: larger-catalogue and bounded-memory questions
+belong to the same high-usage investigation. Chunking, mapping, indexing and
+streaming are possible responses to measured limits, not selected architecture
+or mandatory features. Acquiring 134,217,728 rows does not demonstrate their
+simultaneous loading/rendering.
 
-- **M6 — CUDA comparison:** only for a justified measured workload and available
-  separate desktop/setup; include transfer/synchronization costs and CPU agreement.
-- **M7 — Large-catalogue runtime:** measured out-of-core processing within bounded
-  RAM; acquisition of 134,217,728 rows is already complete, but loading/rendering
-  them simultaneously is not demonstrated. Chunking, mapping, indexing or streaming
-  remain candidates requiring approval, not selected architecture.
-- **M8 — Physical bodies:** Sun/Moon/planet geometry, illumination and validated
-  events, with declared ephemerides/range; independent optional scope.
-- **M9 — Advanced physical, procedural and photographic appearance:** deterministic
-  synthetic skies, meteors/Perseids, clouds and bounded exposure experiments remain
-  ambitions, not a mandatory feature count. A bounded visible-light long-exposure
-  prototype could be the single extension. Full infrared/spectral realism is not
-  promised by release or by current catalogue data.
+M6, M8 and the four M9 parts remain a **conditional optional backlog**, with no
+mandatory dates. At most one bounded extension may be selected for
+September–December 2027 according to evidence, capacity and owner priority;
+selecting none is valid. Splitting M9 describes scope, not four delivery promises.
 
-Camera orientation and astronomical time remain independent. Share appropriate
-coordinate mathematics where justified, without forcing one universal implementation.
-M2 camera extent remains open; observer/time validation belongs to M3. See the
-focused M2 plan and appearance/output decisions before discussing implementation.
+| Optional stage | Intended scope |
+| --- | --- |
+| M6 — CUDA comparison | Justified workload on available hardware, including transfers/synchronization and agreement with CPU results |
+| M8 — Discrete sky objects | Planets, ordinary meteors/shooting stars and satellites; optional explicitly refreshed tracking data, with provider/model still to choose |
+| M9.1 — Synthetic skies and customization | Deterministic skies from a documented custom JSON description; a distinct behavior/settings JSON contract for flicker, frame rate and other selected appearance controls |
+| M9.2 — Long exposure and photographic generation | Time-integrated light, camera/optics assumptions and bounded capture/generation modes; a brightness multiplier alone is not long exposure |
+| M9.3 — Illumination and strongly affecting objects | Moon and other strong sources whose light changes surrounding visibility; background/light-pollution and any solar scope still to agree |
+| M9.4 — Clouds | Cloud appearance and its effects on transmitted/received light, with bounded model and cost |
+
+Meteors and shooting stars name the same phenomenon. Ordinary trails belong to
+M8; unusually bright fireballs may need the illumination behavior in M9.3.
+The eventual coupling should depend on brightness and conditions, not a promise
+that every object of one kind has negligible effects. No coupling algorithm,
+JSON schema, ephemeris or satellite-data provider is selected here.
+
+Camera movement and zoom now belong to M3, alongside observer/time validation;
+camera orientation and astronomical time remain independent. Accepted model
+approximations continue to apply. Full infrared/spectral realism is not promised
+by the current catalogue or optional photographic scope.
 
 See the [M2 planning note](docs/milestones/m2-ceiling-appearance.md),
 [appearance/output decisions](docs/decisions/ceiling-product-output.md) and
