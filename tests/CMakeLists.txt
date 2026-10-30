@@ -51,5 +51,14 @@ if(MSC_ENABLE_OPENGL_TESTS)
     target_compile_definitions(mystarceiling_opengl_tests PRIVATE GLFW_INCLUDE_NONE)
     target_link_libraries(mystarceiling_opengl_tests PRIVATE
         mystarceiling_renderer_gl mystarceiling_core glfw msc_glad GTest::gtest_main)
-    gtest_discover_tests(mystarceiling_opengl_tests PROPERTIES LABELS opengl)
+    set(msc_opengl_test_properties LABELS opengl)
+    if(MSC_ENABLE_SANITIZERS AND
+       CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|i.86)$")
+        # Mesa's RTASM executable heap survives driver unload. Use its portable
+        # path only for headless sanitizer checks; keep leak detection enabled.
+        list(APPEND msc_opengl_test_properties
+            ENVIRONMENT "GALLIUM_OVERRIDE_CPU_CAPS=nosse")
+    endif()
+    gtest_discover_tests(mystarceiling_opengl_tests
+        PROPERTIES ${msc_opengl_test_properties})
 endif()
