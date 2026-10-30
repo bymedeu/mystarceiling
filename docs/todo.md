@@ -50,9 +50,13 @@ is the canonical record of the current approximations and remaining design detai
   deterministic phase, frame averaging, colour, combined faint light and edge
   contributions. No new culling, tier or caching strategy is selected here.
 
-- [ ] Retain a repeatable offscreen shader/core comparison, including signed
-  frame-averaging weights and freeze/resume; the existing GPU evidence came from
-  a temporary harness and is not covered by the checked-in CPU tests.
+- [x] Retain the offscreen shader/core and display regression checks for M2,
+  including signed frame-averaging weights, changing frames and freeze/resume.
+  Run the opt-in [headless renderer checks](../CONTRIBUTING.md#headless-renderer-regression-checks);
+  unsupported context providers are reported as skips, not validation passes.
+- [ ] Resolve the optional headless GLFW/Mesa leak-check limitation before
+  claiming leak-clean OpenGL validation on that provider stack; retain the
+  [standalone reproduction evidence](decisions/stellar-appearance-trial.md#retained-regression-checks--2026-10-30).
 - [ ] Revisit extreme-uptime phase/midpoint precision before claiming long-time
   averaging accuracy. The independent review found midpoint rounding at 1e12
   animation seconds; that is separate from astronomical epoch/time handling.

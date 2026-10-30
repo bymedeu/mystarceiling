@@ -39,3 +39,17 @@ endif()
 
 include(GoogleTest)
 gtest_discover_tests(mystarceiling_tests)
+
+option(MSC_ENABLE_OPENGL_TESTS "Enable developer headless OpenGL regression tests" OFF)
+if(MSC_ENABLE_OPENGL_TESTS)
+    add_executable(mystarceiling_opengl_tests
+        render/opengl_test_context.cc
+        render/opengl_star_light_tests.cc
+        render/opengl_pixels_tests.cc)
+    target_include_directories(mystarceiling_opengl_tests
+        PRIVATE ${PROJECT_SOURCE_DIR}/src/render)
+    target_compile_definitions(mystarceiling_opengl_tests PRIVATE GLFW_INCLUDE_NONE)
+    target_link_libraries(mystarceiling_opengl_tests PRIVATE
+        mystarceiling_renderer_gl mystarceiling_core glfw msc_glad GTest::gtest_main)
+    gtest_discover_tests(mystarceiling_opengl_tests PROPERTIES LABELS opengl)
+endif()

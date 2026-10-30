@@ -34,7 +34,7 @@ endif()
 option(MSC_WARNINGS_AS_ERRORS "Treat first-party warnings as errors" OFF)
 foreach(msc_target IN ITEMS mystarceiling_core mystarceiling_catalogue
             mystarceiling_m1 mystarceiling_launch mystarceiling_cli mystarceiling_renderer_gl
-            mystarceiling_tests)
+            mystarceiling_tests mystarceiling_opengl_tests)
     if(TARGET ${msc_target})
         if(MSC_WARNINGS_AS_ERRORS)
             target_compile_options(${msc_target} PRIVATE

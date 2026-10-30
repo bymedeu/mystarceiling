@@ -6,8 +6,9 @@ On 2026-10-28 they provisionally accepted the algorithm as good for now and
 requested promotion to the real viewer. Later that day the owner accepted the
 stronger native comparison as the default and renamed it the **×1 baseline**.
 Temporary comparison selectors, guides and magnifiers are removed. Catalogue
-colours were accepted separately. This is not final M2 closeout or physical
-calibration. The historical filename is retained for existing links.
+colours were accepted separately. The implemented scope's later engineering
+closeout is recorded below; physical calibration and demonstrated owner mastery
+are not claimed. The historical filename is retained for existing links.
 
 ## Run
 
@@ -151,8 +152,9 @@ review. It identified two follow-ups: forming the midpoint before phase reductio
 loses precision at extreme elapsed times (about 32.55 microseconds at `t=1e12`,
 `dt=1/60`), and the temporary GPU harness is not retained in the repository.
 CPU/GPU agreement at that time does not establish accurate long-time averaging.
-No impact on ordinary viewing was demonstrated; these remain numerical and
-regression-coverage limits, not calibration or scale evidence.
+No impact on ordinary viewing was demonstrated. The retained checks below
+address the missing harness; extreme-uptime precision remains a numerical limit,
+not calibration or scale evidence.
 
 Work is bounded per source but repeats across quad vertices; cosine/hash work,
 covered pixels, blending and source count can dominate at scale. No million-source
@@ -164,6 +166,49 @@ Zone contribution bounds and full/compact profiles remain approved design
 direction, not implemented optimizations. Combined faint light, flicker peaks,
 phase and offscreen contributions must survive any later selection. Moon/cloud
 and photographic models remain later work.
+
+## Retained regression checks — 2026-10-30
+
+The developer-only `MSC_ENABLE_OPENGL_TESTS` target now retains six checks.
+They use the production instance upload, shaders and draw functions, without
+new viewer controls or changed appearance coefficients. See the
+[run instructions](../../CONTRIBUTING.md#headless-renderer-regression-checks).
+
+Coverage includes CPU/shader light before tone mapping for every quad vertex,
+independent identity keys/elevations, 1/60- and 1/30-second exposure, longer
+intervals with negative averaging coefficients, and startup clipping. Pixel
+checks verify RGB8 linearity, additive overlap before compression, one sRGB
+encoding, changing 30 Hz frames, the installed Space callback and exact picture
+freeze/resume, magnitude cutoff, retained offscreen edge light, and floating
+attachment/viewport resize inside a fixed pbuffer. That last check does not
+establish native-window resize behavior.
+
+Verification on 2026-10-30:
+
+| Check | Result |
+| --- | --- |
+| Ordinary warning-as-error build and CTest | 224 passed: 218 existing plus six OpenGL; no skips |
+| Existing tests with ASan/UBSan and leak detection | All 218 passed |
+| Optional OpenGL assertions with ASan/UBSan | All six passed; process exit still fails leak detection as described below |
+| Offline Python tests | All 35 passed |
+| Formatting, cppcheck, Lizard and whitespace | Passed |
+
+Ordinary GPU-path checks used llvmpipe (LLVM 23.1.1, 256 bits), OpenGL 4.6 Core,
+Mesa 26.2.4-arch1.1; a second run passed all six assertions on softpipe, OpenGL
+3.3 Core. These software-provider checks are not performance measurements or
+native-display/physical calibration.
+
+The optional leak-enabled headless runs report two indirect 56-byte allocations
+per created/drawn GLFW context after teardown (112 bytes per isolated CTest case;
+672 bytes when all six cases share one process invocation). The same report
+reproduced in a standalone GLFW null/EGL triangle draw with no MSC or GTest code,
+on both software renderers. A direct-EGL triangle draw was leak-free; explicit
+EGL thread release did not resolve the GLFW-path report. This localizes the
+reproduction to the external context/driver path but does not identify its exact
+allocation owner. No suppression, sanitizer disabling, vendor patch or hidden
+passing status was added. Full leak-clean headless validation remains unresolved
+on this provider stack; it must not be reported as a passing 224-test sanitizer
+suite. The standard default-OFF GPU option leaves existing checks unchanged.
 
 ## Scientific references
 

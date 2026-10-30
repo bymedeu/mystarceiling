@@ -111,3 +111,36 @@ Python tests, ASan/UBSan build/CTest, Lizard, cppcheck and final clang-format.
 Builds and analyzers check the proposed merge tree; commit policy checks PR
 commits. CI has no source write permission. Remote main protection requires PRs
 and the strict/up-to-date check, including admins; no bypass or history rewriting.
+
+## Headless renderer regression checks
+
+After configuring the ordinary quality build above, enable the developer-only
+OpenGL tests explicitly:
+
+```sh
+.quality-venv/bin/cmake -S . -B build/quality -DMSC_ENABLE_OPENGL_TESTS=ON
+.quality-venv/bin/cmake --build build/quality --target mystarceiling_opengl_tests --parallel 2
+EGL_PLATFORM=surfaceless LIBGL_ALWAYS_SOFTWARE=1 .quality-venv/bin/ctest --test-dir build/quality -L opengl --output-on-failure --no-tests=error
+```
+
+The option defaults to OFF and adds no viewer controls. These tests use the
+existing GLFW null platform and a system EGL/OpenGL 3.3 provider; Mesa's software
+renderer permits a run without a display or graphics-device access. No new
+download or bundled provider is introduced. An unavailable context is reported
+as a GTest skip with its reason; skipped tests do not establish GPU validation.
+Once a context is available, shader, allocation and assertion failures fail tests.
+The target receives the same first-party warning and sanitizer policy as the
+existing tests. On the recorded GLFW/Mesa stack, optional leak-enabled headless
+runs currently fail at process exit despite passing assertions; the
+[verification record](docs/decisions/stellar-appearance-trial.md#retained-regression-checks--2026-10-30)
+describes the standalone reproduction. Treat that as an unresolved platform
+limitation, not a clean sanitizer result; no suppression is installed.
+
+Checks exercise production shader code, compact instance upload, light
+accumulation and display drawing. They compare CPU/shader light before tone
+mapping, verify signed exposure weights, RGB8 linearity, additive overlap and
+single sRGB encoding, and check deterministic animation plus Space freeze/resume.
+The resize check covers floating attachment reallocation and viewport bounds
+inside a fixed EGL pbuffer, not native-window resize events. These are correctness
+checks, not benchmarks or physical calibration. Float comparisons allow shader
+precision differences; display comparisons allow framebuffer quantization.
