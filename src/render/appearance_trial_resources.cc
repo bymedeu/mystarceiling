@@ -1,3 +1,11 @@
+#include <GLFW/glfw3.h>
+#include <expected>
+#include <glad/gl.h>
+#include <mystarceiling/core/appearance/scintillation.hh>
+#include <mystarceiling/core/astronomy/linear_rgb8.hh>
+#include <mystarceiling/render/appearance_trial.hh>
+#include <span>
+#include <string>
 #include "appearance_trial_private.hh"
 #include "appearance_trial_shaders.hh"
 
@@ -5,7 +13,6 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
-#include <cstdint>
 #include <iterator>
 #include <limits>
 #include <vector>

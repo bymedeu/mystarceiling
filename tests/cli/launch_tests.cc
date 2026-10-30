@@ -19,7 +19,6 @@
 #include <mystarceiling/core/coordinates/right_ascension.hh>
 #include <mystarceiling/core/maths/angle.hh>
 #include <mystarceiling/core/time/reference_epoch.hh>
-#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>

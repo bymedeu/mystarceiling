@@ -1,4 +1,5 @@
 #include "config.hh"
+#include <cstddef>
 
 #include <algorithm>
 #include <charconv>

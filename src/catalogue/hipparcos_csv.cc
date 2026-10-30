@@ -20,7 +20,6 @@
 #include <mystarceiling/core/coordinates/right_ascension.hh>
 #include <mystarceiling/core/maths/angle.hh>
 #include <mystarceiling/core/time/reference_epoch.hh>
-#include <optional>
 #include <spdlog/spdlog.h>
 #include <string>
 #include <string_view>

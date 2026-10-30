@@ -1,4 +1,5 @@
-#include "cli/config.hh"
+#include <signal.h>
+#include <stdlib.h>
 #include "cli/launch.hh"
 #include "cli/m1_scene.hh"
 #include "launch_test_support.hh"
@@ -18,12 +19,9 @@
 #include <mystarceiling/core/astronomy/star.hh>
 #include <mystarceiling/core/astronomy/stellar_measurements.hh>
 #include <mystarceiling/core/coordinates/declination.hh>
-#include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/right_ascension.hh>
 #include <mystarceiling/core/maths/angle.hh>
-#include <mystarceiling/core/time/reference_epoch.hh>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <sys/resource.h>

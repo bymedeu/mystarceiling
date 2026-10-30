@@ -1,4 +1,6 @@
 #include "catalogue_commands.hh"
+#include <ios>
+#include "config.hh"
 
 #include <algorithm>
 #include <cerrno>

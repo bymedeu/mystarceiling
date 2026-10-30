@@ -1,4 +1,8 @@
+#include <GLFW/glfw3.h>
+#include <expected>
 #include <mystarceiling/render/appearance_trial.hh>
+#include <span>
+#include <string>
 
 #include "appearance_trial_private.hh"
 

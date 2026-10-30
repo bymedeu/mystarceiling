@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cmath>
 #include <expected>
-#include <mystarceiling/core/astronomy/linear_rgb8.hh>
 
 namespace msc::catalogue
 {

@@ -1,8 +1,8 @@
+#include <cstddef>
 #include <gtest/gtest.h>
 
 #include <array>
 #include <cmath>
-#include <cstdint>
 #include <limits>
 #include <mystarceiling/catalogue/stellar_colour.hh>
 #include <mystarceiling/core/astronomy/linear_rgb8.hh>

@@ -1,3 +1,9 @@
+#include <cstdint>
+#include <expected>
+#include <glad/gl.h>
+#include <mystarceiling/core/appearance/scintillation.hh>
+#include <mystarceiling/render/appearance_trial.hh>
+#include <string>
 #include "appearance_trial_private.hh"
 
 #include <algorithm>

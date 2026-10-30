@@ -4,7 +4,6 @@
 #include <mystarceiling/catalogue/catalogue_star.hh>
 #include <mystarceiling/core/appearance/scintillation.hh>
 #include <mystarceiling/core/astronomy/star.hh>
-#include <mystarceiling/core/coordinates/icrs_direction.hh>
 #include <mystarceiling/core/coordinates/icrs_to_enu.hh>
 #include <mystarceiling/core/coordinates/latitude.hh>
 #include <mystarceiling/core/coordinates/longitude.hh>
