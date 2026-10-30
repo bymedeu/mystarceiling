@@ -64,7 +64,8 @@ namespace msc::catalogue
             for (std::size_t index = 0; index < sizeof(Integer); ++index)
             {
                 stream.put(static_cast<char>(value & 0xffU));
-                value >>= 8U;
+                if constexpr (sizeof(Integer) > 1)
+                    value >>= 8U;
             }
         }
 
