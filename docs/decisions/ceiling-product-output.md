@@ -58,10 +58,14 @@ the initial coloured viewer:
   already exists in catalogue building; Gaia acquisition also filters missing
   fields and validates rows before writing the source archive.
 
-The binary holds stellar baselines. The view core derives working brightness and
-appearance from them; a presentation conversion supplies values to the simple
-UI. M2 starts with an ideal night sky. Light pollution, clouds and Sun/Moon effects
-remain later work rather than additional M2 requirements.
+The binary holds stellar baselines. Owner clarification, 2026-10-30: catalogue
+magnitude supplies the initial brightness/visibility input; the view may derive
+its own working light intensity and modify it as later effects are introduced.
+Preserve the original magnitude rather than rewriting it with those effects.
+This records the data flow, not a selected future visibility formula. A
+presentation conversion supplies values to the simple UI. M2 starts with an ideal
+night sky. Light pollution, clouds and Sun/Moon effects remain later work rather
+than additional M2 requirements.
 
 The owner accepts colour-conversion and motion-model approximation errors to
 keep M2 proportional to the star-ceiling objective. A calibration campaign or
@@ -95,7 +99,8 @@ The owner proposes reducing saturation toward grey as visibility decreases in
 the naked-eye view. This follows perceived visibility rather than catalogue
 magnitude alone. Preserve original catalogue RGB as the baseline and keep any
 perceptual treatment separate. No visibility algorithm, threshold or
-implementation is selected or approved.
+implementation is selected or approved. This remains a future appearance
+decision, rather than an unspecified extra M2 implementation requirement.
 
 ## Appearance, exposure and data limits
 
@@ -141,6 +146,16 @@ Multiple consumers/renderers need explicit output boundaries; no do-everything
 schema is selected. Cloud/display effects may adapt, degrade or be omitted
 according to consumer capability, resolution and geometry. Policy remains open;
 no arbitrary global dimension threshold is chosen.
+
+## Shared-animation candidate
+
+Owner clarification, 2026-10-30: a shared animation can start at a different
+state for each star. Deterministic starting offsets can avoid synchronized
+flicker without storing an independent animation per source. This is a candidate
+for measured comparison after M2, not an implemented optimization. Preserve RGB
+variation, horizon dependence, exposure behavior and the accepted appearance
+when evaluating it; a lookup trades arithmetic for memory accesses. No texture
+format, animation length or approximation tolerance is selected.
 
 ## Agent explanations and recommendations
 

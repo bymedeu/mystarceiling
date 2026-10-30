@@ -25,7 +25,8 @@ Preparation uses the following fixed, reproducible approximations:
 2. Hipparcos observed B-V uses Ballesteros's expression
    `T = 4600 * (1/(0.92*c+1.7) + 1/(0.92*c+0.62))`.
    Bound the appearance input to [-0.4, 2] to avoid singular extrapolation.
-   Every current 62-row supplement colour lies within these bounds.
+   Every colour in the original 62-row supplement lay within these bounds;
+   the expanded bright-range supplement uses the same documented clamping policy.
 3. Convert the surrogate temperature, bounded to 1000--40000 K, with the original
    Helland photographic temperature-to-sRGB fit. Its result is display-encoded;
    decode the standard sRGB transfer curve before rounding `255 * linear`.

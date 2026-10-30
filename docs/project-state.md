@@ -1,12 +1,15 @@
 # Current project state
 
-Last updated: 2026-10-28.
+Last updated: 2026-10-30.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
 
-M1 is complete on 2026-09-13. M2 — ceiling appearance and data controls —
-is the active planning target (estimate 2026-12-13; scope to discuss).
+M1 is complete on 2026-09-13. The implemented M2 appearance/data-control scope
+is engineering-validated; see its [closeout checklist](milestones/m2-ceiling-appearance.md#engineering-closeout--2026-10-30).
+Optional headless leak checking has an unresolved platform report; see the
+[verification limits](decisions/stellar-appearance-trial.md#retained-regression-checks--2026-10-30).
+The separate understanding checkpoint remains open. M3 benchmarking has not started.
 
 The first bounded M2 refactor separates source-independent
 `core::astronomy::Star` and its measurement wrappers from
@@ -133,8 +136,9 @@ spectral signal, correlated colour delays and spatial profile are preserved;
 the bounded response follows linear signal averaging. See the
 [viewer model](decisions/stellar-appearance-trial.md) for verification and limits.
 Optimization and million-source animation remain future measured work;
-zone/tier strategies are unimplemented. This promotion does not close M2 or the
-broader understanding checkpoint.
+zone/tier strategies are unimplemented. The subsequent [engineering closeout](milestones/m2-ceiling-appearance.md#engineering-closeout--2026-10-30)
+retains validation for the implemented scope; the broader understanding checkpoint
+remains open.
 
 The stronger ×1 baseline passes 218 C++ tests in ordinary and leak-enabled
 ASan/UBSan builds, formatting, cppcheck and Lizard. Its 100-frame offscreen crop
@@ -197,12 +201,11 @@ remains open.
 - classification taxonomy/bit allocation and future metadata layout;
 - richer native/derived photometry beyond the bounded runtime contract;
 - conflict reporting for otherwise usable source records;
-- whether magnitude layers first appear during M1 binary preparation or after
-  measuring the existing 4,096-row baseline;
-- remaining M2 appearance/control scope; camera movement/zoom belongs to M5;
+- whether magnitude/spatial layers are justified after M3 measures the baseline;
+- future appearance/control extensions; camera movement/zoom belongs to M5;
 - output geometry/projection, fixture mapping, transport and controller contract;
-- remaining appearance/brightness controls and visual acceptance; future-date
-  motion handling remains M5 work.
+- future perceived-colour/brightness controls and calibration; the accepted M2
+  viewer remains the reference. Future-date motion handling remains M5 work.
 
 Owner requirements and proposals are distinguished from agent explanations and
 implementation state in the [ceiling/output decision note](decisions/ceiling-product-output.md).

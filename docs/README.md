@@ -10,8 +10,8 @@ It is plain Markdown for now; Doxygen and MkDocs integration are deferred.
 - [Star ceiling and output boundaries](decisions/ceiling-product-output.md):
   current owner priorities, colour/cache proposal, camera/time distinction,
   device flexibility and unselected implementation choices.
-- [M2 planning](milestones/m2-ceiling-appearance.md): bounded appearance/data controls,
-  estimate and open scope; no implementation approval.
+- [M2 scope and engineering closeout](milestones/m2-ceiling-appearance.md):
+  implemented appearance/data controls, retained checks and remaining limits.
 - [M3 benchmarking](milestones/m3-benchmarking.md): accepted measurement goals,
   proposed suite and implementation boundaries.
 - [Project todo list](todo.md#m4-project-documentation): M4 documentation after M3

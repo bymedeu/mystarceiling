@@ -91,9 +91,10 @@ display/window. A real 4096-record build retained 62 Hipparcos and 4034 Gaia sta
 exact source magnitude values, complete RGB and J2016 positions. No full archive
 benchmark, new cross-match or owner visual acceptance is claimed.
 
-This does not complete all colour/brightness controls or M2: appearance review,
-remaining controls and glow/subtle animation still need their respective scope
-and acceptance discussions. See [appearance/output boundaries](../decisions/ceiling-product-output.md),
+At that stage appearance review, remaining controls and glow/subtle animation
+still needed their respective scope and acceptance discussions. The animated
+viewer and engineering closeout below supersede that historical implementation
+status. See [appearance/output boundaries](../decisions/ceiling-product-output.md),
 [application controls](../decisions/application-controls.md) and
 [updated record sizes](../decisions/memory-accounting.md).
 
@@ -114,8 +115,39 @@ native comparison as the default: it is now the ×1 baseline, with a bounded
 response after signal averaging and a 30 fps ceiling. Temporary comparison
 controls and guides are removed.
 
-This is provisional acceptance, not M2 closeout or a million-source performance
-result. See the [viewer record](../decisions/stellar-appearance-trial.md) for
+This promotion was provisional acceptance, before the engineering closeout below;
+it was not a million-source performance result. See the
+[viewer record](../decisions/stellar-appearance-trial.md) for
 model details, verification and limits, and the [follow-up list](../todo.md#animation-validation-and-scaling)
 for later measurement and review. Proposed zone/full/compact strategies remain
 unimplemented.
+
+## Engineering closeout — 2026-10-30
+
+The owner requested finishing M2 before proceeding. The implemented scope is the
+configured catalogue/view workflow, prepared RGB8/J2016 records, repaired bright
+source coverage, and the accepted animated native viewer at the ×1 response and
+30 fps ceiling. No new tuning controls or appearance model are part of closeout.
+
+- [x] Catalogue build/info, temporary CLI overrides, exact capacity, missing
+  destination-parent creation, failure preservation and prefix validation have
+  retained integration coverage.
+- [x] Both source parsers prepare RGB8 and common-epoch positions while preserving
+  the separate magnitude baseline and documenting approximation limits.
+- [x] The owner accepted the native animation; comparison controls/static fallback
+  are removed. Picture freeze/resume and resize remain supported.
+- [x] Retain optional headless OpenGL checks against the production shaders and
+  draw path, covering CPU/shader agreement, signed exposure weights, animated
+  frame changes, freeze/resume, additive light, display encoding and resizing.
+- [x] Run the quality checks and record the current verification evidence in the
+  [viewer record](../decisions/stellar-appearance-trial.md#retained-regression-checks--2026-10-30).
+
+No additional M2 code is selected by the remaining appearance-control ideas.
+Perceived-colour desaturation still needs a selected model. Camera/time work is
+M5; shared-animation alternatives and performance evidence belong to M3/M6.
+Calibration, physical realism and extreme-uptime accuracy are not claimed.
+
+The implemented scope has retained engineering validation, with the optional
+headless leak-check limitation explicit in the viewer record. This does not close
+the separate [understanding checkpoint](../project-state.md#required-understanding-checkpoint)
+or claim demonstrated owner mastery. M3 has not started.

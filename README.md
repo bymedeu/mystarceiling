@@ -126,10 +126,11 @@ The former positional source-building launcher has been removed.
 The current binary uses RGB8 colour and J2016 positions. Rebuild older binaries
 with `msc catalogue build --force`; original source files and settings remain
 unchanged. See the [colour model and accepted limits](docs/decisions/stellar-colour.md).
-M1 remains complete; M2 part 1 and initial colour preparation/display are implemented,
-and the broader
+M1 remains complete. The [M2 implemented scope and engineering closeout](docs/milestones/m2-ceiling-appearance.md#engineering-closeout--2026-10-30)
+cover catalogue controls, prepared data and the accepted animated viewer, with
+retained regression checks. The broader
 [owner-understanding checkpoint](docs/project-state.md#required-understanding-checkpoint)
-remains open.
+remains open; M3 benchmarking has not started.
 
 Root options `--config`, `--log-file` and `--log-level` also work after subcommands.
 `build` accepts `--gaia`, `--hipparcos`, `--catalogue`, `--capacity` and `--force`;
@@ -273,7 +274,7 @@ acceptance criteria still need their focused discussions.
 | --- | --- | --- |
 | M0 — Typed astronomy foundations | Existing foundations retained | Working typed path supporting M1; no new accuracy claim |
 | M1 — Fixed Toulouse sky | Completed 2026-09-13 | Working 4096-source catalogue-to-screen baseline |
-| M2 — Ceiling appearance and data controls | 2026-12-13 | Prepared RGB8/J2016 data, Hipparcos-first catalogue workflow, magnitude-driven light, accepted glow/scintillation and remaining bounded closeout |
+| M2 — Ceiling appearance and data controls | 2026-12-13 | Prepared RGB8/J2016 data, Hipparcos-first catalogue workflow, magnitude-driven light, accepted glow/scintillation and retained closeout checks |
 | M3 — Benchmarking and regression evidence | After M2; date unassigned | Separate developer executable; operation, pipeline and rendering costs, memory/scaling curves, reproducible before/after comparisons and image correctness |
 | M4 — Project documentation | After M3, before M5; date unassigned | Consolidated usage, development, data/model conventions and benchmark methodology |
 | M5 — Observer, time and camera | 2027-02-28 | Validated observer/time behavior, astronomical progression, camera movement and zoom with declared projection/orientation |

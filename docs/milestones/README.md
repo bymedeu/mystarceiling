@@ -9,7 +9,9 @@ work starts.
 | --- | --- | --- |
 | M1 — Fixed Toulouse sky | Complete on 2026-09-13 | [M1 record](m1-fixed-toulouse-sky.md) |
 
-M2 remains active: [appearance/data plan](m2-ceiling-appearance.md).
+The implemented M2 scope has an [engineering closeout](m2-ceiling-appearance.md#engineering-closeout--2026-10-30),
+with the optional headless leak-check limitation and broader understanding
+checkpoint kept explicit.
 [M3 benchmarking](m3-benchmarking.md) follows, then M4 documentation before
 M5. Camera movement/zoom belongs to M5. M6 is high-usage measurement/optimization,
 including the historical large-catalogue milestone (formerly M7); 1M is not a

@@ -116,7 +116,7 @@ viewing quantity. The accepted output is:
 ```text
 Catalogue: /path/to/catalogue.bin
 Records: 4096
-File size: 303136 bytes (0.000303 GB)
+File size: 278560 bytes (0.000279 GB)
 ```
 
 The byte count is exact. GB means 1,000,000,000 bytes. Use ordinary decimal
