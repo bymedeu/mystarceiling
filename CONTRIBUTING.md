@@ -77,6 +77,9 @@ to 10, including Python. Cppcheck analyzes source and test translation units wit
 project includes; included headers get their real usage context. It does not
 replace GCC compilation. Clang-tidy remains local: use `clang-tidy <source.cpp>
 -p build/quality --warnings-as-errors='*'` for each first-party translation unit.
+When Clang rejects GCC's `-freflection` option, use a temporary copy of the compile
+database with only that option removed. Keep the production GCC flags and all
+configured source diagnostics unchanged.
 
 Use the [shared language hooks](https://github.com/bymedeu/config/tree/main/git)
 and their documented explicit tool installation and global activation. MSC needs
@@ -130,11 +133,14 @@ download or bundled provider is introduced. An unavailable context is reported
 as a GTest skip with its reason; skipped tests do not establish GPU validation.
 Once a context is available, shader, allocation and assertion failures fail tests.
 The target receives the same first-party warning and sanitizer policy as the
-existing tests. On the recorded GLFW/Mesa stack, optional leak-enabled headless
-runs currently fail at process exit despite passing assertions; the
-[verification record](docs/decisions/stellar-appearance-trial.md#retained-regression-checks--2026-10-30)
-describes the standalone reproduction. Treat that as an unresolved platform
-limitation, not a clean sanitizer result; no suppression is installed.
+existing tests. In x86 sanitizer builds, CTest sets
+`GALLIUM_OVERRIDE_CPU_CAPS=nosse` only for these headless tests. This documented
+Mesa portable-path override avoids a driver-unload allocation report while
+keeping ASan, UBSan and leak detection enabled. Ordinary tests and the viewer use
+the default driver path. Direct invocation of the test executable does not apply
+CTest's environment property; set the override explicitly for that case. See the
+[workaround evidence and coverage limits](docs/decisions/stellar-appearance-trial.md#headless-leak-check-workaround--2026-10-31).
+This is a test-only workaround, not a Mesa fix or a performance configuration.
 
 Checks exercise production shader code, compact instance upload, light
 accumulation and display drawing. They compare CPU/shader light before tone

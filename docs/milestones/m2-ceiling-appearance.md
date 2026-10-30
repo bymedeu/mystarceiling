@@ -147,7 +147,9 @@ Perceived-colour desaturation still needs a selected model. Camera/time work is
 M5; shared-animation alternatives and performance evidence belong to M3/M6.
 Calibration, physical realism and extreme-uptime accuracy are not claimed.
 
-The implemented scope has retained engineering validation, with the optional
-headless leak-check limitation explicit in the viewer record. This does not close
+The implemented scope has retained engineering validation. The later
+[headless leak-check workaround](../decisions/stellar-appearance-trial.md#headless-leak-check-workaround--2026-10-31)
+passes all 224 tests with leak detection enabled; its test-only provider override
+and default-driver coverage limitation remain explicit. This does not close
 the separate [understanding checkpoint](../project-state.md#required-understanding-checkpoint)
 or claim demonstrated owner mastery. M3 has not started.

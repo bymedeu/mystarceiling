@@ -198,7 +198,7 @@ Mesa 26.2.4-arch1.1; a second run passed all six assertions on softpipe, OpenGL
 3.3 Core. These software-provider checks are not performance measurements or
 native-display/physical calibration.
 
-The optional leak-enabled headless runs report two indirect 56-byte allocations
+At that checkpoint, the optional leak-enabled headless runs reported two indirect 56-byte allocations
 per created/drawn GLFW context after teardown (112 bytes per isolated CTest case;
 672 bytes when all six cases share one process invocation). The same report
 reproduced in a standalone GLFW null/EGL triangle draw with no MSC or GTest code,
@@ -206,9 +206,54 @@ on both software renderers. A direct-EGL triangle draw was leak-free; explicit
 EGL thread release did not resolve the GLFW-path report. This localizes the
 reproduction to the external context/driver path but does not identify its exact
 allocation owner. No suppression, sanitizer disabling, vendor patch or hidden
-passing status was added. Full leak-clean headless validation remains unresolved
-on this provider stack; it must not be reported as a passing 224-test sanitizer
-suite. The standard default-OFF GPU option leaves existing checks unchanged.
+passing status was added. Full leak-clean headless validation was unresolved
+on that provider stack at this checkpoint; the later workaround below establishes
+a passing result only for its explicitly changed test environment. The standard
+default-OFF GPU option leaves existing checks unchanged.
+
+## Headless leak-check workaround — 2026-10-31
+
+Further local investigation mapped the two allocation stacks to
+`libgallium-26.2.4-arch1.1.so`. Disassembly matches the two 56-byte allocator nodes
+created by `u_mmInit` for a global 10 MiB executable heap. This identifies Mesa's
+RTASM heap as the likely owner by comparison with the
+[RTASM source](https://chromium.googlesource.com/chromium/deps/mesa/+/3a0db227ffe90888ad760c61a63226988c974e00/src/gallium/auxiliary/rtasm/rtasm_execmem.c);
+the installed module had no matching debug symbols. This is source-pattern and
+runtime evidence, not a symbolized source-line attribution.
+
+The [documented Mesa override](https://docs.mesa3d.org/drivers/llvmpipe.html)
+`GALLIUM_OVERRIDE_CPU_CAPS=nosse` avoids that helper path. The standalone GLFW
+reproduction and all six production-renderer checks exit cleanly with this
+setting. CMake now applies it through a CTest environment property only to the
+optional OpenGL tests in x86 sanitizer builds. Leak detection remains enabled;
+there is no LSan suppression, driver pinning or vendor patch. The underlying
+allocation report with the default driver path is not fixed upstream by this
+change. The ordinary test suite and native viewer retain that default path.
+
+Verification after the cleanup:
+
+| Check | Result |
+| --- | --- |
+| Ordinary warning-as-error build and CTest | All 224 passed; no skips; default Mesa path |
+| ASan/UBSan/leak-enabled build and CTest | All 224 passed; no skips; portable Mesa override for the six OpenGL cases |
+| Offline Python tests | All 35 passed |
+| Cppcheck, Lizard, C++ formatting and whitespace | Passed |
+| Configured clang-tidy include checks | All 51 first-party translation units passed; temporary database omitted only GCC's unsupported `-freflection` option |
+| Ruff syntax/import/undefined-name checks | Passed for all four Python files |
+| Ruff formatting audit | Existing drift in `acquire_gaia.py` and `test_acquire_gaia.py`; unchanged in this bounded cleanup |
+
+The audit removed unused `foo` scaffolding and the empty CLI header, corrected
+direct includes, and avoided a redundant shift when serializing a byte-sized
+field. Existing byte/round-trip tests pass without a binary-format change. Both
+`build/quality` and the older `build` viewer executables were rebuilt. The Python
+formatting drift is a separate maintenance finding: applying the formatter also
+makes an acquisition function exceed the physical-length rule, so a useful
+refactor should accompany it rather than suppressing either check.
+
+These results validate the tested paths; software-provider coverage and the
+portable-path sanitizer workaround do not establish native-driver leak freedom,
+physical colour accuracy or performance. Perceived-colour reduction is still
+unimplemented.
 
 ## Scientific references
 

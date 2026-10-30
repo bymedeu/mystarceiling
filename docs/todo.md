@@ -54,9 +54,12 @@ is the canonical record of the current approximations and remaining design detai
   including signed frame-averaging weights, changing frames and freeze/resume.
   Run the opt-in [headless renderer checks](../CONTRIBUTING.md#headless-renderer-regression-checks);
   unsupported context providers are reported as skips, not validation passes.
-- [ ] Resolve the optional headless GLFW/Mesa leak-check limitation before
-  claiming leak-clean OpenGL validation on that provider stack; retain the
-  [standalone reproduction evidence](decisions/stellar-appearance-trial.md#retained-regression-checks--2026-10-30).
+- [x] Make optional headless leak checks pass with leak detection enabled using
+  a test-only Mesa portable-path override. Retain the
+  [workaround evidence and default-driver limitation](decisions/stellar-appearance-trial.md#headless-leak-check-workaround--2026-10-31).
+- [ ] Format the two Gaia Python files together with a focused acquisition-function
+  refactor, preserving the existing recovery/checkpoint behavior and physical-length
+  limit; see the [audit finding](decisions/stellar-appearance-trial.md#headless-leak-check-workaround--2026-10-31).
 - [ ] Revisit extreme-uptime phase/midpoint precision before claiming long-time
   averaging accuracy. The independent review found midpoint rounding at 1e12
   animation seconds; that is separate from astronomical epoch/time handling.

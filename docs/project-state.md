@@ -1,14 +1,16 @@
 # Current project state
 
-Last updated: 2026-10-30.
+Last updated: 2026-10-31.
 
 This is the short hand-off record for continuing MSC from another account or
 session. Detailed decisions remain in the linked focused documents.
 
 M1 is complete on 2026-09-13. The implemented M2 appearance/data-control scope
 is engineering-validated; see its [closeout checklist](milestones/m2-ceiling-appearance.md#engineering-closeout--2026-10-30).
-Optional headless leak checking has an unresolved platform report; see the
-[verification limits](decisions/stellar-appearance-trial.md#retained-regression-checks--2026-10-30).
+All 224 ordinary and leak-enabled sanitizer tests now pass, including the six
+optional headless OpenGL checks. Sanitizer checks use a test-only Mesa override;
+see the [workaround and coverage limits](decisions/stellar-appearance-trial.md#headless-leak-check-workaround--2026-10-31).
+The viewer retains its default driver path and does not yet desaturate faint stars.
 The separate understanding checkpoint remains open. M3 benchmarking has not started.
 
 The first bounded M2 refactor separates source-independent
