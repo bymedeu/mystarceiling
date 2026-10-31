@@ -45,10 +45,50 @@ precise photometric colour calibration and actual perceived night-vision colour
 are not reconstructed by this model. More expensive preparation could replace
 the model later without changing the RGB consumer boundary.
 
-The owner's [proposed perceived-colour treatment](ceiling-product-output.md#proposed-perceived-colour)
-would reduce saturation toward grey as visibility decreases while preserving
-original catalogue RGB. No visibility algorithm, threshold or implementation is
-selected.
+## Faint-star desaturation — 2026-10-31
+
+The owner requested implementing the earlier greyward appearance direction.
+The native viewer now reduces saturation for faint stars without modifying
+catalogue RGB or magnitude. No catalogue rebuild or new control is required.
+The initial implementation uses magnitude as a visibility proxy: full colour at
+G-like magnitude 1 and brighter, a smooth transition over 1–5, then neutral grey
+at 5 and fainter. The agent selected these initial internal endpoints for visual
+review; they are not calibrated thresholds for human vision.
+
+For magnitude `m`, let `t = clamp((m-1)/4, 0, 1)` and
+`s = 1 - t*t*(3-2*t)`. Saturation is 1, 0.84375, 0.5, 0.15625 and 0 at
+magnitudes 1, 2, 3, 4 and 5 respectively. For linear RGB light `L`, use
+`Y = 0.2126*L.r + 0.7152*L.g + 0.0722*L.b` and
+`result = Y + s*(L-Y)` per channel. These are the
+[linear-sRGB relative-luminance coefficients](https://www.w3.org/TR/WCAG22/#dfn-relative-luminance),
+not a rod-response or night-adaptation model.
+
+Apply the mix after the existing RGB flicker gain and before the shared spatial
+profile, light accumulation and display transfer. That also fades colour pulses
+for faint stars while retaining their time-varying linear luminance; applying
+it before RGB flicker would reintroduce colour afterwards. The weights sum to
+one, so the mix preserves linear luminance. The existing maximum-channel tone
+map can still change final displayed luminance as channel proportions change.
+Catalogue magnitude, flicker generation, support footprint and 30 fps pacing
+are unchanged.
+
+The vertex shader uses existing inputs, adding a bounded amount of arithmetic
+per quad vertex (four evaluations per source). It adds no per-star storage,
+buffer transfer, fragment work, draw call or texture pass. This is an inspection
+of the work added, not a measured performance claim. Later background light,
+glare, working brightness and adaptation should supply a separately selected
+visibility treatment; this baseline does not model those conditions, move culling
+thresholds or reinterpret catalogue photometry.
+
+Verification: all 226 C++ checks pass in ordinary and ASan/UBSan/leak-enabled
+builds with no skips, including eight headless renderer cases. The documented
+[test-only Mesa override](stellar-appearance-trial.md#headless-leak-check-workaround--2026-10-31)
+remains in effect for the sanitized OpenGL cases. Tests cover the sampled fade
+curve for red and blue sources, preserved linear luminance and hue differences,
+continued achromatic faint-source flicker, CPU/shader agreement, freeze/resume
+and the existing display transfer. Cppcheck, Lizard, formatting and configured
+include checks pass. Independent dcodex review found no correctness defects;
+native visual acceptance and performance measurements remain separate.
 
 ## References
 

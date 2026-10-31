@@ -93,30 +93,48 @@ namespace
         return result;
     }
 
-    void expect_reference(const VertexLights& light, const TrialStar& star,
-                          const trial::State& state)
+    std::array<double, 3> reference_light(const TrialStar& star,
+                                          const trial::State& state)
     {
         const auto frame =
             scintillation_frame(state.clock.seconds(), state.clock.exposure());
         const auto gain = sample_twinkle(star.animation_key, frame,
                                          star.enu.z(), state.settings.twinkle);
-        const std::array channels{star.colour.red, star.colour.green,
-                                  star.colour.blue};
+        std::array light{star.colour.red / 255.0 * gain[0],
+                         star.colour.green / 255.0 * gain[1],
+                         star.colour.blue / 255.0 * gain[2]};
+        const auto t = std::clamp((star.magnitude - 1.0) / 4.0, 0.0, 1.0);
+        const auto saturation = 1.0 - t * t * (3.0 - 2.0 * t);
+        const auto luminance =
+            0.2126 * light[0] + 0.7152 * light[1] + 0.0722 * light[2];
+        const auto brightness =
+            state.settings.brightness * std::pow(10.0, -0.4 * star.magnitude);
+        std::ranges::transform(
+            light, light.begin(),
+            [brightness, luminance, saturation](double channel)
+            {
+                return brightness *
+                    (luminance + saturation * (channel - luminance));
+            });
+        return light;
+    }
+
+    void expect_reference(const VertexLights& light, const TrialStar& star,
+                          const trial::State& state)
+    {
+        const auto expected = reference_light(star, state);
+        const auto scale =
+            state.settings.brightness * std::pow(10.0, -0.4 * star.magnitude);
         for (std::size_t vertex = 0; vertex < light.size(); ++vertex)
-            for (std::size_t channel = 0; channel < gain.size(); ++channel)
+            for (std::size_t channel = 0; channel < expected.size(); ++channel)
             {
                 SCOPED_TRACE(testing::Message()
                              << "vertex=" << vertex << " channel=" << channel);
-                const auto base = channels[channel] / 255.0 *
-                    state.settings.brightness *
-                    std::pow(10.0, -0.4 * star.magnitude);
-                // Absolute gain error: float phase reduction/trig and a
-                // 24-term sum, amplified by response slope <=10 and
-                // strength 0.12. 2e-5 is ~170 float epsilons; scale by
-                // source light, not by the (possibly dark) modulated
-                // channel value.
-                EXPECT_NEAR(light[vertex][channel], base * gain[channel],
-                            2e-5 * base);
+                // Float phase/trig, the 24-band sum and response slope <=10
+                // bound gain error. The convex colour mix cannot amplify it;
+                // scale by unmodulated light, including formerly zero channels.
+                EXPECT_NEAR(light[vertex][channel], expected[channel],
+                            2e-5 * scale);
             }
     }
 

@@ -63,6 +63,41 @@ namespace
                 << "linear RGB8 channel=" << channel;
     }
 
+    double luminance(const SourcePixel& light)
+    {
+        return 0.2126 * light[0] + 0.7152 * light[1] + 0.0722 * light[2];
+    }
+
+    void expect_fade(OpenGlContext& context, LinearRgb8 colour)
+    {
+        TrialStar star{{0, 0, 1}, 1, colour, {81, 9}};
+        ASSERT_NO_FATAL_FAILURE(context.initialize_scene(std::array{star}));
+        ASSERT_NO_FATAL_FAILURE(context.draw());
+        const auto bright = context.source_pixel(32, 32);
+        ASSERT_NO_FATAL_FAILURE(expect_rgb_proportions(bright, colour));
+        // Independent samples of the selected smooth transition, including
+        // both endpoints and the faint region beyond the transition.
+        constexpr std::array saturation{1.0, 0.84375, 0.5, 0.15625, 0.0, 0.0};
+        for (std::size_t index = 0; index < saturation.size(); ++index)
+        {
+            star.magnitude = double(index + 1);
+            SCOPED_TRACE(testing::Message() << "magnitude=" << star.magnitude);
+            ASSERT_NO_FATAL_FAILURE(context.initialize_scene(std::array{star}));
+            ASSERT_NO_FATAL_FAILURE(context.draw());
+            const auto light = context.source_pixel(32, 32);
+            const auto gain = std::pow(10.0, -0.4 * double(index));
+            const auto expected_luminance = luminance(bright) * gain;
+            const auto tolerance = 5e-6 * expected_luminance;
+            EXPECT_NEAR(luminance(light), expected_luminance, tolerance);
+            for (std::size_t channel = 0; channel < 2; ++channel)
+                EXPECT_NEAR(light[channel] - light[channel + 1],
+                            (bright[channel] - bright[channel + 1]) * gain *
+                                saturation[index],
+                            tolerance);
+            expect_display_transfer(light, display_pixel(32, 32));
+        }
+    }
+
     void expect_eight_bit_colour()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -226,4 +261,38 @@ TEST(OpenGlRegression, MagnitudeCutoffRetainsOffscreenEdgeLight)
     ASSERT_NO_FATAL_FAILURE(context.initialize_scene(std::array{star}));
     ASSERT_NO_FATAL_FAILURE(context.draw());
     EXPECT_EQ(context.source_pixel(63, 32), (SourcePixel{0, 0, 0}));
+}
+
+TEST(OpenGlRegression, FaintColourFadesWithoutChangingLinearLuminance)
+{
+    OpenGlContext context;
+    const auto available = context.open();
+    if (!available)
+        GTEST_SKIP() << available.error();
+    context.state.settings.twinkle.strength = 0;
+    for (const auto colour : {LinearRgb8{255, 32, 8}, LinearRgb8{8, 32, 255}})
+        ASSERT_NO_FATAL_FAILURE(expect_fade(context, colour));
+}
+
+TEST(OpenGlRegression, FaintStarsKeepFlickeringWithoutColourPulses)
+{
+    OpenGlContext context;
+    const auto available = context.open();
+    if (!available)
+        GTEST_SKIP() << available.error();
+    const TrialStar star{{0.6, 0, 0.8}, 5.5, {255, 32, 8}, {81, 9}};
+    ASSERT_NO_FATAL_FAILURE(context.initialize_scene(std::array{star}));
+    ASSERT_NO_FATAL_FAILURE(context.draw());
+    const auto initial = context.source_pixel(56, 32);
+    ASSERT_GT(initial[0], 0.0F);
+    for (int frame = 0; frame < 6; ++frame)
+    {
+        context.state.clock.advance(1.0 / 30);
+        ASSERT_NO_FATAL_FAILURE(context.draw());
+        const auto light = context.source_pixel(56, 32);
+        ASSERT_GT(light[0], 0.0F);
+        EXPECT_NEAR(light[0], light[1], 5e-6 * light[0]);
+        EXPECT_NEAR(light[0], light[2], 5e-6 * light[0]);
+    }
+    EXPECT_NE(initial, context.source_pixel(56, 32));
 }

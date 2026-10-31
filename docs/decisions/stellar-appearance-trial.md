@@ -124,8 +124,9 @@ Above-horizon sources outside the viewport remain available for edge footprints.
 Projection uses actual framebuffer aspect and the existing 90-degree vertical FOV.
 
 The CPU prepares 24 shared three-float frequency records (288 bytes) per frame.
-The vertex shader evaluates the signal; instanced quads accumulate linear light
-in RGBA32F. A final pass compresses highlights and encodes sRGB once. The float
+The vertex shader evaluates the signal and then applies the later
+[faint-star colour reduction](stellar-colour.md#faint-star-desaturation--2026-10-31);
+instanced quads accumulate linear light in RGBA32F. A final pass compresses highlights and encodes sRGB once. The float
 attachment uses `width*height*16` bytes, about 14.1 MiB at 1280x720, excluding
 other buffers and driver allocations. Resize reallocates it.
 
@@ -252,8 +253,10 @@ refactor should accompany it rather than suppressing either check.
 
 These results validate the tested paths; software-provider coverage and the
 portable-path sanitizer workaround do not establish native-driver leak freedom,
-physical colour accuracy or performance. Perceived-colour reduction is still
-unimplemented.
+physical colour accuracy or performance. Perceived-colour reduction was
+unimplemented at this audit checkpoint; the later
+[faint-star appearance update](stellar-colour.md#faint-star-desaturation--2026-10-31)
+adds it without changing the catalogue or this workaround.
 
 ## Scientific references
 

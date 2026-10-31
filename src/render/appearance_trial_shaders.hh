@@ -35,6 +35,12 @@ vec3 twinkle() {
     // Approved baseline response; not an exposure-integrated physical model.
     return vec3(1.0)+0.9*tanh(10.0*deviation/0.9);
 }
+vec3 perceived_colour(vec3 light) {
+    // Visual approximation: retain bright-star colour, fade faint stars to grey.
+    float saturation=1.0-smoothstep(1.0,5.0,magnitude);
+    float luminance=dot(light,vec3(0.2126,0.7152,0.0722));
+    return mix(vec3(luminance),light,saturation);
+}
 void main() {
     vec2 corner=vec2((gl_VertexID&1)==0 ? -1.0:1.0,
                      (gl_VertexID&2)==0 ? -1.0:1.0);
@@ -42,8 +48,8 @@ void main() {
     vec2 centre=vec2(enu.x*framebuffer_size.y/framebuffer_size.x,enu.y);
     vec2 expanded=centre+2.0*pixel_offset/framebuffer_size*enu.z;
     gl_Position=vec4(expanded,0.0,enu.z);
-    star_light=catalogue_colour*brightness*
-        pow(10.0,-0.4*clamp(magnitude,-30.0,30.0))*twinkle();
+    star_light=perceived_colour(catalogue_colour*twinkle())*brightness*
+        pow(10.0,-0.4*clamp(magnitude,-30.0,30.0));
     if(enu.z<=0.0 || magnitude>limiting_magnitude) {
         gl_Position=vec4(2.0,2.0,2.0,1.0);
         star_light=vec3(0.0);

@@ -95,12 +95,12 @@ release promises:
 
 ## Proposed perceived colour
 
-The owner proposes reducing saturation toward grey as visibility decreases in
-the naked-eye view. This follows perceived visibility rather than catalogue
-magnitude alone. Preserve original catalogue RGB as the baseline and keep any
-perceptual treatment separate. No visibility algorithm, threshold or
-implementation is selected or approved. This remains a future appearance
-decision, rather than an unspecified extra M2 implementation requirement.
+The owner proposed reducing saturation toward grey as visibility decreases,
+then requested implementation on 2026-10-31. The native viewer now implements
+an initial [magnitude-based appearance approximation](stellar-colour.md#faint-star-desaturation--2026-10-31)
+while preserving original catalogue RGB. A later visibility treatment may use
+working brightness and observing conditions; the current fade does not add such
+a detectability model or change which sources are selected.
 
 ## Appearance, exposure and data limits
 

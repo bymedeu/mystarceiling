@@ -142,9 +142,10 @@ source coverage, and the accepted animated native viewer at the ×1 response and
 - [x] Run the quality checks and record the current verification evidence in the
   [viewer record](../decisions/stellar-appearance-trial.md#retained-regression-checks--2026-10-30).
 
-No additional M2 code is selected by the remaining appearance-control ideas.
-Perceived-colour desaturation still needs a selected model. Camera/time work is
-M5; shared-animation alternatives and performance evidence belong to M3/M6.
+The owner subsequently requested faint-star desaturation on 2026-10-31. That
+[initial visual approximation](../decisions/stellar-colour.md#faint-star-desaturation--2026-10-31)
+is implemented; no additional appearance controls are selected. Camera/time work
+is M5; shared-animation alternatives and performance evidence belong to M3/M6.
 Calibration, physical realism and extreme-uptime accuracy are not claimed.
 
 The implemented scope has retained engineering validation. The later

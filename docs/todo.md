@@ -88,9 +88,10 @@ is the canonical record of the current approximations and remaining design detai
 
 - [ ] Implement camera movement and zoom during M5, with declared projection and
   orientation; keep camera motion independent of astronomical time.
-- [ ] Discuss the proposed [perceived-colour reduction](decisions/ceiling-product-output.md#proposed-perceived-colour)
-  toward grey as visibility decreases. Preserve original catalogue RGB. No
-  visibility algorithm, threshold or implementation is selected or approved.
+- [x] Implement initial [faint-star desaturation](decisions/stellar-colour.md#faint-star-desaturation--2026-10-31)
+  toward grey while preserving catalogue RGB and linear luminance. The current
+  magnitude proxy is a visual approximation; future condition-dependent visibility
+  remains a separately scoped model.
 
 ## Optional extensions
 

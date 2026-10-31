@@ -7,10 +7,12 @@ session. Detailed decisions remain in the linked focused documents.
 
 M1 is complete on 2026-09-13. The implemented M2 appearance/data-control scope
 is engineering-validated; see its [closeout checklist](milestones/m2-ceiling-appearance.md#engineering-closeout--2026-10-30).
-All 224 ordinary and leak-enabled sanitizer tests now pass, including the six
+All 226 ordinary and leak-enabled sanitizer tests now pass, including the eight
 optional headless OpenGL checks. Sanitizer checks use a test-only Mesa override;
 see the [workaround and coverage limits](decisions/stellar-appearance-trial.md#headless-leak-check-workaround--2026-10-31).
-The viewer retains its default driver path and does not yet desaturate faint stars.
+The viewer retains its default driver path. It now applies
+[faint-star desaturation](decisions/stellar-colour.md#faint-star-desaturation--2026-10-31)
+as a magnitude-based visual approximation, preserving catalogue RGB.
 The separate understanding checkpoint remains open. M3 benchmarking has not started.
 
 The first bounded M2 refactor separates source-independent
